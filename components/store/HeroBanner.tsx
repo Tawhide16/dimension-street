@@ -56,22 +56,34 @@ export default function HeroBanner({
             {displaySubtitle}
           </p>
 
-          {/* Buttons: Side-by-Side Bestsellers & Shop Pink */}
+          {/* Buttons: Side-by-Side Bestsellers & Shop Pink with Bottom-to-Top Fill Hover */}
           <div className="flex items-center gap-3 sm:gap-4 pt-2 sm:pt-3">
-            {/* Button 1: Solid White Rectangular Box */}
+            {/* Button 1: Solid White -> Fills with Black from Bottom to Top on Hover */}
             <Link
               href={ctaLink || "/shop"}
-              className="inline-flex items-center justify-center px-6 sm:px-8 py-2.5 sm:py-3 bg-white text-black text-xs sm:text-[13px] font-bold uppercase tracking-wider hover:bg-neutral-200 transition-colors shadow-sm cursor-pointer"
+              className="group relative inline-flex items-center justify-center px-6 sm:px-8 py-2.5 sm:py-3 bg-white text-black text-xs sm:text-[13px] font-bold uppercase tracking-wider overflow-hidden border border-white shadow-sm cursor-pointer select-none transition-colors duration-300"
             >
-              {displayCta}
+              {/* Slide-up Black Fill Layer */}
+              <span className="absolute inset-0 bg-black translate-y-full transition-transform duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:translate-y-0 pointer-events-none" />
+
+              {/* Text: Transitions to White */}
+              <span className="relative z-10 transition-colors duration-300 group-hover:text-white">
+                {displayCta}
+              </span>
             </Link>
 
-            {/* Button 2: Transparent Box with Crisp White Border */}
+            {/* Button 2: Transparent/Dark with White Border -> Fills with White from Bottom to Top on Hover */}
             <Link
               href={secondaryCtaLink || "/shop"}
-              className="inline-flex items-center justify-center px-6 sm:px-8 py-2.5 sm:py-3 bg-black/40 hover:bg-white hover:text-black border border-white text-white text-xs sm:text-[13px] font-bold uppercase tracking-wider backdrop-blur-xs transition-colors shadow-sm cursor-pointer"
+              className="group relative inline-flex items-center justify-center px-6 sm:px-8 py-2.5 sm:py-3 bg-black/50 text-white text-xs sm:text-[13px] font-bold uppercase tracking-wider overflow-hidden border border-white backdrop-blur-xs shadow-sm cursor-pointer select-none transition-colors duration-300"
             >
-              {displaySecondaryCta}
+              {/* Slide-up White Fill Layer */}
+              <span className="absolute inset-0 bg-white translate-y-full transition-transform duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:translate-y-0 pointer-events-none" />
+
+              {/* Text: Transitions to Black */}
+              <span className="relative z-10 transition-colors duration-300 group-hover:text-black">
+                {displaySecondaryCta}
+              </span>
             </Link>
           </div>
         </div>
