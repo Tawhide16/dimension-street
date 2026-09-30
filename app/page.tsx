@@ -36,7 +36,7 @@ export default async function HomePage() {
   const heroData = (heroSection?.data || {}) as Record<string, string>;
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-white" suppressHydrationWarning>
       {/* Top Banner */}
       <AnnouncementBar />
 
