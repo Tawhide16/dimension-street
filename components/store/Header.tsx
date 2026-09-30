@@ -12,14 +12,31 @@ export default function Header() {
   const { itemCount, openCart, wishlist } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const lastScrollY = useRef(0);
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      const currentScrollY = window.scrollY;
+
+      // Small threshold to avoid micro-jitter
+      if (Math.abs(currentScrollY - lastScrollY.current) > 5) {
+        if (currentScrollY <= 20) {
+          setIsVisible(true);
+        } else if (currentScrollY > lastScrollY.current && currentScrollY > 60) {
+          // Scrolling down: slide up and hide smoothly
+          setIsVisible(false);
+          setMenuOpen(false);
+        } else if (currentScrollY < lastScrollY.current) {
+          // Scrolling up: slide down smoothly
+          setIsVisible(true);
+        }
+        lastScrollY.current = currentScrollY;
+      }
     };
-    window.addEventListener("scroll", handleScroll);
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -68,7 +85,11 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-transparent border-b border-transparent transition-all duration-300">
+    <header
+      className={`sticky top-0 z-50 w-full bg-transparent border-b border-transparent transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+        isVisible ? "translate-y-0" : "-translate-y-full"
+      }`}
+    >
       <div className="w-full px-4 sm:px-8 lg:px-12 xl:px-16">
         <div className="flex items-center justify-between h-20 sm:h-22 relative">
           {/* Left: Brand Logo */}

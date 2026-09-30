@@ -34,7 +34,7 @@ export default function Logo({
           alt="DIMENSION STREET"
           width={200}
           height={200}
-          className="h-full w-auto object-contain mix-blend-multiply drop-shadow-[0_2px_8px_rgba(255,255,255,0.6)]"
+          className="h-full w-auto object-contain mix-blend-multiply"
           priority
         />
       </div>
