@@ -17,54 +17,65 @@ interface HeroBannerProps {
 export default function HeroBanner({
   title = "HERO BANNER",
   subtitle = "Primary Homepage Billboard",
-  ctaText = "SHOP COLLECTION",
+  ctaText = "BESTSELLERS",
   ctaLink = "/shop",
-  secondaryCtaText,
-  secondaryCtaLink,
+  secondaryCtaText = "SHOP PINK",
+  secondaryCtaLink = "/shop",
   backgroundImage = "/images/hero-banner.jpg",
 }: HeroBannerProps) {
-  // Check if title is default placeholder text
-  const isDefaultPlaceholder = !title || title === "HERO BANNER" || title === "Primary Homepage Billboard";
+  const displayTitle = title || "HERO BANNER";
+  const displaySubtitle = subtitle || "Primary Homepage Billboard";
+  const displayCta = ctaText || "BESTSELLERS";
+  const displaySecondaryCta = secondaryCtaText || "SHOP PINK";
 
   return (
-    <section className="relative w-full aspect-[2.34/1] min-h-[280px] sm:min-h-[380px] md:min-h-[460px] lg:min-h-[540px] max-h-[780px] overflow-hidden bg-[#e8e4c9]">
-      <Link href={ctaLink} className="group block relative w-full h-full cursor-pointer select-none">
-        {/* Full-width Panoramic Banner Image */}
-        <div className="absolute inset-0">
-          <Image
-            src={backgroundImage}
-            alt="Denim Campaign Banner - Are You Ready?"
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.015]"
-          />
-        </div>
+    <section className="relative w-full aspect-[2.34/1] min-h-[300px] sm:min-h-[400px] md:min-h-[480px] lg:min-h-[560px] max-h-[780px] overflow-hidden bg-black select-none">
+      {/* Full-width Panoramic Banner Image (Untouched) */}
+      <div className="absolute inset-0">
+        <Image
+          src={backgroundImage}
+          alt="Campaign Hero Banner"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center"
+        />
+      </div>
 
-        {/* If custom title is provided in CMS (and not placeholder), render text overlay */}
-        {!isDefaultPlaceholder && (
-          <div className="relative z-10 w-full h-full flex flex-col justify-end px-6 sm:px-12 lg:px-16 pb-8 sm:pb-12 bg-gradient-to-t from-black/70 via-transparent to-transparent">
-            <div className="max-w-2xl space-y-2">
-              <h1 className="text-3xl sm:text-5xl font-black uppercase text-white tracking-tight drop-shadow-md">
-                {title}
-              </h1>
-              {subtitle && (
-                <p className="text-xs sm:text-sm text-neutral-200 drop-shadow-sm">
-                  {subtitle}
-                </p>
-              )}
-            </div>
-          </div>
-        )}
+      {/* Subtle Gradient Scrim on Bottom-Left for Readability */}
+      <div className="absolute inset-0 z-10 flex flex-col justify-end px-6 sm:px-12 lg:px-16 pb-8 sm:pb-12 md:pb-14 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none">
+        {/* Text Content & Buttons Layout - Matching User's Reference */}
+        <div className="max-w-xl space-y-2 sm:space-y-3 pointer-events-auto">
+          {/* Main Title */}
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-black uppercase text-white tracking-tight leading-none drop-shadow-md">
+            {displayTitle}
+          </h1>
 
-        {/* Subtle Bottom-Right Floating Pill CTA Button */}
-        <div className="absolute bottom-4 sm:bottom-6 md:bottom-8 right-4 sm:right-8 z-10">
-          <div className="flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-2.5 bg-black/85 hover:bg-black text-white text-[11px] sm:text-xs font-mono font-bold uppercase tracking-wider rounded-full shadow-lg backdrop-blur-xs transition-all duration-300 group-hover:scale-105 group-hover:bg-black">
-            <span>{ctaText || "SHOP NOW"}</span>
-            <span className="transition-transform group-hover:translate-x-1">&rarr;</span>
+          {/* Subtitle */}
+          <p className="text-xs sm:text-sm md:text-base font-normal text-white/90 drop-shadow-sm">
+            {displaySubtitle}
+          </p>
+
+          {/* Buttons: Side-by-Side Bestsellers & Shop Pink */}
+          <div className="flex items-center gap-3 sm:gap-4 pt-2 sm:pt-3">
+            {/* Button 1: Solid White Rectangular Box */}
+            <Link
+              href={ctaLink || "/shop"}
+              className="inline-flex items-center justify-center px-6 sm:px-8 py-2.5 sm:py-3 bg-white text-black text-xs sm:text-[13px] font-bold uppercase tracking-wider hover:bg-neutral-200 transition-colors shadow-sm cursor-pointer"
+            >
+              {displayCta}
+            </Link>
+
+            {/* Button 2: Transparent Box with Crisp White Border */}
+            <Link
+              href={secondaryCtaLink || "/shop"}
+              className="inline-flex items-center justify-center px-6 sm:px-8 py-2.5 sm:py-3 bg-black/40 hover:bg-white hover:text-black border border-white text-white text-xs sm:text-[13px] font-bold uppercase tracking-wider backdrop-blur-xs transition-colors shadow-sm cursor-pointer"
+            >
+              {displaySecondaryCta}
+            </Link>
           </div>
         </div>
-      </Link>
+      </div>
     </section>
   );
 }

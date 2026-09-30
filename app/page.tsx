@@ -46,12 +46,12 @@ export default async function HomePage() {
       <main className="flex-1 -mt-[84px]">
         {/* 1. Hero Banner */}
         <HeroBanner
-          title={heroSection?.title || ""}
-          subtitle={heroSection?.subtitle || ""}
-          ctaText={heroData.ctaText || "SHOP NOW"}
+          title={heroSection?.title || "HERO BANNER"}
+          subtitle={heroSection?.subtitle || "Primary Homepage Billboard"}
+          ctaText={heroData.ctaText && heroData.ctaText !== "SHOP COLLECTION" && heroData.ctaText !== "SHOP NOW" ? heroData.ctaText : "BESTSELLERS"}
           ctaLink={heroData.ctaLink || "/shop"}
-          secondaryCtaText={heroData.secondaryCtaText}
-          secondaryCtaLink={heroData.secondaryCtaLink}
+          secondaryCtaText={heroData.secondaryCtaText || "SHOP PINK"}
+          secondaryCtaLink={heroData.secondaryCtaLink || "/shop"}
           backgroundImage={heroData.backgroundImage || "/images/hero-banner.jpg"}
         />
 
