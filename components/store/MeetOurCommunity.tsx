@@ -101,37 +101,38 @@ export default function MeetOurCommunity() {
         MEET OUR COMMUNITY
       </h2>
 
-      {/* 5 Cards Row Container (Aligned to bottom so Middle Card stands taller at the top) */}
-      <div className="flex items-end justify-center gap-2 sm:gap-2.5 lg:gap-3 overflow-x-auto pb-4 pt-10 sm:pt-12 px-1 scrollbar-none snap-x snap-mandatory">
-        {COMMUNITY_CARDS.map((card) => {
-          const isFeatured = card.isMiddleFeatured;
+      {/* 5 Cards Row Container - Full Width Edge-to-Edge with Taller Middle Card */}
+      <div className="w-full px-2 sm:px-4 lg:px-6">
+        <div className="flex lg:grid lg:grid-cols-5 items-end gap-2 sm:gap-2.5 lg:gap-3 overflow-x-auto lg:overflow-visible pb-4 pt-10 sm:pt-14 px-1 scrollbar-none snap-x snap-mandatory">
+          {COMMUNITY_CARDS.map((card) => {
+            const isFeatured = card.isMiddleFeatured;
 
-          return (
-            <div
-              key={card.id}
-              className={`flex-shrink-0 flex flex-col bg-white overflow-hidden transition-all duration-300 snap-center ${
-                isFeatured
-                  ? "w-[240px] sm:w-[260px] md:w-[220px] lg:w-[230px] xl:w-[245px] -mt-8 sm:-mt-10 z-10 shadow-lg"
-                  : "w-[200px] sm:w-[220px] md:w-[190px] lg:w-[198px] xl:w-[210px] shadow-xs"
-              }`}
-            >
-              {/* Photo Container */}
+            return (
               <div
-                className={`relative w-full overflow-hidden bg-neutral-900 ${
+                key={card.id}
+                className={`flex-shrink-0 lg:flex-shrink w-[72vw] sm:w-[46vw] md:w-[32vw] lg:w-full flex flex-col bg-white overflow-hidden transition-all duration-300 snap-center ${
                   isFeatured
-                    ? "h-[350px] sm:h-[390px] md:h-[410px] lg:h-[440px]"
-                    : "h-[300px] sm:h-[330px] md:h-[350px] lg:h-[375px]"
+                    ? "lg:-mt-12 lg:shadow-xl z-10"
+                    : "shadow-xs"
                 }`}
               >
-                <Image
-                  src={card.photoUrl}
-                  alt={card.productName}
-                  fill
-                  sizes="(max-width: 768px) 240px, 260px"
-                  className="object-cover object-center transition-transform duration-500 hover:scale-105"
-                  priority={isFeatured}
-                />
-              </div>
+                {/* Photo Container */}
+                <div
+                  className={`relative w-full overflow-hidden bg-neutral-900 ${
+                    isFeatured
+                      ? "h-[390px] sm:h-[430px] md:h-[460px] lg:h-[490px] xl:h-[540px]"
+                      : "h-[330px] sm:h-[370px] md:h-[400px] lg:h-[430px] xl:h-[475px]"
+                  }`}
+                >
+                  <Image
+                    src={card.photoUrl}
+                    alt={card.productName}
+                    fill
+                    sizes="(max-width: 640px) 72vw, (max-width: 1024px) 46vw, 20vw"
+                    className="object-cover object-center transition-transform duration-500 hover:scale-105"
+                    priority={isFeatured}
+                  />
+                </div>
 
               {/* Bottom Linked Product Bar matching reference image */}
               <div className="border border-neutral-200 border-t-0 p-2 sm:p-2.5 flex items-center justify-between gap-2 bg-white">
@@ -188,5 +189,6 @@ export default function MeetOurCommunity() {
         })}
       </div>
     </div>
+  </div>
   );
 }

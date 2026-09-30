@@ -141,14 +141,14 @@ export default function CommunityFeed({ reviews }: CommunityFeedProps) {
   const [activeReviewSlide, setActiveReviewSlide] = useState(0);
 
   return (
-    <section className="py-10 sm:py-12 bg-white">
-      <div className="w-full px-4 sm:px-8 lg:px-12 xl:px-16">
-        {/* Meet Our Community Reels Section matching reference image */}
-        <div className="mb-10">
-          <MeetOurCommunity />
-        </div>
+    <section className="py-10 sm:py-14 bg-white">
+      {/* Meet Our Community Section - Full Width Edge-to-Edge */}
+      <div className="w-full mb-12 sm:mb-16">
+        <MeetOurCommunity />
+      </div>
 
-        {/* What Our Community Says Section matching reference */}
+      {/* What Our Community Says Section with standard padding */}
+      <div className="w-full px-4 sm:px-8 lg:px-12 xl:px-16">
         <div className="border-t border-neutral-200 pt-8 sm:pt-10">
           {/* Header with Title and 4 Pagination Dots */}
           <div className="flex items-center justify-between pb-4 border-b border-neutral-200 mb-6">
