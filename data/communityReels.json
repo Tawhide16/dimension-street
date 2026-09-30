@@ -1,0 +1,82 @@
+[
+  {
+    "_id": "reel-1",
+    "title": "Gym Workout - Singh Stonewash Hoodie",
+    "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    "posterUrl": "/images/review_green_hoodie.jpg",
+    "product": {
+      "id": "prod-hoodie-grey",
+      "name": "Community club Singh hoodie - Grey stonewash",
+      "price": 13600,
+      "slug": "architectural-pullover-hoodie-480gsm",
+      "thumbnail": "/images/review_green_hoodie.jpg"
+    },
+    "likes": 1420,
+    "isActive": true,
+    "createdAt": "2026-09-30T05:37:24.939Z"
+  },
+  {
+    "_id": "reel-2",
+    "title": "Parking Garage Night Fit - Kaur Hoodie",
+    "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+    "posterUrl": "/images/bestseller_kaur_tote.jpg",
+    "product": {
+      "id": "prod-hoodie-brown",
+      "name": "Community club Singh hoodie - Brown",
+      "price": 4200,
+      "slug": "architectural-pullover-hoodie-480gsm",
+      "thumbnail": "/images/bestseller_singh_black_tee.jpg"
+    },
+    "likes": 2180,
+    "isActive": true,
+    "createdAt": "2026-09-30T05:37:24.939Z"
+  },
+  {
+    "_id": "reel-3",
+    "title": "Motion Streetwear Reel - Blue Hoodie",
+    "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+    "posterUrl": "/images/community_our_story.jpg",
+    "product": {
+      "id": "prod-hoodie-blue",
+      "name": "Community club Singh hoodie - Blue",
+      "price": 13600,
+      "slug": "architectural-pullover-hoodie-480gsm",
+      "thumbnail": "/images/review_green_hoodie.jpg"
+    },
+    "likes": 3490,
+    "isActive": true,
+    "createdAt": "2026-09-30T05:37:24.939Z"
+  },
+  {
+    "_id": "reel-4",
+    "title": "Misty Rooftop Skyline - Kaur Navy",
+    "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyBlazes.mp4",
+    "posterUrl": "/images/offer_closing_banner.jpg",
+    "product": {
+      "id": "prod-hoodie-navi",
+      "name": "Community club Kaur hoodie - Navi",
+      "price": 6500,
+      "slug": "architectural-pullover-hoodie-480gsm",
+      "thumbnail": "/images/bestseller_singh_black_tee.jpg"
+    },
+    "likes": 1890,
+    "isActive": true,
+    "createdAt": "2026-09-30T05:37:24.939Z"
+  },
+  {
+    "_id": "reel-5",
+    "title": "Outdoor Clapping Fit - Stonewashed Tee",
+    "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4",
+    "posterUrl": "/images/bestseller_baaj_tee.jpg",
+    "product": {
+      "id": "prod-tee-stonewash",
+      "name": "Black stone washed Singh T-shirt",
+      "price": 8400,
+      "slug": "dimension-isometric-heavyweight-tee",
+      "thumbnail": "/images/bestseller_baaj_tee.jpg"
+    },
+    "likes": 4120,
+    "isActive": true,
+    "createdAt": "2026-09-30T05:37:24.939Z"
+  }
+]

@@ -1,0 +1,1484 @@
+{
+  "products": [
+    {
+      "_id": "prod-2",
+      "name": "The Matrix Tech Pants",
+      "slug": "the-matrix-tech-pants",
+      "description": "Engineered for movement. Technical 4-way stretch fabric treated with a DWR water-repellent finish. Features concealable YKK zip pockets, ergonomic articulated knees, and an adjustable magnetic drawstring waistband.",
+      "shortDescription": "Water-resistant 4-way stretch tailored utility pants with magnetic cinch.",
+      "images": [
+        "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1517445312882-bc9910d016b7?auto=format&fit=crop&w=1200&q=85"
+      ],
+      "price": 135,
+      "compareAtPrice": 160,
+      "costPrice": 48,
+      "variants": [
+        {
+          "sku": "DIM-PNT-CHR-30",
+          "color": "Charcoal Slate",
+          "colorHex": "#2B2D2F",
+          "size": "30",
+          "price": 135,
+          "stock": 14
+        },
+        {
+          "sku": "DIM-PNT-CHR-32",
+          "color": "Charcoal Slate",
+          "colorHex": "#2B2D2F",
+          "size": "32",
+          "price": 135,
+          "stock": 22
+        },
+        {
+          "sku": "DIM-PNT-CHR-34",
+          "color": "Charcoal Slate",
+          "colorHex": "#2B2D2F",
+          "size": "34",
+          "price": 135,
+          "stock": 18
+        },
+        {
+          "sku": "DIM-PNT-OLV-30",
+          "color": "Military Olive",
+          "colorHex": "#3D4434",
+          "size": "30",
+          "price": 135,
+          "stock": 8
+        },
+        {
+          "sku": "DIM-PNT-OLV-32",
+          "color": "Military Olive",
+          "colorHex": "#3D4434",
+          "size": "32",
+          "price": 135,
+          "stock": 12
+        },
+        {
+          "sku": "DIM-PNT-OLV-34",
+          "color": "Military Olive",
+          "colorHex": "#3D4434",
+          "size": "34",
+          "price": 135,
+          "stock": 10
+        }
+      ],
+      "category": "pants",
+      "collectionName": "heavyweight",
+      "tags": [
+        "Techwear",
+        "Waterproof",
+        "Ergonomic",
+        "Cargo"
+      ],
+      "sku": "DIM-PNT-002",
+      "totalStock": 84,
+      "status": "active",
+      "featured": true,
+      "bestSeller": true,
+      "newArrival": false,
+      "rating": 4.8,
+      "reviewCount": 42,
+      "details": {
+        "fit": "Tapered leg with articulated darting. True to size.",
+        "material": "88% Recycled Technical Polyamide, 12% Spandex with matte DWR finish.",
+        "care": "Machine wash cold gentle. Do not bleach. Cool iron or steam if necessary.",
+        "shipping": "Express delivery across Bangladesh and worldwide via DHL Express."
+      },
+      "createdAt": "2026-08-12T11:00:00Z",
+      "updatedAt": "2026-09-26T12:00:00Z"
+    },
+    {
+      "_id": "prod-3",
+      "name": "Architectural Pullover Hoodie 480GSM",
+      "slug": "architectural-pullover-hoodie-480gsm",
+      "description": "An uncompromising heavyweight fleece. Milled to an imposing 480 GSM density. Double-layered crossover hood without drawstrings for an architectural sculptural collar, seamless kangaroo pocket, and deep ribbed cuffs.",
+      "shortDescription": "Ultra-dense 480 GSM French terry hoodie with clean crossover collar.",
+      "images": [
+        "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1200&q=85"
+      ],
+      "price": 120,
+      "compareAtPrice": 145,
+      "costPrice": 42,
+      "variants": [
+        {
+          "sku": "DIM-HD-WAS-S",
+          "color": "Washed Carbon",
+          "colorHex": "#1E1E1E",
+          "size": "S",
+          "price": 120,
+          "stock": 9
+        },
+        {
+          "sku": "DIM-HD-WAS-M",
+          "color": "Washed Carbon",
+          "colorHex": "#1E1E1E",
+          "size": "M",
+          "price": 120,
+          "stock": 16
+        },
+        {
+          "sku": "DIM-HD-WAS-L",
+          "color": "Washed Carbon",
+          "colorHex": "#1E1E1E",
+          "size": "L",
+          "price": 120,
+          "stock": 20
+        },
+        {
+          "sku": "DIM-HD-WAS-XL",
+          "color": "Washed Carbon",
+          "colorHex": "#1E1E1E",
+          "size": "XL",
+          "price": 120,
+          "stock": 11
+        },
+        {
+          "sku": "DIM-HD-BNE-M",
+          "color": "Bone Off-White",
+          "colorHex": "#EAE6DF",
+          "size": "M",
+          "price": 120,
+          "stock": 15
+        },
+        {
+          "sku": "DIM-HD-BNE-L",
+          "color": "Bone Off-White",
+          "colorHex": "#EAE6DF",
+          "size": "L",
+          "price": 120,
+          "stock": 14
+        }
+      ],
+      "category": "hoodies",
+      "collectionName": "heavyweight",
+      "tags": [
+        "480GSM",
+        "Heavyweight",
+        "French Terry",
+        "Essentials"
+      ],
+      "sku": "DIM-HD-003",
+      "totalStock": 85,
+      "status": "active",
+      "featured": true,
+      "bestSeller": true,
+      "newArrival": true,
+      "rating": 5,
+      "reviewCount": 56,
+      "details": {
+        "fit": "Substantial boxy silhouette with dropped shoulders and cropped waistband.",
+        "material": "100% Loopback French Terry Cotton (480 GSM).",
+        "care": "Machine wash cold with mild detergent. Lay flat to dry.",
+        "shipping": "Standard courier: 2-3 days locally; express global shipping available."
+      },
+      "createdAt": "2026-08-15T09:30:00Z",
+      "updatedAt": "2026-09-28T16:00:00Z"
+    },
+    {
+      "_id": "prod-4",
+      "name": "Tactical Matte Bomber Jacket",
+      "slug": "tactical-matte-bomber-jacket",
+      "description": "Structured silhouette with custom matte ripstop shell. Quilted insulated interior with thermal lining, dual entry magnetic storm pockets, custom heavy metal 2-way zipper, and Dimension 3D embossed back crest.",
+      "shortDescription": "Windproof matte shell bomber with custom metal hardware and thermal quilt.",
+      "images": [
+        "https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1516257984-b1b4d707412e?auto=format&fit=crop&w=1200&q=85"
+      ],
+      "price": 195,
+      "compareAtPrice": 240,
+      "costPrice": 75,
+      "variants": [
+        {
+          "sku": "DIM-BMB-BLK-M",
+          "color": "Matte Jet Black",
+          "colorHex": "#0D0D0D",
+          "size": "M",
+          "price": 195,
+          "stock": 12
+        },
+        {
+          "sku": "DIM-BMB-BLK-L",
+          "color": "Matte Jet Black",
+          "colorHex": "#0D0D0D",
+          "size": "L",
+          "price": 195,
+          "stock": 15
+        },
+        {
+          "sku": "DIM-BMB-BLK-XL",
+          "color": "Matte Jet Black",
+          "colorHex": "#0D0D0D",
+          "size": "XL",
+          "price": 195,
+          "stock": 8
+        }
+      ],
+      "category": "jackets",
+      "collectionName": "limited-edition",
+      "tags": [
+        "Limited",
+        "Outerwear",
+        "Bomber",
+        "Matte"
+      ],
+      "sku": "DIM-BMB-004",
+      "totalStock": 35,
+      "status": "active",
+      "featured": true,
+      "bestSeller": false,
+      "newArrival": true,
+      "rating": 4.9,
+      "reviewCount": 19,
+      "details": {
+        "fit": "Tailored bomber cut with room for layering over heavyweight hoodies.",
+        "material": "Outer: 100% Water-repellent Nylon Ripstop. Lining: 100% Cupro.",
+        "care": "Specialist dry clean only.",
+        "shipping": "Ships in collector matte dust bag with metallic authenticity tag."
+      },
+      "createdAt": "2026-08-20T14:00:00Z",
+      "updatedAt": "2026-09-28T18:00:00Z"
+    },
+    {
+      "_id": "prod-5",
+      "name": "Heavy Canvas Cube Logo Tote",
+      "slug": "heavy-canvas-cube-logo-tote",
+      "description": "Built from 18oz industrial washed cotton canvas. Features reinforced box-stitched webbing handles, an interior zippered phone/wallet sleeve, and a high-definition Dimension isometric screenprint.",
+      "shortDescription": "18oz industrial cotton canvas tote with interior pocket and 3D cube print.",
+      "images": [
+        "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=1200&q=85"
+      ],
+      "price": 45,
+      "compareAtPrice": 55,
+      "costPrice": 14,
+      "variants": [
+        {
+          "sku": "DIM-TOT-NAT-OS",
+          "color": "Raw Ecru Canvas",
+          "colorHex": "#ECE8DD",
+          "size": "One Size",
+          "price": 45,
+          "stock": 45
+        },
+        {
+          "sku": "DIM-TOT-BLK-OS",
+          "color": "Washed Black",
+          "colorHex": "#222222",
+          "size": "One Size",
+          "price": 45,
+          "stock": 35
+        }
+      ],
+      "category": "accessories",
+      "collectionName": "dimension-core",
+      "tags": [
+        "Accessories",
+        "Canvas",
+        "Everyday",
+        "Tote"
+      ],
+      "sku": "DIM-TOT-005",
+      "totalStock": 80,
+      "status": "active",
+      "featured": false,
+      "bestSeller": true,
+      "newArrival": false,
+      "rating": 4.9,
+      "reviewCount": 27,
+      "details": {
+        "fit": "Dimensions: 46cm wide x 40cm tall x 14cm gusset base.",
+        "material": "18oz 100% Organic Heavy Duck Canvas.",
+        "care": "Spot clean with warm soapy water. Do not submerge or machine dry.",
+        "shipping": "Standard dispatch within 24 hours."
+      },
+      "createdAt": "2026-08-25T11:00:00Z",
+      "updatedAt": "2026-09-25T11:00:00Z"
+    },
+    {
+      "_id": "prod-6",
+      "name": "Oversized Motor Club Sweatshirt",
+      "slug": "oversized-motor-club-sweatshirt",
+      "description": "Brushed interior heavyweight fleece. Custom mineral stone wash gives each garment a distinctive vintage patina. Ribbed triangular neck insert and subtle distress accents on hems.",
+      "shortDescription": "Mineral stone-washed vintage fleece with distressed collar details.",
+      "images": [
+        "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=1200&q=85"
+      ],
+      "price": 98,
+      "compareAtPrice": 120,
+      "costPrice": 35,
+      "variants": [
+        {
+          "sku": "DIM-SWT-AGD-S",
+          "color": "Acid Grey",
+          "colorHex": "#454545",
+          "size": "S",
+          "price": 98,
+          "stock": 10
+        },
+        {
+          "sku": "DIM-SWT-AGD-M",
+          "color": "Acid Grey",
+          "colorHex": "#454545",
+          "size": "M",
+          "price": 98,
+          "stock": 16
+        },
+        {
+          "sku": "DIM-SWT-AGD-L",
+          "color": "Acid Grey",
+          "colorHex": "#454545",
+          "size": "L",
+          "price": 98,
+          "stock": 14
+        }
+      ],
+      "category": "hoodies",
+      "collectionName": "new-arrivals",
+      "tags": [
+        "Sweatshirt",
+        "Vintage",
+        "Wash",
+        "Fleece"
+      ],
+      "sku": "DIM-SWT-006",
+      "totalStock": 40,
+      "status": "active",
+      "featured": false,
+      "bestSeller": false,
+      "newArrival": true,
+      "rating": 4.7,
+      "reviewCount": 14,
+      "details": {
+        "fit": "Relaxed drop-shoulder oversized cut.",
+        "material": "420 GSM 100% Combed Cotton.",
+        "care": "Gentle machine wash cold with similar shades.",
+        "shipping": "Ships internationally."
+      },
+      "createdAt": "2026-08-28T09:00:00Z",
+      "updatedAt": "2026-09-28T09:00:00Z"
+    },
+    {
+      "_id": "prod-7",
+      "name": "Raw Hem Loopback Shorts",
+      "slug": "raw-hem-loopback-shorts",
+      "description": "Designed for balmy city heat. 360 GSM unbrushed loopback terry with an unfinished raw hem that softly curls with wear. Deep side hand pockets and rear welt pocket with metal eyelet.",
+      "shortDescription": "360 GSM loopback cotton shorts with raw hem and extended drawcord.",
+      "images": [
+        "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&w=1200&q=85"
+      ],
+      "price": 62,
+      "compareAtPrice": 75,
+      "costPrice": 20,
+      "variants": [
+        {
+          "sku": "DIM-SHR-BLK-M",
+          "color": "Pitch Black",
+          "colorHex": "#0D0D0D",
+          "size": "M",
+          "price": 62,
+          "stock": 15
+        },
+        {
+          "sku": "DIM-SHR-BLK-L",
+          "color": "Pitch Black",
+          "colorHex": "#0D0D0D",
+          "size": "L",
+          "price": 62,
+          "stock": 20
+        },
+        {
+          "sku": "DIM-SHR-SND-M",
+          "color": "Dune Sand",
+          "colorHex": "#C5BAA8",
+          "size": "M",
+          "price": 62,
+          "stock": 12
+        },
+        {
+          "sku": "DIM-SHR-SND-L",
+          "color": "Dune Sand",
+          "colorHex": "#C5BAA8",
+          "size": "L",
+          "price": 62,
+          "stock": 15
+        }
+      ],
+      "category": "pants",
+      "collectionName": "summer-drop",
+      "tags": [
+        "Shorts",
+        "Summer",
+        "Casual",
+        "Cotton"
+      ],
+      "sku": "DIM-SHR-007",
+      "totalStock": 62,
+      "status": "active",
+      "featured": false,
+      "bestSeller": false,
+      "newArrival": false,
+      "rating": 4.8,
+      "reviewCount": 16,
+      "details": {
+        "fit": "Hits right above the kneecap. Relaxed thigh width.",
+        "material": "100% Compact Spun Cotton Terry (360 GSM).",
+        "care": "Cold wash. Air dry recommended.",
+        "shipping": "Standard delivery 1-3 business days."
+      },
+      "createdAt": "2026-09-01T10:00:00Z",
+      "updatedAt": "2026-09-20T10:00:00Z"
+    },
+    {
+      "_id": "prod-8",
+      "name": "Dimension Minimalist Knit Beanie",
+      "slug": "dimension-minimalist-knit-beanie",
+      "description": "Spun from 100% Australian extra-fine Merino wool for breathability without itch. Thick 7-gauge fisherman rib knit with a foldable cuff and subtle tonal silicone Dimension Street patch.",
+      "shortDescription": "100% extra-fine Merino wool fisherman rib knit beanie.",
+      "images": [
+        "https://images.unsplash.com/photo-1576871337632-b9aef4c17ab9?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=1200&q=85"
+      ],
+      "price": 38,
+      "compareAtPrice": 48,
+      "costPrice": 12,
+      "variants": [
+        {
+          "sku": "DIM-BN-BLK-OS",
+          "color": "Jet Black",
+          "colorHex": "#101010",
+          "size": "One Size",
+          "price": 38,
+          "stock": 35
+        },
+        {
+          "sku": "DIM-BN-CHR-OS",
+          "color": "Heather Slate",
+          "colorHex": "#5E6367",
+          "size": "One Size",
+          "price": 38,
+          "stock": 25
+        }
+      ],
+      "category": "accessories",
+      "collectionName": "dimension-core",
+      "tags": [
+        "Beanie",
+        "Merino",
+        "Winter",
+        "Headwear"
+      ],
+      "sku": "DIM-BN-008",
+      "totalStock": 60,
+      "status": "active",
+      "featured": false,
+      "bestSeller": true,
+      "newArrival": false,
+      "rating": 4.9,
+      "reviewCount": 31,
+      "details": {
+        "fit": "Stretches to comfortably fit all head shapes.",
+        "material": "100% Extra-fine Merino Wool.",
+        "care": "Hand wash in cool water with wool-safe wash. Dry flat.",
+        "shipping": "Same-day packaging."
+      },
+      "createdAt": "2026-09-02T12:00:00Z",
+      "updatedAt": "2026-09-22T12:00:00Z"
+    },
+    {
+      "_id": "prod-9",
+      "name": "Distressed Archive Denim Jacket",
+      "slug": "distressed-archive-denim-jacket",
+      "description": "14.5oz Japanese selvedge denim, hand-sanded and finished with custom gunmetal buttons. Features relaxed dropped shoulder seams, chest flap pockets, and raw distressed edges on collar and hem.",
+      "shortDescription": "14.5oz Japanese selvedge denim jacket with custom gunmetal buttons.",
+      "images": [
+        "https://images.unsplash.com/photo-1551537482-f2075a1d41f2?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&w=1200&q=85"
+      ],
+      "price": 185,
+      "compareAtPrice": 220,
+      "costPrice": 65,
+      "variants": [
+        {
+          "sku": "DIM-JAC-DEN-M",
+          "color": "Vintage Indigo",
+          "colorHex": "#2E3B4E",
+          "size": "M",
+          "price": 185,
+          "stock": 8
+        },
+        {
+          "sku": "DIM-JAC-DEN-L",
+          "color": "Vintage Indigo",
+          "colorHex": "#2E3B4E",
+          "size": "L",
+          "price": 185,
+          "stock": 10
+        },
+        {
+          "sku": "DIM-JAC-DEN-XL",
+          "color": "Vintage Indigo",
+          "colorHex": "#2E3B4E",
+          "size": "XL",
+          "price": 185,
+          "stock": 6
+        }
+      ],
+      "category": "jackets",
+      "collectionName": "limited-edition",
+      "tags": [
+        "Denim",
+        "Japanese Selvedge",
+        "Outerwear"
+      ],
+      "sku": "DIM-JAC-009",
+      "totalStock": 24,
+      "status": "active",
+      "featured": true,
+      "bestSeller": false,
+      "newArrival": true,
+      "rating": 5,
+      "reviewCount": 11,
+      "details": {
+        "fit": "Slightly oversized trucker profile.",
+        "material": "100% Japanese Cotton Selvedge Denim (14.5oz).",
+        "care": "Spot clean or gentle hand wash inside out in cold water.",
+        "shipping": "Complimentary signature gift boxing."
+      },
+      "createdAt": "2026-09-05T15:00:00Z",
+      "updatedAt": "2026-09-24T15:00:00Z"
+    },
+    {
+      "_id": "prod-10",
+      "name": "Dimension Core Boxy Tee",
+      "slug": "dimension-core-boxy-tee",
+      "description": "The quintessential modern staple. 290 GSM combed cotton with blind-stitched cuffs and hem. Clean minimal micro-print on nape of the neck with clean front chest.",
+      "shortDescription": "290 GSM combed cotton boxy tee with minimalist nape logo.",
+      "images": [
+        "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=1200&q=85"
+      ],
+      "price": 55,
+      "compareAtPrice": 65,
+      "costPrice": 18,
+      "variants": [
+        {
+          "sku": "DIM-BX-BLK-S",
+          "color": "Pitch Black",
+          "colorHex": "#0F0F0F",
+          "size": "S",
+          "price": 55,
+          "stock": 18
+        },
+        {
+          "sku": "DIM-BX-BLK-M",
+          "color": "Pitch Black",
+          "colorHex": "#0F0F0F",
+          "size": "M",
+          "price": 55,
+          "stock": 25
+        },
+        {
+          "sku": "DIM-BX-BLK-L",
+          "color": "Pitch Black",
+          "colorHex": "#0F0F0F",
+          "size": "L",
+          "price": 55,
+          "stock": 22
+        },
+        {
+          "sku": "DIM-BX-OLV-M",
+          "color": "Muted Moss",
+          "colorHex": "#52594D",
+          "size": "M",
+          "price": 55,
+          "stock": 15
+        },
+        {
+          "sku": "DIM-BX-OLV-L",
+          "color": "Muted Moss",
+          "colorHex": "#52594D",
+          "size": "L",
+          "price": 55,
+          "stock": 16
+        }
+      ],
+      "category": "t-shirts",
+      "collectionName": "dimension-core",
+      "tags": [
+        "Minimalist",
+        "Core",
+        "Essential"
+      ],
+      "sku": "DIM-BX-010",
+      "totalStock": 96,
+      "status": "active",
+      "featured": false,
+      "bestSeller": true,
+      "newArrival": false,
+      "rating": 4.8,
+      "reviewCount": 22,
+      "details": {
+        "fit": "Clean boxy cut with straight hemline.",
+        "material": "100% Combed Cotton (290 GSM).",
+        "care": "Machine wash cold.",
+        "shipping": "Standard delivery 1-3 business days."
+      },
+      "createdAt": "2026-09-08T10:00:00Z",
+      "updatedAt": "2026-09-21T10:00:00Z"
+    },
+    {
+      "_id": "prod-11",
+      "name": "Architectural Oversized Zip Hoodie",
+      "slug": "architectural-oversized-zip-hoodie",
+      "description": "480 GSM French terry with heavy-duty 2-way matte blackened metal zipper. Split kangaroo pouch and extended drop-shoulder silhouette.",
+      "shortDescription": "480 GSM French terry full-zip hoodie with 2-way matte metal hardware.",
+      "images": [
+        "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=1200&q=85"
+      ],
+      "price": 130,
+      "compareAtPrice": 155,
+      "costPrice": 46,
+      "variants": [
+        {
+          "sku": "DIM-ZP-BLK-M",
+          "color": "Onyx Black",
+          "colorHex": "#121212",
+          "size": "M",
+          "price": 130,
+          "stock": 15
+        },
+        {
+          "sku": "DIM-ZP-BLK-L",
+          "color": "Onyx Black",
+          "colorHex": "#121212",
+          "size": "L",
+          "price": 130,
+          "stock": 18
+        },
+        {
+          "sku": "DIM-ZP-BLK-XL",
+          "color": "Onyx Black",
+          "colorHex": "#121212",
+          "size": "XL",
+          "price": 130,
+          "stock": 10
+        }
+      ],
+      "category": "hoodies",
+      "collectionName": "heavyweight",
+      "tags": [
+        "Zip Hoodie",
+        "480GSM",
+        "Outerwear"
+      ],
+      "sku": "DIM-ZP-011",
+      "totalStock": 43,
+      "status": "active",
+      "featured": false,
+      "bestSeller": false,
+      "newArrival": true,
+      "rating": 4.9,
+      "reviewCount": 17,
+      "details": {
+        "fit": "Generous boxy fit. Layer smoothly over tees.",
+        "material": "480 GSM 100% Cotton Fleece.",
+        "care": "Machine wash cold with like colors.",
+        "shipping": "Free shipping over $150."
+      },
+      "createdAt": "2026-09-10T12:00:00Z",
+      "updatedAt": "2026-09-26T12:00:00Z"
+    },
+    {
+      "_id": "prod-12",
+      "name": "Tactical Utility Cargo Sling Bag",
+      "slug": "tactical-utility-cargo-sling-bag",
+      "description": "Engineered from 1000D Cordura ballistic nylon. Features Cobra-style quick release alloy buckle, waterproof taped zippers, and internal padded compartments for accessories.",
+      "shortDescription": "1000D Cordura ballistic nylon sling bag with quick-release metal buckle.",
+      "images": [
+        "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=1200&q=85"
+      ],
+      "price": 78,
+      "compareAtPrice": 95,
+      "costPrice": 28,
+      "variants": [
+        {
+          "sku": "DIM-SLG-BLK-OS",
+          "color": "Matte Black",
+          "colorHex": "#141414",
+          "size": "One Size",
+          "price": 78,
+          "stock": 28
+        }
+      ],
+      "category": "accessories",
+      "collectionName": "dimension-core",
+      "tags": [
+        "Cordura",
+        "Bags",
+        "Tactical",
+        "Utility"
+      ],
+      "sku": "DIM-SLG-012",
+      "totalStock": 28,
+      "status": "active",
+      "featured": false,
+      "bestSeller": true,
+      "newArrival": false,
+      "rating": 4.9,
+      "reviewCount": 29,
+      "details": {
+        "fit": "Adjustable ambidextrous strap (80cm - 130cm).",
+        "material": "1000D Cordura Ballistic Nylon with Teflon coating.",
+        "care": "Wipe with damp cloth.",
+        "shipping": "Dispatched within 24 hours."
+      },
+      "createdAt": "2026-09-12T14:00:00Z",
+      "updatedAt": "2026-09-24T14:00:00Z"
+    },
+    {
+      "_id": "prod-13",
+      "name": "Relaxed Fluid Linen-Blend Overshirt",
+      "slug": "relaxed-fluid-linen-blend-overshirt",
+      "description": "Woven from 60% linen and 40% sustainable modal for an effortless fluid drape. Mother-of-pearl buttons, camp collar, and straight vented hem.",
+      "shortDescription": "Linen-modal blend camp collar overshirt with natural fluid drape.",
+      "images": [
+        "https://images.unsplash.com/photo-1598033129183-c4f50c736f10?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=1200&q=85"
+      ],
+      "price": 88,
+      "compareAtPrice": 110,
+      "costPrice": 30,
+      "variants": [
+        {
+          "sku": "DIM-LIN-SND-M",
+          "color": "Raw Sand",
+          "colorHex": "#E5DDD0",
+          "size": "M",
+          "price": 88,
+          "stock": 14
+        },
+        {
+          "sku": "DIM-LIN-SND-L",
+          "color": "Raw Sand",
+          "colorHex": "#E5DDD0",
+          "size": "L",
+          "price": 88,
+          "stock": 16
+        },
+        {
+          "sku": "DIM-LIN-BLK-M",
+          "color": "Charcoal Black",
+          "colorHex": "#202020",
+          "size": "M",
+          "price": 88,
+          "stock": 12
+        }
+      ],
+      "category": "t-shirts",
+      "collectionName": "summer-drop",
+      "tags": [
+        "Linen",
+        "Summer",
+        "Overshirt"
+      ],
+      "sku": "DIM-LIN-013",
+      "totalStock": 42,
+      "status": "active",
+      "featured": false,
+      "bestSeller": false,
+      "newArrival": true,
+      "rating": 4.8,
+      "reviewCount": 15,
+      "details": {
+        "fit": "Relaxed resort silhouette.",
+        "material": "60% European Flax Linen, 40% Modal.",
+        "care": "Cold gentle wash. Air dry in shade.",
+        "shipping": "Standard delivery."
+      },
+      "createdAt": "2026-09-14T10:00:00Z",
+      "updatedAt": "2026-09-27T10:00:00Z"
+    },
+    {
+      "_id": "prod-14",
+      "name": "Architectural Pleated Trousers",
+      "slug": "architectural-pleated-trousers",
+      "description": "Deep front double pleats with a dramatic wide-leg silhouette that tapers slightly towards the break. Heavy twill fabric that retains sharp crease definition.",
+      "shortDescription": "Heavy twill double-pleated wide leg trousers with sharp crease lines.",
+      "images": [
+        "https://images.unsplash.com/photo-1506629082955-511b1aa562c8?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&w=1200&q=85"
+      ],
+      "price": 125,
+      "compareAtPrice": 150,
+      "costPrice": 42,
+      "variants": [
+        {
+          "sku": "DIM-PLT-BLK-30",
+          "color": "Midnight Black",
+          "colorHex": "#121212",
+          "size": "30",
+          "price": 125,
+          "stock": 10
+        },
+        {
+          "sku": "DIM-PLT-BLK-32",
+          "color": "Midnight Black",
+          "colorHex": "#121212",
+          "size": "32",
+          "price": 125,
+          "stock": 14
+        },
+        {
+          "sku": "DIM-PLT-BLK-34",
+          "color": "Midnight Black",
+          "colorHex": "#121212",
+          "size": "34",
+          "price": 125,
+          "stock": 12
+        }
+      ],
+      "category": "pants",
+      "collectionName": "dimension-core",
+      "tags": [
+        "Tailored",
+        "Pleated",
+        "Wide Leg",
+        "Twill"
+      ],
+      "sku": "DIM-PLT-014",
+      "totalStock": 36,
+      "status": "active",
+      "featured": false,
+      "bestSeller": false,
+      "newArrival": false,
+      "rating": 4.9,
+      "reviewCount": 18,
+      "details": {
+        "fit": "High waist with relaxed wide leg. Hemmed to stack nicely over chunky sneakers.",
+        "material": "65% Recycled Polyester, 35% Viscose heavy twill.",
+        "care": "Dry clean or delicate cycle cold inside laundry bag.",
+        "shipping": "Express courier."
+      },
+      "createdAt": "2026-09-15T11:00:00Z",
+      "updatedAt": "2026-09-25T11:00:00Z"
+    },
+    {
+      "_id": "prod-15",
+      "name": "Acid Wash Skull Graphic Tee",
+      "slug": "acid-wash-skull-graphic-tee",
+      "description": "Distressed vintage mineral wash with hand-drawn geometric eagle and skull graphic print. 300 GSM combed jersey with micro-frayed neck ribbing.",
+      "shortDescription": "300 GSM vintage acid-wash tee with distressed streetwear graphics.",
+      "images": [
+        "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=1200&q=85"
+      ],
+      "price": 65,
+      "compareAtPrice": 80,
+      "costPrice": 20,
+      "variants": [
+        {
+          "sku": "DIM-SKL-GRY-M",
+          "color": "Faded Acid Grey",
+          "colorHex": "#3A3A3A",
+          "size": "M",
+          "price": 65,
+          "stock": 14
+        },
+        {
+          "sku": "DIM-SKL-GRY-L",
+          "color": "Faded Acid Grey",
+          "colorHex": "#3A3A3A",
+          "size": "L",
+          "price": 65,
+          "stock": 16
+        },
+        {
+          "sku": "DIM-SKL-GRY-XL",
+          "color": "Faded Acid Grey",
+          "colorHex": "#3A3A3A",
+          "size": "XL",
+          "price": 65,
+          "stock": 10
+        }
+      ],
+      "category": "t-shirts",
+      "collectionName": "new-arrivals",
+      "tags": [
+        "Graphic",
+        "Vintage",
+        "Acid Wash"
+      ],
+      "sku": "DIM-SKL-015",
+      "totalStock": 40,
+      "status": "active",
+      "featured": false,
+      "bestSeller": true,
+      "newArrival": true,
+      "rating": 4.8,
+      "reviewCount": 23,
+      "details": {
+        "fit": "Oversized silhouette.",
+        "material": "100% Combed Cotton 300 GSM.",
+        "care": "Wash cold inside out.",
+        "shipping": "Standard dispatch within 24 hours."
+      },
+      "createdAt": "2026-09-18T10:00:00Z",
+      "updatedAt": "2026-09-28T10:00:00Z"
+    },
+    {
+      "_id": "prod-16",
+      "name": "Cushioned Street Crew Socks 3-Pack",
+      "slug": "cushioned-street-crew-socks-3-pack",
+      "description": "Reinforced terry heel and toe cushion with arch compression ribbing. Embroidered Dimension logo on both outer ankles. Designed to retain elasticity wash after wash.",
+      "shortDescription": "3-Pack heavy rib crew socks with arch support and embroidered tab.",
+      "images": [
+        "https://images.unsplash.com/photo-1586350977771-b3b0abd50c82?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=1200&q=85"
+      ],
+      "price": 28,
+      "compareAtPrice": 35,
+      "costPrice": 8,
+      "variants": [
+        {
+          "sku": "DIM-SCK-TRI-OS",
+          "color": "Black / Chalk / Charcoal",
+          "colorHex": "#111111",
+          "size": "One Size (US 7-12)",
+          "price": 28,
+          "stock": 50
+        }
+      ],
+      "category": "accessories",
+      "collectionName": "dimension-core",
+      "tags": [
+        "Socks",
+        "Accessories",
+        "Essentials"
+      ],
+      "sku": "DIM-SCK-016",
+      "totalStock": 50,
+      "status": "active",
+      "featured": false,
+      "bestSeller": false,
+      "newArrival": false,
+      "rating": 4.9,
+      "reviewCount": 34,
+      "details": {
+        "fit": "One size fits men's US 7 to 12.",
+        "material": "82% Combed Cotton, 15% Nylon, 3% Elastane.",
+        "care": "Warm machine wash. Tumble dry medium.",
+        "shipping": "Standard dispatch."
+      },
+      "createdAt": "2026-09-20T10:00:00Z",
+      "updatedAt": "2026-09-29T10:00:00Z"
+    }
+  ],
+  "categories": [
+    {
+      "_id": "cat-1",
+      "name": "T-Shirts",
+      "slug": "t-shirts",
+      "description": "Heavyweight 280-320 GSM drop-shoulder tees engineered for everyday luxury.",
+      "image": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=800&q=80",
+      "itemCount": 4,
+      "featured": true
+    },
+    {
+      "_id": "cat-2",
+      "name": "Hoodies & Sweats",
+      "slug": "hoodies",
+      "description": "Ultra-heavy 480 GSM French terry hoodies with custom architectural cuts.",
+      "image": "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=800&q=80",
+      "itemCount": 3,
+      "featured": true
+    },
+    {
+      "_id": "cat-3",
+      "name": "Pants & Cargos",
+      "slug": "pants",
+      "description": "Technical fabrics, 4-way stretch, and utilitarian streetwear ergonomics.",
+      "image": "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&w=800&q=80",
+      "itemCount": 3,
+      "featured": true
+    },
+    {
+      "_id": "cat-4",
+      "name": "Jackets & Outerwear",
+      "slug": "jackets",
+      "description": "Weather-resistant tactical bombers, distressed denim, and modular vests.",
+      "image": "https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&w=800&q=80",
+      "itemCount": 2,
+      "featured": true
+    },
+    {
+      "_id": "cat-5",
+      "name": "Accessories",
+      "slug": "accessories",
+      "description": "Durable canvas totes, utility bags, knit beanies, and minimal leather goods.",
+      "image": "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=800&q=80",
+      "itemCount": 3,
+      "featured": true
+    },
+    {
+      "_id": "cat-6",
+      "name": "Men",
+      "slug": "men",
+      "description": "The complete masculine silhouette — architectural cuts and heavyweight draping.",
+      "image": "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=800&q=80",
+      "itemCount": 10,
+      "featured": false
+    },
+    {
+      "_id": "cat-7",
+      "name": "Women",
+      "slug": "women",
+      "description": "Refined proportions, oversized unisex draping, and contemporary streetwear lines.",
+      "image": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80",
+      "itemCount": 8,
+      "featured": false
+    }
+  ],
+  "collections": [
+    {
+      "_id": "col-1",
+      "title": "New Arrivals",
+      "slug": "new-arrivals",
+      "description": "Our latest seasonal drop featuring raw textures and structured cuts.",
+      "bannerImage": "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1600&q=80",
+      "itemCount": 6,
+      "featured": true
+    },
+    {
+      "_id": "col-2",
+      "title": "Heavyweight Essentials",
+      "slug": "heavyweight",
+      "description": "Custom milled 320-480 GSM fabric built to outlast conventional trends.",
+      "bannerImage": "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=1600&q=80",
+      "itemCount": 8,
+      "featured": true
+    },
+    {
+      "_id": "col-3",
+      "title": "Dimension Core",
+      "slug": "dimension-core",
+      "description": "Permanent collection pieces stamped with our signature isometric branding.",
+      "bannerImage": "https://images.unsplash.com/photo-1485230895905-ec40ba36b9bc?auto=format&fit=crop&w=1600&q=80",
+      "itemCount": 7,
+      "featured": true
+    },
+    {
+      "_id": "col-4",
+      "title": "Summer Drop",
+      "slug": "summer-drop",
+      "description": "Breathable open-weave cottons, boxy tees, and raw hem shorts.",
+      "bannerImage": "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=1600&q=80",
+      "itemCount": 5,
+      "featured": false
+    },
+    {
+      "_id": "col-5",
+      "title": "Limited Edition",
+      "slug": "limited-edition",
+      "description": "Serialized runs and exclusive archive pieces. Never reproduced once sold out.",
+      "bannerImage": "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1600&q=80",
+      "itemCount": 3,
+      "featured": true
+    }
+  ],
+  "orders": [
+    {
+      "_id": "ord-1001",
+      "orderNumber": "DS-98241",
+      "customer": {
+        "userId": "user-2",
+        "name": "Rifat Chowdhury",
+        "email": "rifat.c@outlook.com",
+        "phone": "+880 1711 234567"
+      },
+      "items": [
+        {
+          "productId": "prod-1",
+          "name": "DIMENSION Isometric Heavyweight Tee",
+          "slug": "dimension-isometric-heavyweight-tee",
+          "image": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=1200&q=85",
+          "color": "Onyx Black",
+          "size": "L",
+          "sku": "DIM-TEE-BLK-L",
+          "price": 68,
+          "quantity": 1
+        },
+        {
+          "productId": "prod-2",
+          "name": "The Matrix Tech Pants",
+          "slug": "the-matrix-tech-pants",
+          "image": "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&w=1200&q=85",
+          "color": "Charcoal Slate",
+          "size": "32",
+          "sku": "DIM-PNT-CHR-32",
+          "price": 135,
+          "quantity": 1
+        }
+      ],
+      "subtotal": 203,
+      "shipping": 0,
+      "discount": 20,
+      "total": 183,
+      "couponCode": "DIMENSION20",
+      "shippingAddress": {
+        "fullName": "Rifat Chowdhury",
+        "email": "rifat.c@outlook.com",
+        "phone": "+880 1711 234567",
+        "street": "House 42, Road 11, Banani",
+        "city": "Dhaka",
+        "postalCode": "1213",
+        "country": "Bangladesh"
+      },
+      "paymentMethod": "bkash",
+      "paymentStatus": "paid",
+      "orderStatus": "Delivered",
+      "trackingNumber": "TRK-DS-88910",
+      "notes": "Please call before delivery.",
+      "createdAt": "2026-09-24T10:14:00Z",
+      "updatedAt": "2026-09-27T16:00:00Z"
+    },
+    {
+      "_id": "ord-1002",
+      "orderNumber": "DS-98242",
+      "customer": {
+        "userId": "user-3",
+        "name": "Tariqul Islam",
+        "email": "tariqul@gmail.com",
+        "phone": "+880 1812 345678"
+      },
+      "items": [
+        {
+          "productId": "prod-3",
+          "name": "Architectural Pullover Hoodie 480GSM",
+          "slug": "architectural-pullover-hoodie-480gsm",
+          "image": "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=1200&q=85",
+          "color": "Washed Carbon",
+          "size": "M",
+          "sku": "DIM-HD-WAS-M",
+          "price": 120,
+          "quantity": 1
+        },
+        {
+          "productId": "prod-8",
+          "name": "Dimension Minimalist Knit Beanie",
+          "slug": "dimension-minimalist-knit-beanie",
+          "image": "https://images.unsplash.com/photo-1576871337632-b9aef4c17ab9?auto=format&fit=crop&w=1200&q=85",
+          "color": "Jet Black",
+          "size": "One Size",
+          "sku": "DIM-BN-BLK-OS",
+          "price": 38,
+          "quantity": 1
+        }
+      ],
+      "subtotal": 158,
+      "shipping": 0,
+      "discount": 10,
+      "total": 148,
+      "couponCode": "WELCOME10",
+      "shippingAddress": {
+        "fullName": "Tariqul Islam",
+        "email": "tariqul@gmail.com",
+        "phone": "+880 1812 345678",
+        "street": "Plot 15, Sector 4, Uttara",
+        "city": "Dhaka",
+        "postalCode": "1230",
+        "country": "Bangladesh"
+      },
+      "paymentMethod": "cod",
+      "paymentStatus": "pending",
+      "orderStatus": "Processing",
+      "trackingNumber": "TRK-DS-99102",
+      "notes": "Leave package at reception if unavailable.",
+      "createdAt": "2026-09-29T14:30:00Z",
+      "updatedAt": "2026-09-29T15:00:00Z"
+    },
+    {
+      "_id": "ord-1003",
+      "orderNumber": "DS-98243",
+      "customer": {
+        "userId": "user-4",
+        "name": "Mahmud Hasan",
+        "email": "mahmud@techcorp.io",
+        "phone": "+880 1913 987654"
+      },
+      "items": [
+        {
+          "productId": "prod-4",
+          "name": "Tactical Matte Bomber Jacket",
+          "slug": "tactical-matte-bomber-jacket",
+          "image": "https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&w=1200&q=85",
+          "color": "Matte Jet Black",
+          "size": "L",
+          "sku": "DIM-BMB-BLK-L",
+          "price": 195,
+          "quantity": 1
+        }
+      ],
+      "subtotal": 195,
+      "shipping": 0,
+      "discount": 0,
+      "total": 195,
+      "shippingAddress": {
+        "fullName": "Mahmud Hasan",
+        "email": "mahmud@techcorp.io",
+        "phone": "+880 1913 987654",
+        "street": "House 12, Road 71, Gulshan-2",
+        "city": "Dhaka",
+        "postalCode": "1212",
+        "country": "Bangladesh"
+      },
+      "paymentMethod": "card",
+      "paymentStatus": "paid",
+      "orderStatus": "Packed",
+      "trackingNumber": "TRK-DS-99441",
+      "createdAt": "2026-09-30T02:10:00Z",
+      "updatedAt": "2026-09-30T03:00:00Z"
+    }
+  ],
+  "coupons": [
+    {
+      "_id": "coup-1",
+      "code": "WELCOME10",
+      "discountType": "percentage",
+      "discountValue": 10,
+      "minOrderValue": 50,
+      "usageLimit": 500,
+      "usageCount": 42,
+      "isActive": true
+    },
+    {
+      "_id": "coup-2",
+      "code": "DIMENSION20",
+      "discountType": "percentage",
+      "discountValue": 20,
+      "minOrderValue": 120,
+      "maxDiscount": 40,
+      "usageLimit": 200,
+      "usageCount": 18,
+      "isActive": true
+    },
+    {
+      "_id": "coup-3",
+      "code": "FREESHIP",
+      "discountType": "fixed",
+      "discountValue": 15,
+      "minOrderValue": 80,
+      "usageLimit": 1000,
+      "usageCount": 88,
+      "isActive": true
+    },
+    {
+      "_id": "coup-4",
+      "code": "STREET50",
+      "discountType": "fixed",
+      "discountValue": 50,
+      "minOrderValue": 250,
+      "usageLimit": 50,
+      "usageCount": 7,
+      "isActive": true
+    }
+  ],
+  "reviews": [
+    {
+      "_id": "rev-1",
+      "productId": "prod-1",
+      "productName": "DIMENSION Isometric Heavyweight Tee",
+      "customerName": "Tariqul Islam",
+      "customerEmail": "tariqul@gmail.com",
+      "rating": 5,
+      "title": "Best heavyweight tee in Bangladesh hands down",
+      "comment": "The 320 GSM weight is unreal. The isometric 3D logo has real depth and doesn't crack after washing. Definitely fits oversized just like the London / Tokyo streetwear drops.",
+      "status": "Approved",
+      "verifiedPurchase": true,
+      "createdAt": "2026-09-20T14:22:00Z"
+    },
+    {
+      "_id": "rev-2",
+      "productId": "prod-2",
+      "productName": "The Matrix Tech Pants",
+      "customerName": "Rifat Chowdhury",
+      "customerEmail": "rifat.c@outlook.com",
+      "rating": 5,
+      "title": "Exceptional cut and material",
+      "comment": "The water resistance worked great in Dhaka rain. The cinch waistband is super clean and the silhouette stacks over sneakers perfectly.",
+      "status": "Approved",
+      "verifiedPurchase": true,
+      "createdAt": "2026-09-22T08:15:00Z"
+    },
+    {
+      "_id": "rev-3",
+      "productId": "prod-3",
+      "productName": "Architectural Pullover Hoodie 480GSM",
+      "customerName": "Sameer Vance",
+      "customerEmail": "sameer@gmail.com",
+      "rating": 5,
+      "title": "Sculptural hood and unmatched density",
+      "comment": "No drawstrings makes it look so elevated. The fleece feels like a $300 luxury piece. Truly top-tier production.",
+      "status": "Approved",
+      "verifiedPurchase": true,
+      "createdAt": "2026-09-24T18:40:00Z"
+    },
+    {
+      "_id": "rev-4",
+      "productId": "prod-5",
+      "productName": "Heavy Canvas Cube Logo Tote",
+      "customerName": "Nusrat Jahan",
+      "customerEmail": "nusrat@yahoo.com",
+      "rating": 5,
+      "title": "Sturdy and fits my 16 inch laptop easily",
+      "comment": "The 18oz canvas is heavy duty. Love the isometric print and inside zip pocket.",
+      "status": "Approved",
+      "verifiedPurchase": true,
+      "createdAt": "2026-09-26T11:00:00Z"
+    }
+  ],
+  "homepageSections": [
+    {
+      "_id": "sec-hero",
+      "type": "hero",
+      "title": "",
+      "subtitle": "",
+      "order": 1,
+      "isActive": true,
+      "data": {
+        "ctaText": "SHOP COLLECTION",
+        "ctaLink": "/shop",
+        "secondaryCtaText": "SHOP PINK",
+        "secondaryCtaLink": "/shop",
+        "badge": "SEASON 04 / ARCHIVE DROP",
+        "backgroundImage": "/images/hero-banner.jpg"
+      },
+      "createdAt": "2026-09-01T00:00:00Z"
+    },
+    {
+      "_id": "sec-new-arrivals",
+      "type": "new_arrivals",
+      "title": "NEW ARRIVALS",
+      "subtitle": "Precision cuts and heavyweight fabric treatments fresh from the archive.",
+      "order": 2,
+      "isActive": true,
+      "data": {
+        "limit": 4
+      },
+      "createdAt": "2026-09-01T00:00:00Z"
+    },
+    {
+      "_id": "sec-promo-banner",
+      "type": "promo_banner",
+      "title": "LIMITED SEASONAL RELEASE",
+      "subtitle": "Archive capsules disappear once production allocations are exhausted.",
+      "order": 3,
+      "isActive": true,
+      "data": {
+        "countdownHours": 36,
+        "buttonText": "Claim Exclusive Drop",
+        "buttonLink": "/collections/limited-edition",
+        "bgImage": "https://images.unsplash.com/photo-1485230895905-ec40ba36b9bc?auto=format&fit=crop&w=1800&q=80"
+      },
+      "createdAt": "2026-09-01T00:00:00Z"
+    },
+    {
+      "_id": "sec-categories",
+      "type": "shop_by_category",
+      "title": "SHOP BY CATEGORY",
+      "subtitle": "Explore our signature classifications.",
+      "order": 4,
+      "isActive": true,
+      "data": {},
+      "createdAt": "2026-09-01T00:00:00Z"
+    },
+    {
+      "_id": "sec-brand-story",
+      "type": "brand_story",
+      "title": "Community First. Quality Always.",
+      "subtitle": "We reject transient hype. We obsess over fabric weight, tension, and lasting geometry.",
+      "order": 5,
+      "isActive": true,
+      "data": {
+        "description": "Founded on the philosophy of architectural minimalism, DIMENSION STREET constructs garments that exist beyond rapid trend cycles. Every garment is crafted from heavy ring-spun cotton and technical performance textiles.",
+        "bullet1": "Custom 320-480 GSM knit development",
+        "bullet2": "Ethical zero-compromise manufacturing",
+        "bullet3": "Worldwide express courier dispatch",
+        "image": "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1200&q=80"
+      },
+      "createdAt": "2026-09-01T00:00:00Z"
+    },
+    {
+      "_id": "sec-best-sellers",
+      "type": "best_sellers",
+      "title": "BEST SELLING PRODUCTS",
+      "subtitle": "Verified community favorites ranked by real order volume.",
+      "order": 6,
+      "isActive": true,
+      "data": {
+        "limit": 8
+      },
+      "createdAt": "2026-09-01T00:00:00Z"
+    },
+    {
+      "_id": "sec-statement",
+      "type": "statement_banner",
+      "title": "WE DON'T FOLLOW TRENDS. WE FORGE THE CONSTANTS.",
+      "subtitle": "DIMENSION STREET ARCHIVE",
+      "order": 7,
+      "isActive": true,
+      "data": {},
+      "createdAt": "2026-09-01T00:00:00Z"
+    },
+    {
+      "_id": "sec-community",
+      "type": "community_gallery",
+      "title": "MEET OUR COMMUNITY",
+      "subtitle": "Tagged by #DimensionStreet across Dhaka, Tokyo, London & New York.",
+      "order": 8,
+      "isActive": true,
+      "data": {},
+      "createdAt": "2026-09-01T00:00:00Z"
+    }
+  ],
+  "users": [
+    {
+      "_id": "usr-admin",
+      "name": "Lox Admin",
+      "email": "admin@dimensionstreet.com",
+      "role": "superadmin",
+      "phone": "+880 1700 000000",
+      "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+      "createdAt": "2026-01-01T00:00:00Z"
+    },
+    {
+      "_id": "usr-cust-1",
+      "name": "Rifat Chowdhury",
+      "email": "rifat.c@outlook.com",
+      "role": "customer",
+      "phone": "+880 1711 234567",
+      "wishlist": [
+        "prod-1",
+        "prod-3"
+      ],
+      "addresses": [
+        {
+          "fullName": "Rifat Chowdhury",
+          "email": "rifat.c@outlook.com",
+          "phone": "+880 1711 234567",
+          "street": "House 42, Road 11, Banani",
+          "city": "Dhaka",
+          "postalCode": "1213",
+          "country": "Bangladesh"
+        }
+      ],
+      "createdAt": "2026-08-15T10:00:00Z"
+    }
+  ]
+}
