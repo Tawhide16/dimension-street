@@ -86,12 +86,12 @@ export default function Header() {
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full bg-transparent border-b border-transparent transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+      className={`sticky top-0 z-50 w-full bg-transparent transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
         isVisible ? "translate-y-0" : "-translate-y-full"
       }`}
     >
       <div className="w-full px-4 sm:px-8 lg:px-12 xl:px-16">
-        <div className="flex items-center justify-between h-20 sm:h-22 relative">
+        <div className="flex items-center justify-between h-20 relative">
           {/* Left: Brand Logo */}
           <div className="flex items-center">
             <Logo size="lg" />

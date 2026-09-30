@@ -43,7 +43,7 @@ export default async function HomePage() {
       {/* Main Header */}
       <Header />
 
-      <main className="flex-1 -mt-20 sm:-mt-22">
+      <main className="flex-1 -mt-[84px]">
         {/* 1. Hero Banner */}
         <HeroBanner
           title={heroSection?.title || ""}

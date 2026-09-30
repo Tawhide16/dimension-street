@@ -9,19 +9,19 @@ export default function AnnouncementBar() {
   if (dismissed) return null;
 
   return (
-    <div className="bg-black text-white h-7 sm:h-7.5 px-4 relative z-50 flex items-center justify-center select-none">
-      {/* Centered Clean Tagline */}
-      <span className="text-[11px] sm:text-[12px] text-[#e0e0e0] font-sans font-normal tracking-wide text-center">
-        Dimension Street - Made in Bangladesh
+    <div className="bg-black text-white h-9 sm:h-10 px-4 relative z-50 flex items-center justify-center select-none border-b border-black">
+      {/* Centered Clean Tagline - Bold, Larger & Clearly Visible */}
+      <span className="text-xs sm:text-sm md:text-[14px] font-semibold text-white tracking-wider sm:tracking-widest uppercase text-center px-8">
+        Dimension Street — Made in Bangladesh
       </span>
 
       {/* Right Minimal Close Icon */}
       <button
         onClick={() => setDismissed(true)}
-        className="absolute right-3 sm:right-6 text-neutral-400 hover:text-white transition-colors p-1 cursor-pointer flex items-center justify-center"
+        className="absolute right-3 sm:right-6 text-neutral-400 hover:text-white transition-colors p-1.5 cursor-pointer flex items-center justify-center rounded-full hover:bg-white/10"
         aria-label="Dismiss banner"
       >
-        <X className="w-3 h-3 stroke-[1.5]" />
+        <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2]" />
       </button>
     </div>
   );
