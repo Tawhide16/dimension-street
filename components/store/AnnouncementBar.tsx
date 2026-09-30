@@ -12,7 +12,7 @@ export default function AnnouncementBar() {
     <div className="bg-black text-white h-7 sm:h-7.5 px-4 relative z-50 flex items-center justify-center select-none">
       {/* Centered Clean Tagline */}
       <span className="text-[11px] sm:text-[12px] text-[#e0e0e0] font-sans font-normal tracking-wide text-center">
-        Urban Streetstyle - Made in Berlin
+        Dimension Street - Made in Bangladesh
       </span>
 
       {/* Right Minimal Close Icon */}
