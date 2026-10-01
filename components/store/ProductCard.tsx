@@ -67,7 +67,7 @@ export default function ProductCard({
 
   return (
     <div
-      className="group flex flex-col relative card-hover-lift"
+      className="group flex flex-col relative"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >

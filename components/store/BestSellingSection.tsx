@@ -96,7 +96,7 @@ export default function BestSellingSection() {
       {/* 4 Column Product Grid - Exact same gap as New Arrivals */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
         {DEFAULT_BESTSELLERS.map((product) => (
-          <div key={product.id} className="group flex flex-col relative card-hover-lift">
+          <div key={product.id} className="group flex flex-col relative">
             {/* Image Container with Exact Same Aspect Ratio and Border as New Arrivals */}
             <div className="relative aspect-3/4 w-full bg-neutral-100 overflow-hidden rounded-xs border border-neutral-200/60">
               <Link href={`/product/${product.slug}`} className="relative block w-full h-full">
