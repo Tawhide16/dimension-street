@@ -138,7 +138,58 @@ const communityPhotos = [
 ];
 
 export default function CommunityFeed({ reviews }: CommunityFeedProps) {
+  const [liveReviews, setLiveReviews] = useState<Review[]>(reviews || []);
   const [activeReviewSlide, setActiveReviewSlide] = useState(0);
+
+  // Fetch freshest reviews on mount so newly added product reviews appear immediately
+  useEffect(() => {
+    fetch("/api/reviews")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.reviews) && data.reviews.length > 0) {
+          setLiveReviews(data.reviews);
+        }
+      })
+      .catch((err) => console.warn("Failed to load community reviews:", err));
+  }, []);
+
+  // Merge live reviews with default community slides
+  const allSlides = React.useMemo(() => {
+    const liveItems = liveReviews.map((r) => ({
+      id: r._id,
+      author: r.customerName || "COMMUNITY MEMBER",
+      quote: r.comment || r.title || "Exceptional heavyweight quality and modern cut.",
+      rating: r.rating || 5,
+      image: r.image || "/images/bestseller_singh_black_tee.jpg",
+      productName: r.productName || "Dimension Streetwear",
+      productSlug: r.productSlug || "dimension-isometric-heavyweight-tee",
+    }));
+
+    const staticItems = REVIEW_SLIDES.flat();
+    const combined = [...liveItems];
+
+    staticItems.forEach((st) => {
+      if (!combined.some((c) => c.quote === st.quote)) {
+        combined.push({
+          id: `static-${combined.length}`,
+          author: st.author,
+          quote: st.quote,
+          rating: 5,
+          image: st.image,
+          productName: st.productName,
+          productSlug: "dimension-isometric-heavyweight-tee",
+        });
+      }
+    });
+
+    const chunks = [];
+    for (let i = 0; i < combined.length; i += 3) {
+      chunks.push(combined.slice(i, i + 3));
+    }
+    return chunks.length > 0 ? chunks.slice(0, 5) : [REVIEW_SLIDES[0]];
+  }, [liveReviews]);
+
+  const currentSlide = allSlides[Math.min(activeReviewSlide, allSlides.length - 1)] || [];
 
   return (
     <section className="py-10 sm:py-14 bg-white">
@@ -150,48 +201,62 @@ export default function CommunityFeed({ reviews }: CommunityFeedProps) {
       {/* What Our Community Says Section with standard padding */}
       <div className="w-full px-4 sm:px-8 lg:px-12 xl:px-16">
         <div className="border-t border-neutral-200 pt-8 sm:pt-10">
-          {/* Header with Title and 4 Pagination Dots */}
+          {/* Header with Title and Pagination Dots */}
           <div className="flex items-center justify-between pb-4 border-b border-neutral-200 mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold uppercase tracking-tight text-neutral-900">
-              WHAT OUR COMMUNITY SAYS
-            </h2>
-            
-            {/* 4 Pagination Indicator Dots matching reference */}
-            <div className="flex items-center gap-2">
-              {[0, 1, 2, 3].map((dotIndex) => (
-                <button
-                  key={dotIndex}
-                  onClick={() => setActiveReviewSlide(dotIndex)}
-                  aria-label={`Show reviews slide ${dotIndex + 1}`}
-                  className={`w-2 h-2 rounded-full transition-all cursor-pointer ${
-                    activeReviewSlide === dotIndex
-                      ? "bg-black scale-110"
-                      : "bg-neutral-300 hover:bg-neutral-400"
-                  }`}
-                />
-              ))}
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold uppercase tracking-tight text-neutral-900">
+                WHAT OUR COMMUNITY SAYS
+              </h2>
+              <span className="text-[10px] font-mono tracking-widest text-neutral-400 uppercase mt-0.5 block">
+                VERIFIED REVIEWS FROM THE STREETS & ARCHIVE
+              </span>
             </div>
+
+            {/* Pagination Indicator Dots */}
+            {allSlides.length > 1 && (
+              <div className="flex items-center gap-2">
+                {allSlides.map((_, dotIndex) => (
+                  <button
+                    key={dotIndex}
+                    onClick={() => setActiveReviewSlide(dotIndex)}
+                    aria-label={`Show reviews slide ${dotIndex + 1}`}
+                    className={`w-2 h-2 rounded-full transition-all cursor-pointer ${
+                      activeReviewSlide === dotIndex
+                        ? "bg-black scale-125"
+                        : "bg-neutral-300 hover:bg-neutral-400"
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
           {/* 3 Review Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 lg:gap-5">
-            {REVIEW_SLIDES[activeReviewSlide].map((item, index) => (
+            {currentSlide.map((item, index) => (
               <div
-                key={index}
-                className="border border-neutral-200 bg-white grid grid-cols-12 overflow-hidden shadow-xs"
+                key={item.id || index}
+                className="border border-neutral-200 bg-white grid grid-cols-12 overflow-hidden shadow-xs hover:border-neutral-400 transition-colors"
               >
                 {/* Left Side: Rating, Quote, Author */}
                 <div className="col-span-7 sm:col-span-7 p-5 sm:p-6 flex flex-col justify-between min-h-[170px] sm:min-h-[190px]">
                   <div>
-                    {/* 5 Solid Black Stars */}
+                    {/* Dynamic Solid Black Stars */}
                     <div className="flex items-center gap-0.5 text-black mb-3">
                       {Array.from({ length: 5 }).map((_, i) => (
-                        <Star key={i} className="w-3 h-3 fill-black text-black" />
+                        <Star
+                          key={i}
+                          className={`w-3 h-3 ${
+                            i < (item.rating || 5)
+                              ? "fill-black text-black"
+                              : "text-neutral-300"
+                          }`}
+                        />
                       ))}
                     </div>
 
                     {/* Review Quote */}
-                    <p className="text-xs sm:text-[13px] text-neutral-800 leading-relaxed font-normal">
+                    <p className="text-xs sm:text-[13px] text-neutral-800 leading-relaxed font-normal line-clamp-4">
                       &ldquo;{item.quote}&rdquo;
                     </p>
                   </div>
@@ -202,16 +267,20 @@ export default function CommunityFeed({ reviews }: CommunityFeedProps) {
                   </span>
                 </div>
 
-                {/* Right Side: Product Packshot on light grey background */}
-                <div className="col-span-5 sm:col-span-5 bg-[#f4f4f2] relative min-h-[140px] sm:min-h-full border-l border-neutral-200/70 flex items-center justify-center p-3">
+                {/* Right Side: Product Packshot on light grey background with Link */}
+                <Link
+                  href={item.productSlug ? `/product/${item.productSlug}` : "/shop"}
+                  className="col-span-5 sm:col-span-5 bg-[#f4f4f2] relative min-h-[140px] sm:min-h-full border-l border-neutral-200/70 flex items-center justify-center p-3 group/thumb"
+                  title={item.productName || item.author}
+                >
                   <Image
                     src={item.image}
                     alt={item.productName || item.author}
                     fill
                     sizes="(max-width: 768px) 40vw, 15vw"
-                    className="object-contain p-2 transition-transform duration-500 hover:scale-105"
+                    className="object-contain p-2 transition-transform duration-500 group-hover/thumb:scale-105"
                   />
-                </div>
+                </Link>
               </div>
             ))}
           </div>

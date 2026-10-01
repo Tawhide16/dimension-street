@@ -7,6 +7,7 @@ import { Product, ProductVariant } from "@/types";
 import { formatPrice } from "@/lib/utils";
 import { useCart } from "@/lib/cartContext";
 import ProductCard from "../store/ProductCard";
+import ProductReviewsSection from "./ProductReviewsSection";
 import {
   Heart,
   ShoppingBag,
@@ -496,6 +497,9 @@ export default function ProductDetailView({
           </div>
         </div>
       </div>
+
+      {/* Customer Reviews Section */}
+      <ProductReviewsSection product={product} />
 
       {/* Related Products: YOU MAY ALSO LIKE */}
       {relatedProducts.length > 0 && (

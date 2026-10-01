@@ -467,20 +467,36 @@ export async function getReviews(productId?: string): Promise<Review[]> {
 }
 
 export async function createReview(data: Partial<Review>): Promise<Review> {
+  const prod = memoryStore.products.find(
+    (p) => p._id === data.productId || p.slug === data.productSlug
+  );
+
   const newReview: Review = {
     _id: `rev-${Date.now()}`,
-    productId: data.productId || "",
-    productName: data.productName || "",
+    productId: data.productId || prod?._id || "",
+    productName: data.productName || prod?.name || "Dimension Streetwear Item",
+    productSlug: data.productSlug || prod?.slug || "dimension-isometric-heavyweight-tee",
     customerName: data.customerName || "Anonymous Customer",
     customerEmail: data.customerEmail || "",
     rating: data.rating || 5,
     title: data.title || "Great quality",
     comment: data.comment || "",
-    status: "Approved", // auto-approve for responsive demo or set Pending
+    status: "Approved", // auto-approve for seamless live display
     verifiedPurchase: true,
+    image: data.image || prod?.images?.[0] || "/images/bestseller_singh_black_tee.jpg",
     createdAt: new Date().toISOString(),
   };
+
   memoryStore.reviews.unshift(newReview);
+
+  // Update product's aggregate rating and reviewCount if product exists
+  if (prod) {
+    const productReviews = memoryStore.reviews.filter((r) => r.productId === prod._id);
+    const totalRating = productReviews.reduce((sum, r) => sum + r.rating, 0);
+    prod.reviewCount = productReviews.length;
+    prod.rating = Number((totalRating / productReviews.length).toFixed(1));
+  }
+
   saveLocalStore();
   return newReview;
 }

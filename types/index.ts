@@ -141,6 +141,8 @@ export interface Review {
   comment: string;
   status: "Pending" | "Approved" | "Rejected" | "Featured";
   verifiedPurchase: boolean;
+  image?: string;
+  productSlug?: string;
   createdAt: string;
 }
 
