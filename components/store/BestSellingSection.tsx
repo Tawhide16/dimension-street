@@ -105,12 +105,12 @@ export default function BestSellingSection() {
                   alt={product.name}
                   fill
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 25vw"
-                  className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
+                  className="object-cover object-center"
                 />
               </Link>
 
-              {/* Sizes Row: Bigger, Bolder Variant Buttons with Smooth Slide-in on Hover */}
-              <div className="absolute inset-x-0 bottom-0 bg-white/95 backdrop-blur-xs border-t border-neutral-200 flex items-stretch divide-x divide-neutral-200 transition-all duration-300 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 z-10 h-11 sm:h-12 shadow-sm">
+              {/* Sizes Row: Clean Fade-in without floating or slide-up */}
+              <div className="absolute inset-x-0 bottom-0 bg-white border-t border-neutral-200 flex items-stretch divide-x divide-neutral-200 transition-opacity duration-200 opacity-0 group-hover:opacity-100 z-10 h-11 sm:h-12">
                 {product.sizes.map((size) => {
                   const sku = `${product.id}-${size}`.toUpperCase();
                   const isJustAdded = addedItemSku === sku;

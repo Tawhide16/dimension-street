@@ -83,7 +83,7 @@ export default function ProductCard({
             alt={product.name}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-cover object-center transition-all duration-700 ease-out group-hover:scale-105"
+            className="object-cover object-center"
           />
         </Link>
 
@@ -101,11 +101,11 @@ export default function ProductCard({
         </button>
 
         {/* Quick Add Overlay on Desktop Hover */}
-        <div className="absolute inset-x-2 bottom-2 z-10 transition-all duration-300 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 hidden sm:block">
+        <div className="absolute inset-x-2 bottom-2 z-10 transition-opacity duration-200 opacity-0 group-hover:opacity-100 hidden sm:block">
           <button
             onClick={handleQuickAdd}
             disabled={product.totalStock === 0}
-            className={`w-full py-2.5 px-4 text-[11px] font-mono font-bold uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer ${
+            className={`w-full py-2.5 px-4 text-[11px] font-mono font-bold uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
               product.totalStock === 0
                 ? "bg-neutral-300 text-neutral-500 cursor-not-allowed"
                 : justAdded

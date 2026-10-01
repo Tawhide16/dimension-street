@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Montserrat } from "next/font/google";
 import "./globals.css";
-import Script from "next/script";
 import { CartProvider } from "@/lib/cartContext";
 import CartDrawer from "@/components/cart/CartDrawer";
 
@@ -52,13 +51,9 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${inter.variable} ${montserrat.variable} h-full antialiased scroll-smooth`}
     >
-      <body
-        suppressHydrationWarning
-        className="min-h-full flex flex-col bg-white text-neutral-900 font-sans selection:bg-black selection:text-white"
-      >
-        <Script
+      <head>
+        <script
           id="anti-extension-hydration"
-          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
@@ -93,6 +88,11 @@ export default function RootLayout({
             `,
           }}
         />
+      </head>
+      <body
+        suppressHydrationWarning
+        className="min-h-full flex flex-col bg-white text-neutral-900 font-sans selection:bg-black selection:text-white"
+      >
         <CartProvider>
           {children}
           <CartDrawer />

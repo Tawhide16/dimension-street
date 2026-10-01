@@ -334,14 +334,7 @@ a, button {
   color: #000000;
 }
 
-/* Smooth Interactive Card Hover effects across the site */
-.card-hover-lift {
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.card-hover-lift:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.12), 0 8px 16px -6px rgba(0, 0, 0, 0.08);
-}
+
 
 
 
