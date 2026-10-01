@@ -93,24 +93,24 @@ export default function BestSellingSection() {
         BEST SELLING PRODUCTS
       </h2>
 
-      {/* 4 Column Product Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
+      {/* 4 Column Product Grid - Exact same gap as New Arrivals */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
         {DEFAULT_BESTSELLERS.map((product) => (
-          <div key={product.id} className="group flex flex-col">
-            {/* Image Container with Hover Size Bar */}
-            <div className="relative aspect-square w-full bg-[#f4f4f4] overflow-hidden">
+          <div key={product.id} className="group flex flex-col relative card-hover-lift">
+            {/* Image Container with Exact Same Aspect Ratio and Border as New Arrivals */}
+            <div className="relative aspect-3/4 w-full bg-neutral-100 overflow-hidden rounded-xs border border-neutral-200/60">
               <Link href={`/product/${product.slug}`} className="relative block w-full h-full">
                 <Image
                   src={product.image}
                   alt={product.name}
                   fill
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 25vw"
-                  className="object-cover object-center transition-transform duration-500 ease-out group-hover:scale-102"
+                  className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
                 />
               </Link>
 
-              {/* Sizes Row: slides/fades in on card hover */}
-              <div className="absolute inset-x-0 bottom-0 bg-white/95 backdrop-blur-xs border-t border-neutral-200 flex items-stretch divide-x divide-neutral-200 transition-all duration-200 opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 z-10">
+              {/* Sizes Row: Bigger, Bolder Variant Buttons with Smooth Slide-in on Hover */}
+              <div className="absolute inset-x-0 bottom-0 bg-white/95 backdrop-blur-xs border-t border-neutral-200 flex items-stretch divide-x divide-neutral-200 transition-all duration-300 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 z-10 h-11 sm:h-12 shadow-sm">
                 {product.sizes.map((size) => {
                   const sku = `${product.id}-${size}`.toUpperCase();
                   const isJustAdded = addedItemSku === sku;
@@ -120,33 +120,33 @@ export default function BestSellingSection() {
                       key={size}
                       onClick={(e) => handleSelectSize(e, product, size)}
                       title={`Add size ${size} to bag`}
-                      className={`flex-1 py-2 text-[10px] sm:text-[11px] font-mono font-medium uppercase tracking-wider text-center transition-colors flex items-center justify-center ${
+                      className={`flex-1 py-2 sm:py-2.5 text-xs sm:text-[13px] font-mono font-bold uppercase tracking-wider text-center transition-all flex items-center justify-center cursor-pointer ${
                         isJustAdded
                           ? "bg-black text-white"
-                          : "text-neutral-800 hover:bg-black hover:text-white"
+                          : "text-neutral-900 hover:bg-black hover:text-white active:scale-95"
                       }`}
                     >
-                      {isJustAdded ? <Check className="w-3 h-3 text-white" /> : size}
+                      {isJustAdded ? <Check className="w-4 h-4 text-white" /> : size}
                     </button>
                   );
                 })}
               </div>
             </div>
 
-            {/* Product Meta below Image matching reference */}
-            <div className="pt-3 flex flex-col items-start text-left">
-              <span className="text-[11px] sm:text-xs text-neutral-500 font-normal">
+            {/* Product Meta below Image */}
+            <div className="pt-3 pb-2 flex flex-col space-y-1 text-left">
+              <span className="text-[11px] sm:text-xs text-neutral-500 font-medium">
                 {product.brand}
               </span>
 
               <Link
                 href={`/product/${product.slug}`}
-                className="text-xs sm:text-sm font-semibold text-neutral-900 mt-0.5 hover:underline line-clamp-1"
+                className="text-xs sm:text-sm font-semibold text-neutral-900 hover:underline line-clamp-1"
               >
                 {product.name}
               </Link>
 
-              <span className="text-xs sm:text-sm font-bold text-neutral-900 mt-1">
+              <span className="text-xs sm:text-sm font-bold text-neutral-900 pt-0.5">
                 Tk {product.price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
             </div>

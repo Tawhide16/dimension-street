@@ -205,7 +205,7 @@ export default function Footer() {
                 />
                 <button
                   type="submit"
-                  className="w-full rounded-full bg-white text-black font-bold uppercase tracking-wider text-xs py-3 hover:bg-neutral-200 transition-colors cursor-pointer text-center block shadow-sm"
+                  className="btn-slide-white w-full rounded-full font-bold uppercase tracking-wider text-xs py-3 cursor-pointer text-center block shadow-sm border border-white hover:border-black"
                 >
                   JOIN NOW
                 </button>

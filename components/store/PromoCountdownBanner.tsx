@@ -45,9 +45,9 @@ export default function PromoCountdownBanner() {
 
   return (
     <section className="relative w-full overflow-hidden bg-neutral-900 text-white my-4">
-      {/* 1. Top Ticker Marquee Bar */}
-      <div className="relative z-20 w-full bg-neutral-950/90 py-2 border-b border-white/10 overflow-hidden whitespace-nowrap">
-        <div className="inline-block animate-marquee text-[11px] sm:text-xs font-mono font-bold tracking-[0.2em] uppercase text-white/90">
+      {/* 1. Top Ticker Marquee Bar - Bigger Font */}
+      <div className="relative z-20 w-full bg-neutral-950 py-3 sm:py-3.5 border-b border-white/10 overflow-hidden whitespace-nowrap">
+        <div className="inline-block animate-marquee text-sm sm:text-base md:text-lg font-mono font-bold tracking-[0.25em] uppercase text-white">
           {topMarqueeText} {topMarqueeText}
         </div>
       </div>
@@ -78,7 +78,7 @@ export default function PromoCountdownBanner() {
               </h2>
               <Link
                 href="/shop?sort=discount"
-                className="inline-block px-7 py-3 bg-white text-black text-xs sm:text-sm font-bold uppercase tracking-wider hover:bg-neutral-200 transition-colors shadow-md"
+                className="btn-slide-white inline-block px-7 sm:px-8 py-3 text-xs sm:text-sm font-bold uppercase tracking-wider shadow-md cursor-pointer"
               >
                 VIEW COLLECTION
               </Link>
@@ -151,9 +151,9 @@ export default function PromoCountdownBanner() {
         </div>
       </div>
 
-      {/* 3. Bottom Ticker Marquee Bar */}
-      <div className="relative z-20 w-full bg-neutral-950/90 py-2 border-t border-white/10 overflow-hidden whitespace-nowrap">
-        <div className="inline-block animate-marquee-reverse text-[11px] sm:text-xs font-mono font-bold tracking-[0.2em] uppercase text-white/90">
+      {/* 3. Bottom Ticker Marquee Bar - Bigger Font */}
+      <div className="relative z-20 w-full bg-neutral-950 py-3 sm:py-3.5 border-t border-white/10 overflow-hidden whitespace-nowrap">
+        <div className="inline-block animate-marquee-reverse text-sm sm:text-base md:text-lg font-mono font-bold tracking-[0.25em] uppercase text-white">
           {bottomMarqueeText} {bottomMarqueeText}
         </div>
       </div>

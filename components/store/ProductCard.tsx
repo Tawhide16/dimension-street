@@ -67,7 +67,7 @@ export default function ProductCard({
 
   return (
     <div
-      className="group flex flex-col relative"
+      className="group flex flex-col relative card-hover-lift"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -105,12 +105,12 @@ export default function ProductCard({
           <button
             onClick={handleQuickAdd}
             disabled={product.totalStock === 0}
-            className={`w-full py-2.5 px-4 text-[11px] font-mono font-bold uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all shadow-md ${
+            className={`w-full py-2.5 px-4 text-[11px] font-mono font-bold uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer ${
               product.totalStock === 0
                 ? "bg-neutral-300 text-neutral-500 cursor-not-allowed"
                 : justAdded
                 ? "bg-emerald-600 text-white"
-                : "bg-white/95 text-black hover:bg-black hover:text-white backdrop-blur-xs"
+                : "btn-slide-white border border-black/20"
             }`}
           >
             {justAdded ? (

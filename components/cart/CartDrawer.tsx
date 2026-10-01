@@ -28,8 +28,6 @@ export default function CartDrawer() {
   const [couponFeedback, setCouponFeedback] = useState<{ text: string; error?: boolean } | null>(null);
   const [isApplying, setIsApplying] = useState(false);
 
-  if (!isOpen) return null;
-
   const handleApplyCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputCoupon.trim()) return;
@@ -45,15 +43,26 @@ export default function CartDrawer() {
   const estimatedTotal = Math.max(0, subtotal - discountAmount + finalShipping);
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden">
-      {/* Backdrop */}
+    <div
+      className={`fixed inset-0 z-50 overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+        isOpen ? "pointer-events-auto visible" : "pointer-events-none invisible"
+      }`}
+    >
+      {/* Backdrop with smooth fade transition */}
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
+        className={`absolute inset-0 bg-black/65 backdrop-blur-xs transition-opacity duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          isOpen ? "opacity-100" : "opacity-0"
+        }`}
         onClick={closeCart}
       />
 
       <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-        <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col">
+        {/* Drawer Panel with smooth slide-in/slide-out transform transition */}
+        <div
+          className={`w-screen max-w-md bg-white shadow-2xl flex flex-col transform transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+            isOpen ? "translate-x-0" : "translate-x-full"
+          }`}
+        >
           {/* Header */}
           <div className="p-5 border-b border-neutral-200 flex items-center justify-between bg-neutral-50/50">
             <div className="flex items-center gap-2">
@@ -66,7 +75,7 @@ export default function CartDrawer() {
             </div>
             <button
               onClick={closeCart}
-              className="p-1.5 text-neutral-400 hover:text-black transition-colors rounded-full hover:bg-neutral-100"
+              className="p-1.5 text-neutral-400 hover:text-black transition-colors rounded-full hover:bg-neutral-100 cursor-pointer"
               aria-label="Close Bag"
             >
               <X className="w-5 h-5" />
@@ -266,11 +275,11 @@ export default function CartDrawer() {
                 </div>
               </div>
 
-              {/* Checkout CTA */}
+              {/* Checkout CTA with Slide Fill Hover */}
               <Link
                 href="/checkout"
                 onClick={closeCart}
-                className="w-full py-3.5 bg-black hover:bg-neutral-800 text-white text-xs font-mono font-bold tracking-widest uppercase flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.99]"
+                className="btn-slide-black w-full py-3.5 text-xs font-mono font-bold tracking-widest uppercase flex items-center justify-center gap-2 shadow-md active:scale-[0.99] cursor-pointer"
               >
                 <span>Proceed to Checkout</span>
                 <ArrowRight className="w-4 h-4" />

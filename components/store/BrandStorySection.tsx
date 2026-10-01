@@ -95,11 +95,11 @@ export default function BrandStorySection() {
             </div>
           </div>
 
-          {/* Action Button */}
+          {/* Action Button with Slide-Up Fill Hover Effect */}
           <div>
             <Link
               href="/about"
-              className="inline-block px-7 py-3 border border-neutral-900 bg-white text-neutral-900 text-xs font-mono font-bold uppercase tracking-wider hover:bg-neutral-900 hover:text-white transition-all shadow-xs"
+              className="btn-slide-white inline-block px-8 py-3.5 text-xs font-mono font-bold uppercase tracking-wider shadow-sm border border-black cursor-pointer"
             >
               LEARN MORE ABOUT US
             </Link>
