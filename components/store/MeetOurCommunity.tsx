@@ -43,8 +43,8 @@ const DEFAULT_CARDS: CommunityCardItem[] = [
     videoUrl: "",
     photoUrl: "/images/community_photo_2.jpg",
     productName: "Black stone washed Singh T-shirt",
-    priceFormatted: "Tk 8,500.00",
-    numericPrice: 8500,
+    priceFormatted: "Tk 8,400.00",
+    numericPrice: 8400,
     thumbnail: "/images/community_thumb_2.jpg",
     slug: "dimension-isometric-heavyweight-tee",
     isMiddleFeatured: false,
@@ -54,8 +54,8 @@ const DEFAULT_CARDS: CommunityCardItem[] = [
     videoUrl: "",
     photoUrl: "/images/community_photo_3.jpg",
     productName: "Black stone washed Singh T-shirt",
-    priceFormatted: "Tk 8,500.00",
-    numericPrice: 8500,
+    priceFormatted: "Tk 8,400.00",
+    numericPrice: 8400,
     thumbnail: "/images/community_thumb_3.jpg",
     slug: "dimension-isometric-heavyweight-tee",
     isMiddleFeatured: true, // Central Taller Card matching user's image
@@ -333,32 +333,32 @@ export default function MeetOurCommunity() {
                 </div>
 
                 {/* Bottom Product Info Bar matching reference image */}
-                <div className="border border-neutral-200 border-t-0 p-2 sm:p-2.5 flex items-center justify-between gap-2 bg-white">
+                <div className="border border-neutral-300 bg-white px-3 py-2.5 sm:px-4 sm:py-3 flex items-center justify-between gap-2.5 sm:gap-3">
                   {/* Left: Product Thumbnail */}
                   <Link
                     href={`/product/${card.slug}`}
-                    className="relative w-8 h-8 sm:w-9 sm:h-9 bg-neutral-50 flex-shrink-0 border border-neutral-200 overflow-hidden block"
+                    className="relative w-12 h-12 sm:w-14 sm:h-14 bg-white flex-shrink-0 flex items-center justify-center overflow-hidden group"
                     title={card.productName}
                   >
                     <Image
                       src={card.thumbnail}
                       alt={card.productName}
                       fill
-                      sizes="40px"
-                      className="object-contain p-0.5"
+                      sizes="60px"
+                      className="object-contain transition-transform duration-300 group-hover:scale-105"
                     />
                   </Link>
 
-                  {/* Middle: Product Title & Price */}
-                  <div className="flex-1 min-w-0 text-left">
+                  {/* Middle: Product Title & Price (Centered) */}
+                  <div className="flex-1 min-w-0 px-1 sm:px-2 text-center flex flex-col items-center justify-center">
                     <Link
                       href={`/product/${card.slug}`}
-                      className="text-[10px] sm:text-[11px] font-medium text-neutral-800 leading-tight line-clamp-2 block hover:underline"
+                      className="text-xs sm:text-[13px] md:text-sm font-normal text-neutral-900 leading-snug line-clamp-2 block hover:underline"
                       title={card.productName}
                     >
                       {card.productName}
                     </Link>
-                    <span className="text-[10px] sm:text-[11px] font-bold text-neutral-900 block mt-0.5">
+                    <span className="text-xs sm:text-[13px] md:text-sm font-bold text-neutral-950 block mt-1 tracking-tight">
                       {card.priceFormatted}
                     </span>
                   </div>
@@ -369,16 +369,16 @@ export default function MeetOurCommunity() {
                     onClick={(e) => handleAddToCart(e, card)}
                     title="Add to cart"
                     aria-label={`Add ${card.productName} to cart`}
-                    className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center transition-all flex-shrink-0 shadow-xs cursor-pointer ${
+                    className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 flex-shrink-0 shadow-xs cursor-pointer ${
                       justAddedId === card.id
                         ? "bg-emerald-600 text-white"
-                        : "bg-black text-white hover:scale-110 active:scale-95"
+                        : "bg-black text-white hover:scale-105 active:scale-95"
                     }`}
                   >
                     {justAddedId === card.id ? (
-                      <Check className="w-3 h-3 text-white" />
+                      <Check className="w-4 h-4 text-white stroke-[2.5]" />
                     ) : (
-                      <ShoppingCart className="w-3 h-3 text-white" />
+                      <ShoppingCart className="w-4 h-4 sm:w-[18px] sm:h-[18px] text-white stroke-[2]" />
                     )}
                   </button>
                 </div>

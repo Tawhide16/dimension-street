@@ -29,7 +29,7 @@ const INITIAL_REELS: CommunityReel[] = [
     product: {
       id: "prod-tee-stonewash-2",
       name: "Black stone washed Singh T-shirt",
-      price: 8500,
+      price: 8400,
       slug: "dimension-isometric-heavyweight-tee",
       thumbnail: "/images/community_thumb_2.jpg",
     },
@@ -45,7 +45,7 @@ const INITIAL_REELS: CommunityReel[] = [
     product: {
       id: "prod-tee-stonewash-3",
       name: "Black stone washed Singh T-shirt",
-      price: 8500,
+      price: 8400,
       slug: "dimension-isometric-heavyweight-tee",
       thumbnail: "/images/community_thumb_3.jpg",
     },
