@@ -1804,6 +1804,23 @@
         "limit": 4
       },
       "createdAt": "2026-10-02T06:15:06.574Z"
+    },
+    {
+      "_id": "6abe2e0dfbac6fd15450e3a7",
+      "type": "6abe2e0dfbac6fd15450e3a7",
+      "title": "HERO BANNER",
+      "subtitle": "Primary Homepage Billboard",
+      "order": 1,
+      "isActive": true,
+      "data": {
+        "ctaText": "BESTSELLERS",
+        "ctaLink": "/shop",
+        "secondaryCtaText": "SHOP PINK",
+        "secondaryCtaLink": "/shop",
+        "badge": "SEASON 21SS / DENIM NEW IN",
+        "backgroundImage": "/uploads/upload_1791005143339_unnamed__2_.webp"
+      },
+      "createdAt": "2026-10-03T05:25:43.714Z"
     }
   ],
   "users": [

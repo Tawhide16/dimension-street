@@ -23,7 +23,29 @@ import {
   AlertCircle,
   X,
   Edit3,
+  Upload,
+  Image as ImageIcon,
+  FileSpreadsheet,
+  Download,
+  Loader2,
+  ArrowUpRight,
+  Layers,
+  FileText,
+  Star,
+  Copy,
 } from "lucide-react";
+
+interface BulkRowItem {
+  id: string;
+  name: string;
+  category: string;
+  price: number;
+  compareAtPrice: number;
+  totalStock: number;
+  sku: string;
+  image: string;
+  isUploading?: boolean;
+}
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -68,8 +90,11 @@ export default function AdminProductsPage() {
   const [editedProducts, setEditedProducts] = useState<Record<string, Partial<Product>>>({});
   const [isSavingInline, setIsSavingInline] = useState(false);
 
-  // Add Product Modal state
+  // Add Product Modal & Bulk State
   const [showAddModal, setShowAddModal] = useState(false);
+  const [addModalTab, setAddModalTab] = useState<"single" | "bulk_table" | "csv">("single");
+
+  // Single Product Form & Device Image Upload
   const [newProd, setNewProd] = useState({
     name: "",
     slug: "",
@@ -78,13 +103,57 @@ export default function AdminProductsPage() {
     price: 110,
     compareAtPrice: 130,
     costPrice: 45,
-    sku: "DIM-HOODIE-001",
+    sku: `DIM-HOOD-${Date.now().toString().slice(-3)}`,
     description: "Architectural heavyweight silhouette milled from 480 GSM organic cotton knit.",
-    image: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=1200&q=85",
+    image: "",
     totalStock: 50,
     featured: true,
     newArrival: true,
   });
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  // Bulk Multi-Row Table State
+  const [bulkRows, setBulkRows] = useState<BulkRowItem[]>([
+    {
+      id: "bulk-1",
+      name: "Architectural Heavyweight Hoodie",
+      category: "hoodies",
+      price: 110,
+      compareAtPrice: 130,
+      totalStock: 50,
+      sku: "DIM-HOOD-01",
+      image: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=1200&q=85",
+    },
+    {
+      id: "bulk-2",
+      name: "Vintage Acid Washed Graphic Tee",
+      category: "t-shirts",
+      price: 65,
+      compareAtPrice: 75,
+      totalStock: 60,
+      sku: "DIM-TEE-01",
+      image: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=1200&q=85",
+    },
+    {
+      id: "bulk-3",
+      name: "Modular Cargo Tech Pants",
+      category: "bottoms",
+      price: 140,
+      compareAtPrice: 165,
+      totalStock: 35,
+      sku: "DIM-CARGO-01",
+      image: "https://images.unsplash.com/photo-1517445312882-bc9910d016b7?auto=format&fit=crop&w=1200&q=85",
+    },
+  ]);
+  const [isSubmittingBulk, setIsSubmittingBulk] = useState(false);
+
+  // CSV Bulk Import State
+  const [csvProducts, setCsvProducts] = useState<any[]>([]);
+  const [csvFileName, setCsvFileName] = useState<string>("");
+  const [csvError, setCsvError] = useState<string | null>(null);
+  const [isImportingCsv, setIsImportingCsv] = useState(false);
 
   const loadProducts = async () => {
     try {
@@ -258,20 +327,104 @@ export default function AdminProductsPage() {
     }
   };
 
+  // Upload image from user's device for Single Product
+  const handleSingleImageUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setIsUploadingImage(true);
+    setUploadError(null);
+    try {
+      const uploadedUrls: string[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const formData = new FormData();
+        formData.append("file", file);
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+        const data = await res.json();
+        if (data.success && data.url) {
+          uploadedUrls.push(data.url);
+        } else {
+          throw new Error(data.error || `Upload failed for ${file.name}`);
+        }
+      }
+      setUploadedImages((prev) => [...prev, ...uploadedUrls]);
+      // Set main image if not currently set
+      if (!newProd.image && uploadedUrls.length > 0) {
+        setNewProd((p) => ({ ...p, image: uploadedUrls[0] }));
+      }
+    } catch (err: any) {
+      setUploadError(err.message || "Failed to upload image.");
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const removeSingleImage = (index: number) => {
+    setUploadedImages((prev) => {
+      const target = prev[index];
+      const next = prev.filter((_, i) => i !== index);
+      if (newProd.image === target) {
+        setNewProd((p) => ({ ...p, image: next[0] || "" }));
+      }
+      return next;
+    });
+  };
+
+  const setAsMainImage = (url: string) => {
+    setUploadedImages((prev) => [url, ...prev.filter((u) => u !== url)]);
+    setNewProd((p) => ({ ...p, image: url }));
+  };
+
   // Single product creation
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!newProd.name.trim()) {
+      alert("Please enter a garment name.");
+      return;
+    }
+
+    const finalImages =
+      uploadedImages.length > 0
+        ? uploadedImages
+        : [
+            newProd.image ||
+              "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=1200&q=85",
+          ];
+    const mainImg = newProd.image || finalImages[0];
+
     try {
       const res = await fetch("/api/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...newProd,
-          images: [newProd.image],
-          slug: newProd.slug || newProd.name.toLowerCase().replace(/\s+/g, "-"),
+          image: mainImg,
+          images: finalImages,
+          slug:
+            newProd.slug ||
+            newProd.name
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, "-")
+              .replace(/^-|-$/g, "") +
+              "-" +
+              Date.now().toString().slice(-4),
           variants: [
-            { sku: `${newProd.sku}-M`, color: "Pitch Black", size: "M", price: newProd.price, stock: Math.round(newProd.totalStock / 2) },
-            { sku: `${newProd.sku}-L`, color: "Pitch Black", size: "L", price: newProd.price, stock: Math.round(newProd.totalStock / 2) },
+            {
+              sku: `${newProd.sku}-M`,
+              color: "Pitch Black",
+              size: "M",
+              price: newProd.price,
+              stock: Math.round(newProd.totalStock / 2),
+            },
+            {
+              sku: `${newProd.sku}-L`,
+              color: "Pitch Black",
+              size: "L",
+              price: newProd.price,
+              stock: Math.round(newProd.totalStock / 2),
+            },
           ],
         }),
       });
@@ -280,6 +433,7 @@ export default function AdminProductsPage() {
         const data = await res.json();
         setProducts([data.product, ...products]);
         setShowAddModal(false);
+        setBulkSuccessMsg(`Successfully published garment "${data.product.name}"!`);
         setNewProd({
           name: "",
           slug: "",
@@ -290,14 +444,289 @@ export default function AdminProductsPage() {
           costPrice: 45,
           sku: `DIM-HOOD-${Date.now().toString().slice(-3)}`,
           description: "Architectural heavyweight silhouette milled from 480 GSM organic cotton knit.",
-          image: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=1200&q=85",
+          image: "",
           totalStock: 50,
           featured: true,
           newArrival: true,
         });
+        setUploadedImages([]);
+      } else {
+        const errData = await res.json();
+        alert(errData?.error || "Error adding product");
       }
     } catch {
       alert("Error adding product");
+    }
+  };
+
+  // Bulk Multi-Row Table Helpers
+  const addBulkRow = () => {
+    const nextIdx = bulkRows.length + 1;
+    setBulkRows((prev) => [
+      ...prev,
+      {
+        id: `bulk-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        name: "",
+        category: "hoodies",
+        price: 110,
+        compareAtPrice: 130,
+        totalStock: 50,
+        sku: `DIM-ITEM-${Date.now().toString().slice(-3)}-${nextIdx}`,
+        image: "",
+      },
+    ]);
+  };
+
+  const removeBulkRow = (id: string) => {
+    if (bulkRows.length <= 1) {
+      alert("You must have at least one product row.");
+      return;
+    }
+    setBulkRows((prev) => prev.filter((r) => r.id !== id));
+  };
+
+  const updateBulkRow = (id: string, field: keyof BulkRowItem, value: any) => {
+    setBulkRows((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, [field]: value } : r))
+    );
+  };
+
+  const handleBulkRowImageUpload = async (rowId: string, file: File | null) => {
+    if (!file) return;
+    setBulkRows((prev) =>
+      prev.map((r) => (r.id === rowId ? { ...r, isUploading: true } : r))
+    );
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success && data.url) {
+        setBulkRows((prev) =>
+          prev.map((r) =>
+            r.id === rowId ? { ...r, image: data.url, isUploading: false } : r
+          )
+        );
+      } else {
+        alert(data.error || "Failed to upload image for this row.");
+        setBulkRows((prev) =>
+          prev.map((r) => (r.id === rowId ? { ...r, isUploading: false } : r))
+        );
+      }
+    } catch (err: any) {
+      alert(err.message || "Upload failed.");
+      setBulkRows((prev) =>
+        prev.map((r) => (r.id === rowId ? { ...r, isUploading: false } : r))
+      );
+    }
+  };
+
+  const handleBulkRowsSubmit = async () => {
+    const validRows = bulkRows.filter((r) => r.name.trim().length > 0);
+    if (validRows.length === 0) {
+      alert("Please enter a name for at least one garment row.");
+      return;
+    }
+
+    setIsSubmittingBulk(true);
+    try {
+      const payload = validRows.map((r) => ({
+        name: r.name.trim(),
+        category: r.category,
+        price: Number(r.price) || 50,
+        compareAtPrice: r.compareAtPrice ? Number(r.compareAtPrice) : undefined,
+        totalStock: Number(r.totalStock) || 50,
+        sku: r.sku || `DIM-${Date.now().toString().slice(-4)}`,
+        image:
+          r.image ||
+          "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=1200&q=85",
+        images: [
+          r.image ||
+            "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=1200&q=85",
+        ],
+        description: `Premium streetwear garment: ${r.name.trim()}`,
+      }));
+
+      const res = await fetch("/api/products/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ products: payload }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setProducts((prev) => [...data.products, ...prev]);
+        setShowAddModal(false);
+        setBulkSuccessMsg(`Successfully published ${data.count} new products!`);
+        setBulkRows([
+          {
+            id: `bulk-${Date.now()}-1`,
+            name: "",
+            category: "hoodies",
+            price: 110,
+            compareAtPrice: 130,
+            totalStock: 50,
+            sku: `DIM-HOOD-${Date.now().toString().slice(-3)}`,
+            image: "",
+          },
+        ]);
+      } else {
+        alert(data.error || "Failed to create products in bulk.");
+      }
+    } catch (err: any) {
+      alert(err.message || "Failed to publish products.");
+    } finally {
+      setIsSubmittingBulk(false);
+    }
+  };
+
+  // CSV Import Helpers
+  const downloadSampleCsv = () => {
+    const headers = "name,category,price,compareAtPrice,totalStock,sku,image,description";
+    const sampleRows = [
+      '"Heavyweight Oversized Hoodie",hoodies,110,130,50,DIM-HOOD-01,"https://images.unsplash.com/photo-1556905055-8f358a7a47b2","Heavyweight 480 GSM organic cotton knit"',
+      '"Acid Wash Graphic Tee",t-shirts,65,75,40,DIM-TEE-01,"https://images.unsplash.com/photo-1521572267360-ee0c2909d518","Vintage wash graphic t-shirt"',
+      '"Tactical Cargo Pants",bottoms,140,165,30,DIM-CARGO-01,"https://images.unsplash.com/photo-1517445312882-bc9910d016b7","Utilitarian streetwear cargo pants"',
+    ];
+    const csvContent = "data:text/csv;charset=utf-8," + [headers, ...sampleRows].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "dimension_products_template.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleCsvFileChange = (file: File | null) => {
+    if (!file) return;
+    setCsvFileName(file.name);
+    setCsvError(null);
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const text = e.target?.result as string;
+        if (!text) return;
+
+        if (file.name.endsWith(".json")) {
+          const parsed = JSON.parse(text);
+          if (Array.isArray(parsed)) {
+            setCsvProducts(parsed);
+          } else {
+            setCsvError("JSON must contain an array of products.");
+          }
+          return;
+        }
+
+        const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
+        if (lines.length < 2) {
+          setCsvError("CSV file must have a header row and at least one data row.");
+          return;
+        }
+
+        const parseLine = (line: string) => {
+          const result: string[] = [];
+          let current = "";
+          let inQuotes = false;
+          for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            if (char === '"') {
+              inQuotes = !inQuotes;
+            } else if (char === "," && !inQuotes) {
+              result.push(current.trim().replace(/^"|"$/g, ""));
+              current = "";
+            } else {
+              current += char;
+            }
+          }
+          result.push(current.trim().replace(/^"|"$/g, ""));
+          return result;
+        };
+
+        const headers = parseLine(lines[0]).map((h) => h.toLowerCase().trim());
+        const nameIdx = headers.findIndex((h) => h.includes("name") || h.includes("title"));
+        const priceIdx = headers.findIndex((h) => h.includes("price") && !h.includes("compare"));
+        const compareIdx = headers.findIndex((h) => h.includes("compare"));
+        const catIdx = headers.findIndex((h) => h.includes("cat"));
+        const stockIdx = headers.findIndex((h) => h.includes("stock") || h.includes("qty"));
+        const skuIdx = headers.findIndex((h) => h.includes("sku"));
+        const imgIdx = headers.findIndex(
+          (h) => h.includes("image") || h.includes("photo") || h.includes("url")
+        );
+        const descIdx = headers.findIndex((h) => h.includes("desc"));
+
+        const items: any[] = [];
+        for (let i = 1; i < lines.length; i++) {
+          const cols = parseLine(lines[i]);
+          if (!cols || cols.length === 0 || !cols[nameIdx >= 0 ? nameIdx : 0]) continue;
+          items.push({
+            name: cols[nameIdx >= 0 ? nameIdx : 0] || "Streetwear Garment",
+            price:
+              priceIdx >= 0 && cols[priceIdx]
+                ? parseFloat(cols[priceIdx]) || 50
+                : 50,
+            compareAtPrice:
+              compareIdx >= 0 && cols[compareIdx]
+                ? parseFloat(cols[compareIdx])
+                : undefined,
+            category: catIdx >= 0 && cols[catIdx] ? cols[catIdx] : "hoodies",
+            totalStock:
+              stockIdx >= 0 && cols[stockIdx]
+                ? parseInt(cols[stockIdx]) || 40
+                : 40,
+            sku:
+              skuIdx >= 0 && cols[skuIdx]
+                ? cols[skuIdx]
+                : `DIM-CSV-${Date.now().toString().slice(-4)}-${i}`,
+            image:
+              imgIdx >= 0 && cols[imgIdx]
+                ? cols[imgIdx]
+                : "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=1200&q=85",
+            description: descIdx >= 0 && cols[descIdx] ? cols[descIdx] : "",
+          });
+        }
+
+        if (items.length === 0) {
+          setCsvError("No valid product rows found in the CSV.");
+        } else {
+          setCsvProducts(items);
+        }
+      } catch (err: any) {
+        setCsvError(err.message || "Failed to parse CSV file.");
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleCsvImportSubmit = async () => {
+    if (csvProducts.length === 0) return;
+    setIsImportingCsv(true);
+    try {
+      const res = await fetch("/api/products/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ products: csvProducts }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setProducts((prev) => [...data.products, ...prev]);
+        setShowAddModal(false);
+        setBulkSuccessMsg(
+          `Successfully imported ${data.count} products from ${csvFileName}!`
+        );
+        setCsvProducts([]);
+        setCsvFileName("");
+      } else {
+        alert(data.error || "Failed to import products.");
+      }
+    } catch (err: any) {
+      alert(err.message || "Network error while importing.");
+    } finally {
+      setIsImportingCsv(false);
     }
   };
 
@@ -389,11 +818,27 @@ export default function AdminProductsPage() {
           {/* Add New Product Button */}
           <button
             type="button"
-            onClick={() => setShowAddModal(true)}
+            onClick={() => {
+              setAddModalTab("single");
+              setShowAddModal(true);
+            }}
             className="px-4 py-2 bg-black hover:bg-neutral-800 text-white text-xs font-bold uppercase rounded-lg flex items-center gap-2 shadow-sm transition-all cursor-pointer"
           >
             <Plus className="w-4 h-4 text-pink-400" />
-            <span>Add New Product</span>
+            <span>Add Product</span>
+          </button>
+
+          {/* Bulk Upload Button */}
+          <button
+            type="button"
+            onClick={() => {
+              setAddModalTab("bulk_table");
+              setShowAddModal(true);
+            }}
+            className="px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white text-xs font-bold uppercase rounded-lg flex items-center gap-2 shadow-sm transition-all cursor-pointer"
+          >
+            <Upload className="w-4 h-4 text-white" />
+            <span>Bulk Upload</span>
           </button>
         </div>
       </div>
@@ -1368,130 +1813,722 @@ export default function AdminProductsPage() {
         </div>
       )}
 
-      {/* MODAL 5: Add New Product Form */}
+      {/* MODAL 5: Product Upload Studio (Single, Bulk Fast Table & CSV Importer) */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-xl w-full p-6 space-y-4 my-8 shadow-2xl border border-neutral-200">
-            <div className="flex items-center justify-between border-b pb-3">
-              <h3 className="text-sm font-bold uppercase tracking-tight text-neutral-900 flex items-center gap-2">
-                <Plus className="w-4 h-4 text-pink-500" />
-                <span>Add Milled Streetwear Garment</span>
-              </h3>
-              <button onClick={() => setShowAddModal(false)} className="text-neutral-400 hover:text-black">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreate} className="space-y-4 text-xs font-mono">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
-                  <label className="block text-neutral-600 uppercase font-bold mb-1">Garment Name</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Architectural Heavyweight Hoodie 480 GSM"
-                    value={newProd.name}
-                    onChange={(e) => setNewProd({ ...newProd, name: e.target.value })}
-                    className="w-full px-3 py-2 border rounded font-sans focus:outline-none focus:border-black"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-neutral-600 uppercase font-bold mb-1">SKU</label>
-                  <input
-                    type="text"
-                    required
-                    value={newProd.sku}
-                    onChange={(e) => setNewProd({ ...newProd, sku: e.target.value })}
-                    className="w-full px-3 py-2 border rounded focus:outline-none focus:border-black"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-neutral-600 uppercase font-bold mb-1">Category</label>
-                  <select
-                    value={newProd.category}
-                    onChange={(e) => setNewProd({ ...newProd, category: e.target.value })}
-                    className="w-full px-3 py-2 border rounded focus:outline-none focus:border-black bg-white uppercase"
-                  >
-                    <option value="hoodies">hoodies</option>
-                    <option value="t-shirts">t-shirts</option>
-                    <option value="bottoms">bottoms</option>
-                    <option value="outerwear">outerwear</option>
-                    <option value="accessories">accessories</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-neutral-600 uppercase font-bold mb-1">Price ($ USD)</label>
-                  <input
-                    type="number"
-                    required
-                    value={newProd.price}
-                    onChange={(e) => setNewProd({ ...newProd, price: parseFloat(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 border rounded focus:outline-none focus:border-black"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-neutral-600 uppercase font-bold mb-1">Compare-At Price ($)</label>
-                  <input
-                    type="number"
-                    value={newProd.compareAtPrice}
-                    onChange={(e) => setNewProd({ ...newProd, compareAtPrice: parseFloat(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 border rounded focus:outline-none focus:border-black"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-neutral-600 uppercase font-bold mb-1">Total Stock</label>
-                  <input
-                    type="number"
-                    required
-                    value={newProd.totalStock}
-                    onChange={(e) => setNewProd({ ...newProd, totalStock: parseInt(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 border rounded focus:outline-none focus:border-black"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-neutral-600 uppercase font-bold mb-1">Collection</label>
-                  <input
-                    type="text"
-                    value={newProd.collectionName}
-                    onChange={(e) => setNewProd({ ...newProd, collectionName: e.target.value })}
-                    className="w-full px-3 py-2 border rounded focus:outline-none focus:border-black"
-                  />
-                </div>
-
-                <div className="col-span-2">
-                  <label className="block text-neutral-600 uppercase font-bold mb-1">Main Image URL</label>
-                  <input
-                    type="url"
-                    required
-                    value={newProd.image}
-                    onChange={(e) => setNewProd({ ...newProd, image: e.target.value })}
-                    className="w-full px-3 py-2 border rounded font-mono text-[11px] focus:outline-none focus:border-black"
-                  />
-                </div>
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div
+            className={`bg-white rounded-2xl w-full p-6 space-y-4 my-8 shadow-2xl border border-neutral-200 transition-all ${
+              addModalTab === "single" ? "max-w-3xl" : "max-w-5xl"
+            }`}
+          >
+            {/* Header with Title & Tab Switcher */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b pb-4">
+              <div>
+                <h3 className="text-base font-black uppercase tracking-tight text-neutral-900 flex items-center gap-2">
+                  <Package className="w-5 h-5 text-pink-500" />
+                  <span>Product Upload Studio</span>
+                </h3>
+                <p className="text-xs text-neutral-500 font-sans mt-0.5">
+                  Upload high-res product photos from your device & publish single or multiple garments
+                </p>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t">
+              {/* Tab Selector */}
+              <div className="flex items-center gap-1.5 p-1 bg-neutral-100 rounded-xl">
                 <button
                   type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 border border-neutral-300 rounded font-bold uppercase text-neutral-600 hover:bg-neutral-100"
+                  onClick={() => setAddModalTab("single")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                    addModalTab === "single"
+                      ? "bg-white text-black shadow-xs font-black"
+                      : "text-neutral-500 hover:text-black"
+                  }`}
                 >
-                  Cancel
+                  <Plus className="w-3.5 h-3.5 text-pink-500" />
+                  <span>Single Product</span>
                 </button>
+
                 <button
-                  type="submit"
-                  className="px-6 py-2 bg-black hover:bg-neutral-800 text-white rounded font-bold uppercase shadow-sm"
+                  type="button"
+                  onClick={() => setAddModalTab("bulk_table")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                    addModalTab === "bulk_table"
+                      ? "bg-white text-black shadow-xs font-black"
+                      : "text-neutral-500 hover:text-black"
+                  }`}
                 >
-                  Publish Garment
+                  <Layers className="w-3.5 h-3.5 text-indigo-500" />
+                  <span>Bulk Multi-Row</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setAddModalTab("csv")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                    addModalTab === "csv"
+                      ? "bg-white text-black shadow-xs font-black"
+                      : "text-neutral-500 hover:text-black"
+                  }`}
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-500" />
+                  <span>CSV Spreadsheet</span>
+                </button>
+
+                <button
+                  onClick={() => setShowAddModal(false)}
+                  className="p-1.5 text-neutral-400 hover:text-black ml-2 rounded-lg hover:bg-neutral-200 transition-colors"
+                >
+                  <X className="w-4 h-4" />
                 </button>
               </div>
-            </form>
+            </div>
+
+            {/* TAB 1: Single Product with Device Image Uploader */}
+            {addModalTab === "single" && (
+              <form onSubmit={handleCreate} className="space-y-4 text-xs font-mono">
+                {/* Device Image Uploader Section */}
+                <div className="bg-neutral-50 rounded-xl p-4 border border-neutral-200 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-xs font-bold uppercase text-neutral-800 flex items-center gap-1.5">
+                        <ImageIcon className="w-4 h-4 text-pink-500" />
+                        <span>Product Images (From Device)</span>
+                      </span>
+                      <p className="text-[11px] text-neutral-500 font-sans mt-0.5">
+                        Upload 1 or more photos. The first image is used as the main cover photo.
+                      </p>
+                    </div>
+                    {uploadedImages.length > 0 && (
+                      <span className="text-[11px] bg-pink-100 text-pink-700 px-2 py-0.5 rounded-full font-bold">
+                        {uploadedImages.length} image{uploadedImages.length > 1 ? "s" : ""} uploaded
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Dropzone / Upload button */}
+                  <label className="relative border-2 border-dashed border-neutral-300 hover:border-black bg-white rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer transition-colors group">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      disabled={isUploadingImage}
+                      onChange={(e) => handleSingleImageUpload(e.target.files)}
+                      className="sr-only"
+                    />
+                    {isUploadingImage ? (
+                      <div className="flex flex-col items-center gap-2 text-neutral-600">
+                        <Loader2 className="w-6 h-6 animate-spin text-black" />
+                        <span className="font-bold text-xs">Uploading images...</span>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-2 text-center">
+                        <div className="w-10 h-10 rounded-full bg-neutral-100 group-hover:bg-neutral-200 flex items-center justify-center transition-colors">
+                          <Upload className="w-5 h-5 text-neutral-700 group-hover:text-black" />
+                        </div>
+                        <div>
+                          <span className="font-bold text-xs text-neutral-800">
+                            Click to browse or drag & drop images
+                          </span>
+                          <p className="text-[11px] text-neutral-400 font-sans mt-0.5">
+                            Supports JPG, PNG, WEBP, AVIF (Multiple files allowed)
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </label>
+
+                  {uploadError && (
+                    <div className="p-2 bg-red-50 border border-red-200 text-red-600 rounded-lg text-[11px] flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      <span>{uploadError}</span>
+                    </div>
+                  )}
+
+                  {/* Live Thumbnails Preview Grid */}
+                  {uploadedImages.length > 0 && (
+                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-2.5 pt-2">
+                      {uploadedImages.map((url, idx) => (
+                        <div
+                          key={idx}
+                          className={`relative aspect-square rounded-lg overflow-hidden border-2 group bg-neutral-100 ${
+                            idx === 0
+                              ? "border-pink-500 shadow-xs"
+                              : "border-neutral-200"
+                          }`}
+                        >
+                          <img
+                            src={url}
+                            alt={`Preview ${idx + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                          {idx === 0 && (
+                            <span className="absolute top-1 left-1 bg-pink-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                              Main
+                            </span>
+                          )}
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 p-1">
+                            {idx !== 0 && (
+                              <button
+                                type="button"
+                                title="Set as main cover"
+                                onClick={() => setAsMainImage(url)}
+                                className="p-1 bg-white/90 hover:bg-white text-black rounded text-[9px] font-bold shadow-xs cursor-pointer"
+                              >
+                                Cover
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              title="Delete photo"
+                              onClick={() => removeSingleImage(idx)}
+                              className="p-1 bg-red-600 hover:bg-red-700 text-white rounded shadow-xs cursor-pointer"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Fallback Image URL input */}
+                  <div className="pt-2">
+                    <label className="block text-[11px] text-neutral-500 uppercase font-bold mb-1">
+                      Or Direct Image URL (Optional)
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://images.unsplash.com/..."
+                      value={newProd.image}
+                      onChange={(e) => setNewProd({ ...newProd, image: e.target.value })}
+                      className="w-full px-3 py-1.5 border rounded font-mono text-[11px] focus:outline-none focus:border-black bg-white"
+                    />
+                  </div>
+                </div>
+
+                {/* Garment Details Fields */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="col-span-2">
+                    <label className="block text-neutral-600 uppercase font-bold mb-1">
+                      Garment Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Architectural Heavyweight Hoodie 480 GSM"
+                      value={newProd.name}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setNewProd({
+                          ...newProd,
+                          name: val,
+                          sku:
+                            newProd.sku === `DIM-HOOD-${Date.now().toString().slice(-3)}` || !newProd.sku
+                              ? `DIM-${val.slice(0, 4).toUpperCase().replace(/[^A-Z]/g, "X")}-${Date.now().toString().slice(-3)}`
+                              : newProd.sku,
+                        });
+                      }}
+                      className="w-full px-3 py-2 border rounded font-sans focus:outline-none focus:border-black text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-neutral-600 uppercase font-bold mb-1">
+                      SKU
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={newProd.sku}
+                      onChange={(e) => setNewProd({ ...newProd, sku: e.target.value })}
+                      className="w-full px-3 py-2 border rounded focus:outline-none focus:border-black"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-neutral-600 uppercase font-bold mb-1">
+                      Category
+                    </label>
+                    <select
+                      value={newProd.category}
+                      onChange={(e) => setNewProd({ ...newProd, category: e.target.value })}
+                      className="w-full px-3 py-2 border rounded focus:outline-none focus:border-black bg-white uppercase"
+                    >
+                      <option value="hoodies">hoodies</option>
+                      <option value="t-shirts">t-shirts</option>
+                      <option value="bottoms">bottoms</option>
+                      <option value="outerwear">outerwear</option>
+                      <option value="accessories">accessories</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-neutral-600 uppercase font-bold mb-1">
+                      Price ($ USD) *
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min={0}
+                      value={newProd.price}
+                      onChange={(e) =>
+                        setNewProd({ ...newProd, price: parseFloat(e.target.value) || 0 })
+                      }
+                      className="w-full px-3 py-2 border rounded focus:outline-none focus:border-black"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-neutral-600 uppercase font-bold mb-1">
+                      Compare-At Price ($)
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={newProd.compareAtPrice || ""}
+                      onChange={(e) =>
+                        setNewProd({
+                          ...newProd,
+                          compareAtPrice: parseFloat(e.target.value) || 0,
+                        })
+                      }
+                      className="w-full px-3 py-2 border rounded focus:outline-none focus:border-black"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-neutral-600 uppercase font-bold mb-1">
+                      Total Stock
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min={0}
+                      value={newProd.totalStock}
+                      onChange={(e) =>
+                        setNewProd({ ...newProd, totalStock: parseInt(e.target.value) || 0 })
+                      }
+                      className="w-full px-3 py-2 border rounded focus:outline-none focus:border-black"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-neutral-600 uppercase font-bold mb-1">
+                      Collection
+                    </label>
+                    <input
+                      type="text"
+                      value={newProd.collectionName}
+                      onChange={(e) => setNewProd({ ...newProd, collectionName: e.target.value })}
+                      className="w-full px-3 py-2 border rounded focus:outline-none focus:border-black"
+                    />
+                  </div>
+
+                  <div className="col-span-2">
+                    <label className="block text-neutral-600 uppercase font-bold mb-1">
+                      Description
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={newProd.description}
+                      onChange={(e) => setNewProd({ ...newProd, description: e.target.value })}
+                      className="w-full px-3 py-2 border rounded font-sans focus:outline-none focus:border-black"
+                    />
+                  </div>
+
+                  {/* Badges Toggles */}
+                  <div className="col-span-2 flex flex-wrap gap-4 pt-1">
+                    <label className="flex items-center gap-2 cursor-pointer font-sans text-xs">
+                      <input
+                        type="checkbox"
+                        checked={newProd.featured}
+                        onChange={(e) => setNewProd({ ...newProd, featured: e.target.checked })}
+                        className="rounded"
+                      />
+                      <span>Featured Garment</span>
+                    </label>
+
+                    <label className="flex items-center gap-2 cursor-pointer font-sans text-xs">
+                      <input
+                        type="checkbox"
+                        checked={newProd.newArrival}
+                        onChange={(e) => setNewProd({ ...newProd, newArrival: e.target.checked })}
+                        className="rounded"
+                      />
+                      <span>New Arrival</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-4 border-t">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddModal(false)}
+                    className="px-4 py-2 border border-neutral-300 rounded font-bold uppercase text-neutral-600 hover:bg-neutral-100 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isUploadingImage}
+                    className="px-6 py-2 bg-black hover:bg-neutral-800 text-white rounded font-bold uppercase shadow-sm cursor-pointer disabled:opacity-50 flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4 text-pink-400" />
+                    <span>Publish Garment</span>
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* TAB 2: Multiple Products Fast Multi-Row Form */}
+            {addModalTab === "bulk_table" && (
+              <div className="space-y-4 text-xs font-mono">
+                <div className="flex items-center justify-between bg-violet-50 p-3 rounded-xl border border-violet-200">
+                  <div className="flex items-center gap-2 text-violet-900 font-sans">
+                    <Layers className="w-4 h-4 text-violet-600 shrink-0" />
+                    <span>
+                      Add multiple garments simultaneously. Upload images per item directly from your device.
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={addBulkRow}
+                    className="px-3 py-1.5 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-lg text-xs flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Row</span>
+                  </button>
+                </div>
+
+                {/* Multi-Row Table */}
+                <div className="overflow-x-auto border border-neutral-200 rounded-xl max-h-[50vh]">
+                  <table className="w-full text-left text-[11px] border-collapse">
+                    <thead className="bg-neutral-100 border-b border-neutral-200 sticky top-0 z-10 uppercase text-neutral-600">
+                      <tr>
+                        <th className="p-2.5 w-20">Image</th>
+                        <th className="p-2.5 min-w-[180px]">Garment Name *</th>
+                        <th className="p-2.5 w-28">Category</th>
+                        <th className="p-2.5 w-20">Price ($)</th>
+                        <th className="p-2.5 w-20">Compare ($)</th>
+                        <th className="p-2.5 w-20">Stock</th>
+                        <th className="p-2.5 w-24">SKU</th>
+                        <th className="p-2.5 w-12 text-center">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-neutral-200 bg-white">
+                      {bulkRows.map((row, idx) => (
+                        <tr key={row.id} className="hover:bg-neutral-50/80 transition-colors">
+                          {/* Image cell with device uploader */}
+                          <td className="p-2">
+                            <div className="flex items-center gap-1.5">
+                              <label
+                                className={`relative w-10 h-10 rounded border flex items-center justify-center cursor-pointer overflow-hidden group ${
+                                  row.image ? "border-neutral-300" : "border-dashed border-neutral-400 bg-neutral-50 hover:bg-neutral-100"
+                                }`}
+                                title="Upload product photo"
+                              >
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  disabled={row.isUploading}
+                                  onChange={(e) =>
+                                    handleBulkRowImageUpload(
+                                      row.id,
+                                      e.target.files ? e.target.files[0] : null
+                                    )
+                                  }
+                                  className="sr-only"
+                                />
+                                {row.isUploading ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin text-black" />
+                                ) : row.image ? (
+                                  <>
+                                    <img
+                                      src={row.image}
+                                      alt="Item"
+                                      className="w-full h-full object-cover"
+                                    />
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                      <Upload className="w-3 h-3 text-white" />
+                                    </div>
+                                  </>
+                                ) : (
+                                  <Upload className="w-3.5 h-3.5 text-neutral-400 group-hover:text-black" />
+                                )}
+                              </label>
+                            </div>
+                          </td>
+
+                          {/* Name */}
+                          <td className="p-2">
+                            <input
+                              type="text"
+                              required
+                              placeholder="e.g. Acid Wash Tee"
+                              value={row.name}
+                              onChange={(e) => updateBulkRow(row.id, "name", e.target.value)}
+                              className="w-full px-2 py-1 border rounded text-xs font-sans focus:outline-none focus:border-black"
+                            />
+                          </td>
+
+                          {/* Category */}
+                          <td className="p-2">
+                            <select
+                              value={row.category}
+                              onChange={(e) => updateBulkRow(row.id, "category", e.target.value)}
+                              className="w-full px-1.5 py-1 border rounded uppercase text-[11px] bg-white focus:outline-none focus:border-black"
+                            >
+                              <option value="hoodies">hoodies</option>
+                              <option value="t-shirts">t-shirts</option>
+                              <option value="bottoms">bottoms</option>
+                              <option value="outerwear">outerwear</option>
+                              <option value="accessories">accessories</option>
+                            </select>
+                          </td>
+
+                          {/* Price */}
+                          <td className="p-2">
+                            <input
+                              type="number"
+                              min={0}
+                              value={row.price}
+                              onChange={(e) =>
+                                updateBulkRow(row.id, "price", parseFloat(e.target.value) || 0)
+                              }
+                              className="w-full px-2 py-1 border rounded text-xs focus:outline-none focus:border-black"
+                            />
+                          </td>
+
+                          {/* Compare At Price */}
+                          <td className="p-2">
+                            <input
+                              type="number"
+                              min={0}
+                              value={row.compareAtPrice || ""}
+                              onChange={(e) =>
+                                updateBulkRow(
+                                  row.id,
+                                  "compareAtPrice",
+                                  parseFloat(e.target.value) || 0
+                                )
+                              }
+                              className="w-full px-2 py-1 border rounded text-xs focus:outline-none focus:border-black"
+                            />
+                          </td>
+
+                          {/* Stock */}
+                          <td className="p-2">
+                            <input
+                              type="number"
+                              min={0}
+                              value={row.totalStock}
+                              onChange={(e) =>
+                                updateBulkRow(
+                                  row.id,
+                                  "totalStock",
+                                  parseInt(e.target.value) || 0
+                                )
+                              }
+                              className="w-full px-2 py-1 border rounded text-xs focus:outline-none focus:border-black"
+                            />
+                          </td>
+
+                          {/* SKU */}
+                          <td className="p-2">
+                            <input
+                              type="text"
+                              value={row.sku}
+                              onChange={(e) => updateBulkRow(row.id, "sku", e.target.value)}
+                              className="w-full px-2 py-1 border rounded text-[10px] focus:outline-none focus:border-black"
+                            />
+                          </td>
+
+                          {/* Remove */}
+                          <td className="p-2 text-center">
+                            <button
+                              type="button"
+                              onClick={() => removeBulkRow(row.id)}
+                              className="p-1 text-neutral-400 hover:text-red-600 rounded transition-colors cursor-pointer"
+                              title="Delete row"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Table Footer Actions */}
+                <div className="flex items-center justify-between pt-3 border-t">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={addBulkRow}
+                      className="px-3 py-1.5 border border-neutral-300 rounded font-bold uppercase text-[11px] hover:bg-neutral-100 flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add Another Row</span>
+                    </button>
+                    <span className="text-neutral-500 text-[11px]">
+                      {bulkRows.length} item{bulkRows.length > 1 ? "s" : ""} queued
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowAddModal(false)}
+                      className="px-4 py-2 border border-neutral-300 rounded font-bold uppercase text-neutral-600 hover:bg-neutral-100 cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isSubmittingBulk}
+                      onClick={handleBulkRowsSubmit}
+                      className="px-6 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white rounded font-bold uppercase shadow-sm cursor-pointer disabled:opacity-50 flex items-center gap-2"
+                    >
+                      {isSubmittingBulk ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Publishing...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Check className="w-4 h-4 text-emerald-300" />
+                          <span>Publish All ({bulkRows.length}) Garments</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 3: CSV / JSON Bulk Spreadsheet Importer */}
+            {addModalTab === "csv" && (
+              <div className="space-y-4 text-xs font-mono">
+                <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <h4 className="font-bold text-emerald-900 text-xs uppercase flex items-center gap-1.5">
+                      <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+                      <span>Bulk Spreadsheet Importer</span>
+                    </h4>
+                    <p className="text-[11px] text-emerald-700 font-sans mt-0.5">
+                      Upload a CSV or JSON file containing product names, categories, prices, images, and stocks.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={downloadSampleCsv}
+                    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs flex items-center gap-1.5 cursor-pointer shadow-xs shrink-0"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Download Sample CSV</span>
+                  </button>
+                </div>
+
+                {/* File Dropzone */}
+                <label className="border-2 border-dashed border-neutral-300 hover:border-black bg-neutral-50 hover:bg-white rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer transition-colors group">
+                  <input
+                    type="file"
+                    accept=".csv, .json, text/csv, application/json"
+                    onChange={(e) =>
+                      handleCsvFileChange(e.target.files ? e.target.files[0] : null)
+                    }
+                    className="sr-only"
+                  />
+                  <div className="w-12 h-12 rounded-full bg-white shadow-xs flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+                    <FileSpreadsheet className="w-6 h-6 text-emerald-600" />
+                  </div>
+                  <span className="font-bold text-xs text-neutral-800">
+                    {csvFileName ? `Selected: ${csvFileName}` : "Click to choose CSV or JSON file"}
+                  </span>
+                  <span className="text-[11px] text-neutral-500 font-sans mt-1">
+                    Accepts comma-separated .csv or .json files
+                  </span>
+                </label>
+
+                {csvError && (
+                  <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-xs flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{csvError}</span>
+                  </div>
+                )}
+
+                {/* Parsed CSV Preview Table */}
+                {csvProducts.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold uppercase text-[11px] text-neutral-700">
+                        Detected Products ({csvProducts.length})
+                      </span>
+                      <span className="text-[11px] text-emerald-600 font-bold">Ready to import</span>
+                    </div>
+
+                    <div className="overflow-x-auto border border-neutral-200 rounded-xl max-h-48">
+                      <table className="w-full text-left text-[11px] border-collapse">
+                        <thead className="bg-neutral-100 border-b uppercase text-neutral-600 sticky top-0">
+                          <tr>
+                            <th className="p-2">Name</th>
+                            <th className="p-2">Category</th>
+                            <th className="p-2">Price</th>
+                            <th className="p-2">Stock</th>
+                            <th className="p-2">SKU</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-neutral-200 bg-white">
+                          {csvProducts.slice(0, 10).map((item, i) => (
+                            <tr key={i} className="hover:bg-neutral-50">
+                              <td className="p-2 font-sans font-bold">{item.name}</td>
+                              <td className="p-2 uppercase">{item.category}</td>
+                              <td className="p-2">${item.price}</td>
+                              <td className="p-2">{item.totalStock}</td>
+                              <td className="p-2 text-[10px] text-neutral-500">{item.sku}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    {csvProducts.length > 10 && (
+                      <p className="text-[10px] text-neutral-400 italic">
+                        Showing first 10 of {csvProducts.length} items. All will be imported.
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                <div className="flex justify-end gap-3 pt-4 border-t">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddModal(false)}
+                    className="px-4 py-2 border border-neutral-300 rounded font-bold uppercase text-neutral-600 hover:bg-neutral-100 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    disabled={csvProducts.length === 0 || isImportingCsv}
+                    onClick={handleCsvImportSubmit}
+                    className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-bold uppercase shadow-sm cursor-pointer disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {isImportingCsv ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Importing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Check className="w-4 h-4 text-emerald-200" />
+                        <span>Import ({csvProducts.length}) Garments</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
