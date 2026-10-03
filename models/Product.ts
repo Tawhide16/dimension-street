@@ -43,6 +43,25 @@ export interface IProduct extends Document {
     metaDescription?: string;
     keywords?: string[];
   };
+  vendor?: string;
+  productType?: string;
+  inventoryTracked?: boolean;
+  barcode?: string;
+  packageType?: string;
+  dimensions?: {
+    length?: number;
+    width?: number;
+    height?: number;
+    unit?: string;
+  };
+  weight?: {
+    value?: number;
+    unit?: string;
+  };
+  countryOfOrigin?: string;
+  hsCode?: string;
+  chargeTax?: boolean;
+  themeTemplate?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -62,7 +81,7 @@ const ProductSchema = new Schema<IProduct>(
   {
     name: { type: String, required: true, trim: true },
     slug: { type: String, required: true, unique: true, index: true },
-    description: { type: String, required: true },
+    description: { type: String, default: "Premium heavyweight streetwear garment." },
     shortDescription: { type: String },
     images: [{ type: String }],
     price: { type: Number, required: true },
@@ -91,6 +110,25 @@ const ProductSchema = new Schema<IProduct>(
       metaDescription: { type: String },
       keywords: [{ type: String }],
     },
+    vendor: { type: String },
+    productType: { type: String },
+    inventoryTracked: { type: Boolean, default: true },
+    barcode: { type: String },
+    packageType: { type: String },
+    dimensions: {
+      length: { type: Number },
+      width: { type: Number },
+      height: { type: Number },
+      unit: { type: String, default: "in" },
+    },
+    weight: {
+      value: { type: Number },
+      unit: { type: String, default: "lb" },
+    },
+    countryOfOrigin: { type: String },
+    hsCode: { type: String },
+    chargeTax: { type: Boolean, default: true },
+    themeTemplate: { type: String, default: "Default product" },
   },
   { timestamps: true }
 );

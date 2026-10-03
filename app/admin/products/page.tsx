@@ -1156,17 +1156,13 @@ export default function AdminProductsPage() {
           </button>
 
           {/* Add New Product Button */}
-          <button
-            type="button"
-            onClick={() => {
-              setAddModalTab("single");
-              setShowAddModal(true);
-            }}
+          <Link
+            href="/admin/products/new"
             className="px-4 py-2 bg-black hover:bg-neutral-800 text-white text-xs font-bold uppercase rounded-lg flex items-center gap-2 shadow-sm transition-all cursor-pointer"
           >
             <Plus className="w-4 h-4 text-pink-400" />
             <span>Add Product</span>
-          </button>
+          </Link>
 
           {/* Bulk Upload Button */}
           <button
@@ -2211,6 +2207,14 @@ export default function AdminProductsPage() {
 
               {/* Tab Selector */}
               <div className="flex items-center gap-1.5 p-1 bg-neutral-100 rounded-xl">
+                <Link
+                  href="/admin/products/new"
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer bg-neutral-950 text-white hover:bg-black shadow-xs"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-pink-400" />
+                  <span>Shopify Studio</span>
+                </Link>
+
                 <button
                   type="button"
                   onClick={() => setAddModalTab("single")}
@@ -2221,7 +2225,7 @@ export default function AdminProductsPage() {
                   }`}
                 >
                   <Plus className="w-3.5 h-3.5 text-pink-500" />
-                  <span>Single Product</span>
+                  <span>Quick Modal</span>
                 </button>
 
                 <button

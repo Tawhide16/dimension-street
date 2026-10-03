@@ -44,6 +44,17 @@ export interface Product {
     shipping?: string;
   };
   seo?: ProductSEO;
+  vendor?: string;
+  productType?: string;
+  inventoryTracked?: boolean;
+  barcode?: string;
+  packageType?: string;
+  dimensions?: { length: number; width: number; height: number; unit: string };
+  weight?: { value: number; unit: string };
+  countryOfOrigin?: string;
+  hsCode?: string;
+  chargeTax?: boolean;
+  themeTemplate?: string;
   createdAt: string;
   updatedAt: string;
 }
