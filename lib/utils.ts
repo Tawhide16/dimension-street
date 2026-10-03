@@ -5,14 +5,15 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatPrice(amount: number, currency: "USD" | "BDT" = "USD"): string {
-  if (currency === "BDT") {
-    return `৳${amount.toLocaleString()}`;
+export function formatPrice(amount: number, currency: "USD" | "BDT" = "BDT"): string {
+  const numeric = typeof amount === "number" ? amount : Number(amount) || 0;
+  if (currency === "USD") {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(numeric);
   }
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(amount);
+  return `৳${numeric.toLocaleString("en-BD")}`;
 }
 
 export function formatDate(dateString: string | Date): string {

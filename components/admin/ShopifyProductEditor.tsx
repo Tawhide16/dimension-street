@@ -1066,7 +1066,7 @@ export default function ShopifyProductEditor({
             <div className="max-w-xs">
               <label className="block text-xs font-semibold text-neutral-600 mb-1">Price</label>
               <div className="relative">
-                <span className="absolute left-3 top-2 text-sm text-neutral-500 font-mono">$</span>
+                <span className="absolute left-3 top-2 text-sm text-neutral-500 font-mono font-bold">৳</span>
                 <input
                   type="number"
                   min={0}
@@ -1125,7 +1125,7 @@ export default function ShopifyProductEditor({
                       Compare-at price
                     </label>
                     <div className="relative">
-                      <span className="absolute left-3 top-2 text-sm text-neutral-500 font-mono">$</span>
+                      <span className="absolute left-3 top-2 text-sm text-neutral-500 font-mono font-bold">৳</span>
                       <input
                         type="number"
                         min={0}
@@ -1149,7 +1149,7 @@ export default function ShopifyProductEditor({
                       Cost per item
                     </label>
                     <div className="relative">
-                      <span className="absolute left-3 top-2 text-sm text-neutral-500 font-mono">$</span>
+                      <span className="absolute left-3 top-2 text-sm text-neutral-500 font-mono font-bold">৳</span>
                       <input
                         type="number"
                         min={0}
@@ -1167,7 +1167,7 @@ export default function ShopifyProductEditor({
                     {calculatedMargin !== null && (
                       <p className="text-[11px] text-neutral-600 font-mono mt-1">
                         Margin: <span className="font-bold">{calculatedMargin}%</span> • Profit:{" "}
-                        <span className="font-bold">${calculatedProfit}</span>
+                        <span className="font-bold">৳{calculatedProfit}</span>
                       </p>
                     )}
                   </div>
@@ -1578,7 +1578,7 @@ export default function ShopifyProductEditor({
             <div className="border border-neutral-200 rounded-xl overflow-hidden bg-white shadow-2xs">
               <div className="grid grid-cols-12 bg-neutral-50 px-3 py-2 text-[11px] font-bold text-neutral-500 uppercase border-b border-neutral-200">
                 <span className="col-span-4">Variant (Color / Size)</span>
-                <span className="col-span-2">Price ($)</span>
+                <span className="col-span-2">Price (৳ BDT)</span>
                 <span className="col-span-3">Available Stock</span>
                 <span className="col-span-3">SKU</span>
               </div>
@@ -1616,8 +1616,8 @@ export default function ShopifyProductEditor({
                         {/* Price */}
                         <div className="col-span-2 pr-2">
                           <div className="relative">
-                            <span className="absolute left-2 top-1.5 text-neutral-400 font-mono text-xs">
-                              $
+                            <span className="absolute left-2 top-1.5 text-neutral-400 font-mono text-xs font-bold">
+                              ৳
                             </span>
                             <input
                               type="number"
@@ -1756,7 +1756,7 @@ export default function ShopifyProductEditor({
                   "Authentic African Black Soap All-In-One - Eucalyptus Tea Tree 32 oz"}
               </div>
               <div className="text-xs font-mono font-bold text-neutral-800 pt-0.5">
-                ${price.toFixed(2)} USD
+                ৳{price.toLocaleString()} BDT
               </div>
             </div>
 

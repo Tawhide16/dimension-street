@@ -1690,7 +1690,7 @@ export default function AdminProductsPage() {
               onClick={() => setActiveBulkModal("price")}
               className="px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-mono font-bold rounded-lg flex items-center gap-1.5 border border-neutral-700 transition-colors cursor-pointer"
             >
-              <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="text-xs font-black font-mono text-emerald-400">৳</span>
               <span>Bulk Price</span>
             </button>
 
@@ -1753,7 +1753,7 @@ export default function AdminProductsPage() {
           <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-xl border border-neutral-200">
             <div className="flex items-center justify-between border-b pb-3">
               <h3 className="text-sm font-bold uppercase text-neutral-900 flex items-center gap-2">
-                <DollarSign className="w-4 h-4 text-emerald-600" />
+                <span className="text-sm font-black font-mono text-emerald-600">৳</span>
                 <span>Bulk Adjust Price ({selectedIds.size} items)</span>
               </h3>
               <button onClick={() => setActiveBulkModal(null)} className="text-neutral-400 hover:text-black">
@@ -1783,7 +1783,7 @@ export default function AdminProductsPage() {
                       : "bg-neutral-50 text-neutral-700 border-neutral-200"
                   }`}
                 >
-                  Set Fixed Price ($)
+                  Set Fixed Price (৳)
                 </button>
               </div>
 
@@ -1802,7 +1802,7 @@ export default function AdminProductsPage() {
               ) : (
                 <div>
                   <label className="block font-bold text-neutral-700 mb-1">
-                    Set Fixed Price ($ USD):
+                    Set Fixed Price (৳ BDT):
                   </label>
                   <input
                     type="number"
@@ -1815,7 +1815,7 @@ export default function AdminProductsPage() {
 
               <div>
                 <label className="block font-bold text-neutral-700 mb-1">
-                  Optional Compare-At Price ($ USD or leave empty):
+                  Optional Compare-At Price (৳ BDT or leave empty):
                 </label>
                 <input
                   type="number"

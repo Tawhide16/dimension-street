@@ -35,7 +35,7 @@ export default function MetricCard({
     if (typeof icon === "string") {
       switch (icon) {
         case "dollar":
-          return <DollarSign className="w-4 h-4" />;
+          return <span className="text-xs font-black font-mono leading-none">৳</span>;
         case "bag":
           return <ShoppingBag className="w-4 h-4" />;
         case "users":
@@ -47,7 +47,7 @@ export default function MetricCard({
         case "card":
           return <CreditCard className="w-4 h-4" />;
         default:
-          return <DollarSign className="w-4 h-4" />;
+          return <span className="text-xs font-black font-mono leading-none">৳</span>;
       }
     }
     const IconComponent = icon;

@@ -34,7 +34,7 @@ export default function ShopCatalogView({
   const [selectedSize, setSelectedSize] = useState<string>("all");
   const [selectedColor, setSelectedColor] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("featured");
-  const [priceMax, setPriceMax] = useState<number>(250);
+  const [priceMax, setPriceMax] = useState<number>(25000);
   const [onlyInStock, setOnlyInStock] = useState(false);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
@@ -118,7 +118,7 @@ export default function ShopCatalogView({
     setSearchQuery("");
     setSelectedSize("all");
     setSelectedColor("all");
-    setPriceMax(250);
+    setPriceMax(25000);
     setOnlyInStock(false);
   };
 
@@ -128,7 +128,7 @@ export default function ShopCatalogView({
     searchQuery !== "" ||
     selectedSize !== "all" ||
     selectedColor !== "all" ||
-    priceMax < 250 ||
+    priceMax < 25000 ||
     onlyInStock;
 
   return (
@@ -345,13 +345,13 @@ export default function ShopCatalogView({
           <div className="pt-4 border-t border-neutral-200">
             <div className="flex justify-between items-center text-xs font-mono mb-2">
               <span className="font-bold uppercase text-neutral-900">Max Price</span>
-              <span className="font-bold text-black">${priceMax}</span>
+              <span className="font-bold text-black">৳{priceMax.toLocaleString()}</span>
             </div>
             <input
               type="range"
-              min={25}
-              max={250}
-              step={5}
+              min={200}
+              max={25000}
+              step={200}
               value={priceMax}
               onChange={(e) => setPriceMax(Number(e.target.value))}
               className="w-full accent-black cursor-pointer"
