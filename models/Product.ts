@@ -56,7 +56,7 @@ const ProductVariantSchema = new Schema<IProductVariant>({
   compareAtPrice: { type: Number },
   stock: { type: Number, required: true, default: 0 },
   image: { type: String },
-});
+}, { _id: false });
 
 const ProductSchema = new Schema<IProduct>(
   {

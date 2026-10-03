@@ -257,6 +257,25 @@ async function autoSeedMongoIfEmpty() {
   }
 }
 
+export function cleanPlainProduct(p: any): Product {
+  if (!p) return p;
+  const plain = JSON.parse(JSON.stringify(p));
+  return {
+    ...plain,
+    _id: String(plain._id || ""),
+    variants: (plain.variants || []).map((v: any) => ({
+      sku: String(v.sku || ""),
+      color: String(v.color || "Standard"),
+      colorHex: v.colorHex ? String(v.colorHex) : undefined,
+      size: String(v.size || "M"),
+      price: Number(v.price) || 0,
+      compareAtPrice: v.compareAtPrice ? Number(v.compareAtPrice) : undefined,
+      stock: Number(v.stock) || 0,
+      image: v.image ? String(v.image) : undefined,
+    })),
+  };
+}
+
 // ---------------- PRODUCTS ----------------
 export async function getProducts(options?: {
   category?: string;
@@ -298,17 +317,17 @@ export async function getProducts(options?: {
       if (options?.newArrival) filter.newArrival = true;
 
       const raw = await ProductModel.find(filter).lean();
-      list = raw.map((p) => ({ ...p, _id: p._id.toString() } as unknown as Product));
+      list = raw.map(cleanPlainProduct);
 
       if (options?.allStatus && !options?.category && !options?.collection && !options?.search) {
         memoryStore.products = list;
         saveLocalStore();
       }
     } catch {
-      list = [...memoryStore.products];
+      list = (memoryStore.products || []).map(cleanPlainProduct);
     }
   } else {
-    list = [...memoryStore.products];
+    list = (memoryStore.products || []).map(cleanPlainProduct);
     if (!options?.allStatus) {
       const targetStatus = options?.status || "active";
       list = list.filter((p) => (p.status || "active") === targetStatus);
@@ -357,15 +376,15 @@ export async function getAllProductsAdmin(): Promise<Product[]> {
   if (isMongoConnected()) {
     try {
       const raw = await ProductModel.find().sort({ createdAt: -1 }).lean();
-      const list = raw.map((p) => ({ ...p, _id: p._id.toString() } as unknown as Product));
+      const list = raw.map(cleanPlainProduct);
       memoryStore.products = list;
       saveLocalStore();
       return list;
     } catch {
-      return memoryStore.products;
+      return (memoryStore.products || []).map(cleanPlainProduct);
     }
   }
-  return memoryStore.products;
+  return (memoryStore.products || []).map(cleanPlainProduct);
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
@@ -374,13 +393,13 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
   if (isMongoConnected()) {
     try {
       const raw = await ProductModel.findOne({ slug }).lean();
-      if (raw) return { ...raw, _id: raw._id.toString() } as unknown as Product;
+      if (raw) return cleanPlainProduct(raw);
     } catch {
       // fallback
     }
   }
   const match = memoryStore.products.find((p) => p.slug === slug || p._id === slug);
-  return match || null;
+  return match ? cleanPlainProduct(match) : null;
 }
 
 export async function createProduct(data: Partial<Product>): Promise<Product> {
@@ -481,12 +500,12 @@ export async function createProduct(data: Partial<Product>): Promise<Product> {
     }
   }
 
-  // 2. Also keep in memory and update local store
-  memoryStore.products.unshift(newProduct);
+  const cleaned = cleanPlainProduct(newProduct);
+  memoryStore.products.unshift(cleaned);
   saveLocalStore();
   clearDataServiceCache();
 
-  return newProduct;
+  return cleaned;
 }
 
 export async function updateProduct(id: string, data: Partial<Product>): Promise<Product | null> {
@@ -516,10 +535,7 @@ export async function updateProduct(id: string, data: Partial<Product>): Promise
         await ProductModel.updateOne({ _id: existing._id }, { $set: updatePayload });
         const fresh = await ProductModel.findById(existing._id).lean();
         if (fresh) {
-          updatedProduct = {
-            ...fresh,
-            _id: fresh._id.toString(),
-          } as unknown as Product;
+          updatedProduct = cleanPlainProduct(fresh);
         }
         console.log(`[updateProduct] Successfully updated in MongoDB: "${existing.name}"`);
       }
@@ -533,11 +549,11 @@ export async function updateProduct(id: string, data: Partial<Product>): Promise
     (p) => String(p._id) === strId || p.slug === strId || p.sku === strId
   );
   if (index !== -1) {
-    const updated = {
+    const updated = cleanPlainProduct({
       ...memoryStore.products[index],
       ...data,
       updatedAt: new Date().toISOString(),
-    };
+    });
     if (updated.variants) {
       updated.totalStock = updated.variants.reduce((acc, v) => acc + (v.stock || 0), 0);
     }
@@ -549,7 +565,7 @@ export async function updateProduct(id: string, data: Partial<Product>): Promise
   saveLocalStore();
   clearDataServiceCache();
 
-  return updatedProduct;
+  return updatedProduct ? cleanPlainProduct(updatedProduct) : null;
 }
 
 export async function deleteProduct(id: string): Promise<boolean> {
