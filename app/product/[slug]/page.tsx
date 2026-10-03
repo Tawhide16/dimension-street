@@ -7,7 +7,7 @@ import ProductDetailView from "@/components/product/ProductDetailView";
 import { getProductBySlug, getProducts, getReviews } from "@/lib/dataService";
 import type { Metadata } from "next";
 
-export const revalidate = 0;
+export const revalidate = 30;
 
 export async function generateMetadata({
   params,

@@ -24,6 +24,7 @@ import {
   ThumbsUp,
   MessageSquarePlus,
   X,
+  Maximize2,
 } from "lucide-react";
 
 interface ProductDetailViewProps {
@@ -50,6 +51,7 @@ export default function ProductDetailView({
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
   const [showAddedBanner, setShowAddedBanner] = useState(false);
+  const [isZoomModalOpen, setIsZoomModalOpen] = useState(false);
 
   // Accordion state
   const [openAccordion, setOpenAccordion] = useState<string | null>("description");
@@ -214,21 +216,21 @@ export default function ProductDetailView({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14">
         {/* LEFT COLUMN: Gallery */}
         <div className="lg:col-span-7 flex flex-col md:flex-row-reverse gap-4">
-          {/* Main Large Image */}
-          <div className="flex-1 relative aspect-3/4 bg-neutral-100 rounded-xs overflow-hidden border border-neutral-200">
+          {/* Main Large Image: object-contain with clean neutral backdrop prevents any cropping */}
+          <div className="flex-1 relative min-h-[440px] sm:min-h-[540px] lg:min-h-[620px] aspect-[4/5] sm:aspect-[3/4] bg-neutral-50/80 rounded-xl overflow-hidden border border-neutral-200/90 flex items-center justify-center p-2 sm:p-4 group">
             <Image
               src={product.images[activeImageIndex] || product.images[0]}
               alt={product.name}
               fill
               priority
               sizes="(max-width: 1024px) 100vw, 55vw"
-              className="object-cover object-center"
+              className="object-contain object-center transition-all duration-300"
             />
 
             {/* Wishlist toggle */}
             <button
               onClick={() => toggleWishlist(product._id)}
-              className={`absolute top-4 right-4 p-2.5 rounded-full backdrop-blur-md transition-all shadow-xs ${
+              className={`absolute top-4 right-4 p-2.5 rounded-full backdrop-blur-md transition-all shadow-xs z-10 ${
                 inWishlist
                   ? "bg-red-50 text-red-600"
                   : "bg-white/90 text-neutral-700 hover:text-black hover:bg-white"
@@ -236,6 +238,17 @@ export default function ProductDetailView({
               aria-label="Toggle wishlist"
             >
               <Heart className={`w-5 h-5 ${inWishlist ? "fill-red-600" : ""}`} />
+            </button>
+
+            {/* Fullscreen Zoom button */}
+            <button
+              onClick={() => setIsZoomModalOpen(true)}
+              className="absolute bottom-4 right-4 p-2.5 rounded-full bg-white/90 hover:bg-white text-neutral-700 hover:text-black shadow-md backdrop-blur-md transition-all cursor-pointer z-10 flex items-center gap-1.5 text-xs font-mono font-bold"
+              title="View full image"
+              aria-label="View full image"
+            >
+              <Maximize2 className="w-4 h-4" />
+              <span className="hidden sm:inline">FULL VIEW</span>
             </button>
           </div>
 
@@ -246,10 +259,10 @@ export default function ProductDetailView({
                 <button
                   key={idx}
                   onClick={() => setActiveImageIndex(idx)}
-                  className={`relative aspect-square w-16 md:w-full rounded-xs overflow-hidden border transition-all flex-shrink-0 ${
+                  className={`relative aspect-square w-16 md:w-full rounded-lg overflow-hidden border transition-all flex-shrink-0 bg-neutral-50 p-1 flex items-center justify-center ${
                     activeImageIndex === idx
-                      ? "border-black ring-1 ring-black"
-                      : "border-neutral-200 opacity-70 hover:opacity-100"
+                      ? "border-black ring-2 ring-black/10 shadow-xs"
+                      : "border-neutral-200 opacity-70 hover:opacity-100 hover:border-neutral-400"
                   }`}
                 >
                   <Image
@@ -257,7 +270,7 @@ export default function ProductDetailView({
                     alt={`${product.name} thumbnail ${idx + 1}`}
                     fill
                     sizes="80px"
-                    className="object-cover"
+                    className="object-contain object-center p-0.5"
                   />
                 </button>
               ))}
@@ -1007,6 +1020,36 @@ export default function ProductDetailView({
             ))}
           </div>
         </section>
+      )}
+
+      {/* Fullscreen Lightbox Modal (Uncropped Full Image View) */}
+      {isZoomModalOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4 sm:p-8 animate-in fade-in duration-200"
+          onClick={() => setIsZoomModalOpen(false)}
+        >
+          <button
+            onClick={() => setIsZoomModalOpen(false)}
+            className="absolute top-6 right-6 p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer z-50"
+            aria-label="Close full view"
+          >
+            <X className="w-6 h-6" />
+          </button>
+
+          <div
+            className="relative w-full max-w-5xl h-[85vh] flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Image
+              src={product.images[activeImageIndex] || product.images[0]}
+              alt={product.name}
+              fill
+              sizes="95vw"
+              className="object-contain object-center"
+              priority
+            />
+          </div>
+        </div>
       )}
     </div>
   );
