@@ -21,37 +21,82 @@ export default function ProductCard({
 }: ProductCardProps) {
   const { addItem, isInWishlist, toggleWishlist } = useCart();
   const [isHovered, setIsHovered] = useState(false);
-  const [justAdded, setJustAdded] = useState(false);
+  const [addedSize, setAddedSize] = useState<string | null>(null);
 
   const primaryImage = product.images[0] || "/images/placeholder.jpg";
   const hoverImage = product.images[1] || primaryImage;
   const inWishlist = isInWishlist(product._id);
 
-  const defaultVariant = product.variants[0] || {
-    sku: product.sku,
-    color: "Standard",
-    size: "M",
-    price: product.price,
-    stock: product.totalStock,
+  // Extract and organize unique size variants
+  const rawVariants = product.variants && product.variants.length > 0 ? product.variants : [];
+
+  // Group unique sizes prioritizing in-stock variants
+  const sizeMap = new Map<string, (typeof rawVariants)[0]>();
+  for (const v of rawVariants) {
+    if (!v.size) continue;
+    const existing = sizeMap.get(v.size);
+    if (!existing || (existing.stock <= 0 && v.stock > 0)) {
+      sizeMap.set(v.size, v);
+    }
+  }
+
+  const sizeOrder: Record<string, number> = {
+    XS: 1,
+    S: 2,
+    M: 3,
+    L: 4,
+    XL: 5,
+    "2XL": 6,
+    XXL: 6,
+    "3XL": 7,
+    XXXL: 7,
+    OS: 8,
+    "ONE SIZE": 8,
   };
 
-  const handleQuickAdd = (e: React.MouseEvent) => {
+  const availableSizes = Array.from(sizeMap.values()).sort((a, b) => {
+    const orderA = sizeOrder[a.size.toUpperCase()] ?? 99;
+    const orderB = sizeOrder[b.size.toUpperCase()] ?? 99;
+    if (orderA !== orderB) return orderA - orderB;
+    return a.size.localeCompare(b.size);
+  });
+
+  const hasVariants = availableSizes.length > 0;
+  const isSingleGenericSize =
+    availableSizes.length === 1 &&
+    ["OS", "ONE SIZE", "STANDARD", "DEFAULT"].includes(
+      (availableSizes[0].size || "").trim().toUpperCase()
+    );
+
+  const handleVariantAdd = (
+    e: React.MouseEvent,
+    variant: {
+      sku: string;
+      color?: string;
+      size: string;
+      price: number;
+      stock: number;
+      image?: string;
+    }
+  ) => {
     e.preventDefault();
     e.stopPropagation();
+
+    if (variant.stock <= 0) return;
 
     addItem({
       productId: product._id,
       name: product.name,
       slug: product.slug,
-      image: primaryImage,
-      color: defaultVariant.color,
-      size: defaultVariant.size,
-      sku: defaultVariant.sku,
-      price: product.price,
+      image: variant.image || primaryImage,
+      color: variant.color || "Standard",
+      size: variant.size,
+      sku: variant.sku || `${product.sku}-${variant.size}`,
+      price: variant.price || product.price,
     });
 
-    setJustAdded(true);
-    setTimeout(() => setJustAdded(false), 2000);
+    setAddedSize(variant.size);
+    setTimeout(() => setAddedSize(null), 2000);
   };
 
   const handleWishlistToggle = (e: React.MouseEvent) => {
@@ -100,33 +145,90 @@ export default function ProductCard({
           <Heart className={`w-4 h-4 ${inWishlist ? "fill-red-600" : ""}`} />
         </button>
 
-        {/* Quick Add Overlay on Desktop Hover */}
-        <div className="absolute inset-x-2 bottom-2 z-10 transition-opacity duration-200 opacity-0 group-hover:opacity-100 hidden sm:block">
-          <button
-            onClick={handleQuickAdd}
-            disabled={product.totalStock === 0}
-            className={`w-full py-2.5 px-4 text-[11px] font-mono font-bold uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-              product.totalStock === 0
-                ? "bg-neutral-300 text-neutral-500 cursor-not-allowed"
-                : justAdded
-                ? "bg-emerald-600 text-white"
-                : "btn-slide-white border border-black/20"
-            }`}
-          >
-            {justAdded ? (
-              <>
-                <Check className="w-3.5 h-3.5" />
-                <span>ADDED TO BAG</span>
-              </>
-            ) : product.totalStock === 0 ? (
-              <span>OUT OF STOCK</span>
-            ) : (
-              <>
-                <Plus className="w-3.5 h-3.5" />
-                <span>QUICK ADD</span>
-              </>
-            )}
-          </button>
+        {/* Variant Size / Quick Add Overlay */}
+        <div className="absolute inset-x-2 bottom-2 z-10 transition-all duration-200 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 translate-y-0 sm:translate-y-2 sm:group-hover:translate-y-0">
+          {product.totalStock === 0 || (hasVariants && availableSizes.every((v) => v.stock <= 0)) ? (
+            <div className="w-full py-2.5 px-3 text-[10px] font-mono font-bold uppercase tracking-widest text-center bg-neutral-200/90 text-neutral-500 border border-neutral-300 backdrop-blur-xs">
+              OUT OF STOCK
+            </div>
+          ) : hasVariants && !isSingleGenericSize ? (
+            <div className="w-full bg-neutral-950/95 text-white backdrop-blur-md p-2 border border-neutral-800 shadow-xl rounded-xs flex flex-col gap-1.5 transition-all">
+              <div className="flex items-center justify-between text-[9px] sm:text-[10px] font-mono uppercase tracking-widest text-neutral-400 font-bold px-0.5">
+                <span>SELECT SIZE</span>
+                {addedSize && (
+                  <span className="text-emerald-400 font-bold flex items-center gap-1 animate-pulse">
+                    <Check className="w-3 h-3 text-emerald-400 stroke-[3]" />
+                    <span>ADDED ({addedSize})</span>
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                {availableSizes.map((variant) => {
+                  const isOutOfStock = variant.stock <= 0;
+                  const isAdded = addedSize === variant.size;
+                  return (
+                    <button
+                      key={variant.sku || variant.size}
+                      onClick={(e) => handleVariantAdd(e, variant)}
+                      disabled={isOutOfStock}
+                      type="button"
+                      className={`flex-1 min-w-8 h-7.5 px-2 text-[11px] font-mono font-bold uppercase tracking-wider flex items-center justify-center transition-all cursor-pointer border rounded-2xs ${
+                        isAdded
+                          ? "bg-emerald-600 text-white border-emerald-500 scale-102 shadow-xs"
+                          : isOutOfStock
+                          ? "bg-neutral-900 text-neutral-600 border-neutral-800 line-through cursor-not-allowed opacity-50"
+                          : "bg-white text-black border-white hover:bg-neutral-200 active:scale-95"
+                      }`}
+                      title={
+                        isOutOfStock
+                          ? `Size ${variant.size} — Out of stock`
+                          : `Add size ${variant.size} to bag`
+                      }
+                    >
+                      {isAdded ? (
+                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      ) : (
+                        variant.size
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={(e) =>
+                handleVariantAdd(
+                  e,
+                  availableSizes[0] || {
+                    sku: product.sku || product._id,
+                    color: "Standard",
+                    size: "One Size",
+                    price: product.price,
+                    stock: product.totalStock,
+                  }
+                )
+              }
+              type="button"
+              className={`w-full py-2.5 px-4 text-[11px] font-mono font-bold uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md rounded-xs ${
+                addedSize
+                  ? "bg-emerald-600 text-white border border-emerald-600"
+                  : "btn-slide-white border border-black/20"
+              }`}
+            >
+              {addedSize ? (
+                <>
+                  <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>ADDED TO BAG</span>
+                </>
+              ) : (
+                <>
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>QUICK ADD</span>
+                </>
+              )}
+            </button>
+          )}
         </div>
       </div>
 
