@@ -107,7 +107,7 @@ function loadLocalStore(): LocalStore {
 
       // Initialize products if missing
       if (!parsed.products || !Array.isArray(parsed.products)) {
-        parsed.products = initialProducts;
+        parsed.products = [];
       }
 
       // Ensure all products have reviews from initialReviews if missing
@@ -156,7 +156,7 @@ function loadLocalStore(): LocalStore {
     console.warn("Failed to load local store file:", e);
   }
   return {
-    products: initialProducts,
+    products: [],
     categories: initialCategories,
     collections: initialCollections,
     orders: initialOrders,
@@ -177,6 +177,18 @@ function saveLocalStore() {
   } catch (e) {
     console.warn("Could not save to data file:", e);
   }
+}
+
+// In-memory query cache for ultra-fast response times (< 2ms)
+interface CacheItem<T> {
+  data: T;
+  timestamp: number;
+}
+const queryCache = new Map<string, CacheItem<any>>();
+const CACHE_TTL = 30000; // 30 seconds
+
+export function clearDataServiceCache() {
+  queryCache.clear();
 }
 
 const stripId = <T extends { _id?: string }>(items: T[]) =>
@@ -257,6 +269,12 @@ export async function getProducts(options?: {
   status?: string;
   allStatus?: boolean;
 }): Promise<Product[]> {
+  const cacheKey = `products_${JSON.stringify(options || {})}`;
+  const hit = queryCache.get(cacheKey);
+  if (hit && Date.now() - hit.timestamp < CACHE_TTL) {
+    return hit.data;
+  }
+
   await connectToDatabase();
   await autoSeedMongoIfEmpty();
 
@@ -329,6 +347,7 @@ export async function getProducts(options?: {
     list.sort((a, b) => (b.bestSeller ? 1 : 0) - (a.bestSeller ? 1 : 0));
   }
 
+  queryCache.set(cacheKey, { data: list, timestamp: Date.now() });
   return list;
 }
 
@@ -465,6 +484,7 @@ export async function createProduct(data: Partial<Product>): Promise<Product> {
   // 2. Also keep in memory and update local store
   memoryStore.products.unshift(newProduct);
   saveLocalStore();
+  clearDataServiceCache();
 
   return newProduct;
 }
@@ -527,6 +547,7 @@ export async function updateProduct(id: string, data: Partial<Product>): Promise
     memoryStore.products.unshift(updatedProduct);
   }
   saveLocalStore();
+  clearDataServiceCache();
 
   return updatedProduct;
 }
@@ -561,6 +582,7 @@ export async function deleteProduct(id: string): Promise<boolean> {
     (p) => String(p._id) !== strId && p.slug !== strId && p.sku !== strId
   );
   saveLocalStore();
+  clearDataServiceCache();
 
   return deletedFromMongo || memoryStore.products.length < prevCount;
 }
@@ -681,6 +703,7 @@ export async function bulkUpdateProducts(
   }
 
   saveLocalStore();
+  clearDataServiceCache();
   return { updatedCount: Math.max(count, memCount) };
 }
 
@@ -714,35 +737,54 @@ export async function bulkDeleteProducts(ids: string[]): Promise<{ deletedCount:
     (p) => !idSet.has(String(p._id)) && !idSet.has(p.slug) && !idSet.has(p.sku)
   );
   saveLocalStore();
+  clearDataServiceCache();
 
   return { deletedCount: Math.max(mongoDeleted, initialCount - memoryStore.products.length) };
 }
 
 // ---------------- CATEGORIES & COLLECTIONS ----------------
 export async function getCategories(): Promise<Category[]> {
+  const hit = queryCache.get("categories");
+  if (hit && Date.now() - hit.timestamp < CACHE_TTL) {
+    return hit.data;
+  }
+
   await connectToDatabase();
+  let list = memoryStore.categories;
   if (isMongoConnected()) {
     try {
       const raw = await CategoryModel.find().lean();
-      if (raw.length > 0) return raw.map((c) => ({ ...c, _id: c._id.toString() } as unknown as Category));
+      if (raw.length > 0) {
+        list = raw.map((c) => ({ ...c, _id: c._id.toString() } as unknown as Category));
+      }
     } catch {
       // fallback
     }
   }
-  return memoryStore.categories;
+  queryCache.set("categories", { data: list, timestamp: Date.now() });
+  return list;
 }
 
 export async function getCollections(): Promise<CollectionItem[]> {
+  const hit = queryCache.get("collections");
+  if (hit && Date.now() - hit.timestamp < CACHE_TTL) {
+    return hit.data;
+  }
+
   await connectToDatabase();
+  let list = memoryStore.collections;
   if (isMongoConnected()) {
     try {
       const raw = await CollectionModel.find().lean();
-      if (raw.length > 0) return raw.map((c) => ({ ...c, _id: c._id.toString() } as unknown as CollectionItem));
+      if (raw.length > 0) {
+        list = raw.map((c) => ({ ...c, _id: c._id.toString() } as unknown as CollectionItem));
+      }
     } catch {
       // fallback
     }
   }
-  return memoryStore.collections;
+  queryCache.set("collections", { data: list, timestamp: Date.now() });
+  return list;
 }
 
 export async function createCategory(data: Partial<Category>): Promise<Category> {
@@ -1151,7 +1193,14 @@ export async function createCoupon(coupon: Partial<Coupon>): Promise<Coupon> {
 
 // ---------------- REVIEWS ----------------
 export async function getReviews(productId?: string): Promise<Review[]> {
+  const cacheKey = `reviews_${productId || "all"}`;
+  const hit = queryCache.get(cacheKey);
+  if (hit && Date.now() - hit.timestamp < CACHE_TTL) {
+    return hit.data;
+  }
+
   await connectToDatabase();
+  let list: Review[] = [];
   if (isMongoConnected()) {
     try {
       const filter: Record<string, unknown> = {};
@@ -1171,7 +1220,9 @@ export async function getReviews(productId?: string): Promise<Review[]> {
       }
       const raw = await ReviewModel.find(filter).sort({ createdAt: -1 }).lean();
       if (raw && raw.length > 0) {
-        return raw.map((r) => ({ ...r, _id: r._id.toString() } as unknown as Review));
+        list = raw.map((r) => ({ ...r, _id: r._id.toString() } as unknown as Review));
+        queryCache.set(cacheKey, { data: list, timestamp: Date.now() });
+        return list;
       }
     } catch (e) {
       console.error("Error querying reviews from mongo:", e);
@@ -1193,8 +1244,10 @@ export async function getReviews(productId?: string): Promise<Review[]> {
           r.productSlug === prod._id
         ))
     );
+    queryCache.set(cacheKey, { data: results, timestamp: Date.now() });
     return results;
   }
+  queryCache.set(cacheKey, { data: memoryStore.reviews, timestamp: Date.now() });
   return memoryStore.reviews;
 }
 
@@ -1239,6 +1292,7 @@ export async function createReview(data: Partial<Review>): Promise<Review> {
   }
 
   saveLocalStore();
+  clearDataServiceCache();
 
   // Also persist in Mongo if connected
   await connectToDatabase();
@@ -1268,6 +1322,7 @@ export async function updateReviewStatus(id: string, status: Review["status"]): 
   if (rev) {
     rev.status = status;
     saveLocalStore();
+    clearDataServiceCache();
     return true;
   }
   return false;
@@ -1293,6 +1348,11 @@ function normalizeSectionType(type: string): string {
 }
 
 export async function getHomepageSections(): Promise<HomepageSection[]> {
+  const hit = queryCache.get("homepage_sections");
+  if (hit && Date.now() - hit.timestamp < CACHE_TTL) {
+    return hit.data;
+  }
+
   await connectToDatabase();
   await autoSeedMongoIfEmpty();
 
@@ -1338,7 +1398,10 @@ export async function getHomepageSections(): Promise<HomepageSection[]> {
       } as unknown as HomepageSection));
 
       list.sort((a, b) => a.order - b.order);
-      if (list.length > 0) return list;
+      if (list.length > 0) {
+        queryCache.set("homepage_sections", { data: list, timestamp: Date.now() });
+        return list;
+      }
     } catch (err) {
       console.warn("Mongo getHomepageSections fallback to memory:", err);
     }
@@ -1370,6 +1433,7 @@ export async function getHomepageSections(): Promise<HomepageSection[]> {
   list.sort((a, b) => a.order - b.order);
   memoryStore.homepageSections = list;
   saveLocalStore();
+  queryCache.set("homepage_sections", { data: list, timestamp: Date.now() });
   return list;
 }
 
@@ -1462,6 +1526,7 @@ export async function updateHomepageSection(
   }
 
   saveLocalStore();
+  clearDataServiceCache();
   return updatedMongoDoc || section;
 }
 

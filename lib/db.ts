@@ -28,6 +28,17 @@ if (!global.mongooseCache) {
   global.mongooseCache = cached;
 }
 
+function getOptimizedUri(uri: string): string {
+  // If this is the cluster0.iv15qaw.mongodb.net SRV URI, connect directly to replica set to avoid DNS SRV latency
+  if (uri.includes("cluster0.iv15qaw.mongodb.net")) {
+    const userPassMatch = uri.match(/mongodb\+srv:\/\/([^@]+)@/);
+    if (userPassMatch && userPassMatch[1]) {
+      return `mongodb://${userPassMatch[1]}@ac-w00blsv-shard-00-00.iv15qaw.mongodb.net:27017,ac-w00blsv-shard-00-01.iv15qaw.mongodb.net:27017,ac-w00blsv-shard-00-02.iv15qaw.mongodb.net:27017/dimension_street?ssl=true&replicaSet=atlas-x8lnib-shard-0&authSource=admin&retryWrites=true&w=majority`;
+    }
+  }
+  return uri;
+}
+
 export async function connectToDatabase() {
   if (!MONGODB_URI) {
     // Graceful fallback to memory/seed mode if MONGODB_URI is not set
@@ -41,10 +52,15 @@ export async function connectToDatabase() {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
+      maxPoolSize: 10,
+      minPoolSize: 2,
+      socketTimeoutMS: 20000,
       serverSelectionTimeoutMS: 5000,
+      connectTimeoutMS: 5000,
     };
 
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then((m) => m);
+    const targetUri = getOptimizedUri(MONGODB_URI);
+    cached.promise = mongoose.connect(targetUri, opts).then((m) => m);
   }
 
   try {

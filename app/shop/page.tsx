@@ -5,7 +5,7 @@ import Footer from "@/components/store/Footer";
 import ShopCatalogView from "@/components/store/ShopCatalogView";
 import { getProducts, getCategories, getCollections } from "@/lib/dataService";
 
-export const revalidate = 0;
+export const revalidate = 30;
 
 export default async function ShopPage({
   searchParams,

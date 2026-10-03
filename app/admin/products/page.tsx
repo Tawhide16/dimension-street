@@ -123,6 +123,77 @@ export default function AdminProductsPage() {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
+  // Garment Size & Variant State
+  const ALL_STANDARD_SIZES = ["XS", "S", "M", "L", "XL", "2XL", "3XL", "One Size"];
+  const [selectedSizes, setSelectedSizes] = useState<string[]>(["S", "M", "L", "XL"]);
+  const [sizeStocks, setSizeStocks] = useState<Record<string, number>>({
+    S: 10,
+    M: 15,
+    L: 15,
+    XL: 10,
+  });
+  const [customSizeInput, setCustomSizeInput] = useState("");
+
+  const toggleSize = (size: string) => {
+    setSelectedSizes((prev) => {
+      if (prev.includes(size)) {
+        if (prev.length === 1) return prev; // keep at least 1 size
+        const next = prev.filter((s) => s !== size);
+        return next;
+      } else {
+        const next = [...prev, size];
+        if (sizeStocks[size] === undefined) {
+          setSizeStocks((st) => ({ ...st, [size]: 10 }));
+        }
+        return next;
+      }
+    });
+  };
+
+  const applySizePreset = (preset: "standard" | "extended" | "onesize" | "all") => {
+    if (preset === "standard") {
+      setSelectedSizes(["S", "M", "L", "XL"]);
+      setSizeStocks({ S: 10, M: 15, L: 15, XL: 10 });
+      setNewProd((p) => ({ ...p, totalStock: 50 }));
+    } else if (preset === "extended") {
+      setSelectedSizes(["XS", "S", "M", "L", "XL", "2XL"]);
+      setSizeStocks({ XS: 5, S: 10, M: 15, L: 15, XL: 10, "2XL": 5 });
+      setNewProd((p) => ({ ...p, totalStock: 60 }));
+    } else if (preset === "onesize") {
+      setSelectedSizes(["One Size"]);
+      setSizeStocks({ "One Size": newProd.totalStock || 50 });
+    } else if (preset === "all") {
+      setSelectedSizes(["XS", "S", "M", "L", "XL", "2XL", "3XL"]);
+      setSizeStocks({ XS: 5, S: 10, M: 15, L: 15, XL: 10, "2XL": 5, "3XL": 5 });
+      setNewProd((p) => ({ ...p, totalStock: 65 }));
+    }
+  };
+
+  const updateSizeStock = (size: string, stock: number) => {
+    const val = Math.max(0, stock);
+    setSizeStocks((prev) => {
+      const updated = { ...prev, [size]: val };
+      const sum = selectedSizes.reduce(
+        (total, s) => total + (s === size ? val : (updated[s] ?? 10)),
+        0
+      );
+      setNewProd((p) => ({ ...p, totalStock: sum }));
+      return updated;
+    });
+  };
+
+  const handleAddCustomSize = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const clean = customSizeInput.trim().toUpperCase();
+    if (!clean) return;
+    if (!selectedSizes.includes(clean)) {
+      setSelectedSizes((prev) => [...prev, clean]);
+      setSizeStocks((prev) => ({ ...prev, [clean]: 10 }));
+      setNewProd((p) => ({ ...p, totalStock: p.totalStock + 10 }));
+    }
+    setCustomSizeInput("");
+  };
+
   // Bulk Multi-Row Table State
   const [bulkRows, setBulkRows] = useState<BulkRowItem[]>([
     {
@@ -489,22 +560,16 @@ export default function AdminProductsPage() {
               .replace(/^-|-$/g, "") +
               "-" +
               Date.now().toString().slice(-4),
-          variants: [
-            {
-              sku: `${newProd.sku}-M`,
-              color: "Pitch Black",
-              size: "M",
-              price: newProd.price,
-              stock: Math.round(newProd.totalStock / 2),
-            },
-            {
-              sku: `${newProd.sku}-L`,
-              color: "Pitch Black",
-              size: "L",
-              price: newProd.price,
-              stock: Math.round(newProd.totalStock / 2),
-            },
-          ],
+          variants: selectedSizes.map((sz) => ({
+            sku: `${newProd.sku}-${sz}`,
+            color: "Pitch Black",
+            size: sz,
+            price: newProd.price,
+            stock:
+              sizeStocks[sz] !== undefined
+                ? sizeStocks[sz]
+                : Math.max(0, Math.round(newProd.totalStock / Math.max(1, selectedSizes.length))),
+          })),
         }),
       });
 
@@ -534,6 +599,8 @@ export default function AdminProductsPage() {
           newArrival: true,
         });
         setUploadedImages([]);
+        setSelectedSizes(["S", "M", "L", "XL"]);
+        setSizeStocks({ S: 10, M: 15, L: 15, XL: 10 });
       } else {
         const errData = await res.json();
         alert(errData?.error || "Error adding product");
@@ -1346,12 +1413,40 @@ export default function AdminProductsPage() {
 
             <tbody className="divide-y divide-neutral-100">
               {loading ? (
-                <tr>
-                  <td colSpan={8} className="py-12 text-center text-xs text-neutral-400">
-                    <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-neutral-400" />
-                    <span>Loading products inventory...</span>
-                  </td>
-                </tr>
+                Array.from({ length: 7 }).map((_, idx) => (
+                  <tr key={idx} className="animate-pulse border-b border-neutral-100">
+                    <td className="py-3 px-4">
+                      <div className="w-4 h-4 bg-neutral-200 rounded"></div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-14 bg-neutral-200 rounded-md shrink-0"></div>
+                        <div className="space-y-2 flex-1">
+                          <div className="h-4 bg-neutral-200 rounded w-44"></div>
+                          <div className="h-3 bg-neutral-100 rounded w-24"></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="h-4 bg-neutral-200 rounded w-20"></div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="h-4 bg-neutral-200 rounded w-16"></div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="h-4 bg-neutral-200 rounded w-14"></div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="h-4 bg-neutral-200 rounded w-12"></div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="h-5 bg-neutral-200 rounded-full w-20"></div>
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <div className="h-8 bg-neutral-200 rounded w-24 ml-auto"></div>
+                    </td>
+                  </tr>
+                ))
               ) : filtered.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="py-12 text-center text-xs text-neutral-400">
@@ -2403,6 +2498,145 @@ export default function AdminProductsPage() {
                       onChange={(e) => setNewProd({ ...newProd, collectionName: e.target.value })}
                       className="w-full px-3 py-2 border rounded focus:outline-none focus:border-black"
                     />
+                  </div>
+
+                  {/* Garment Sizes & Inventory Distribution (XS, S, M, L, XL, 2XL, etc.) */}
+                  <div className="col-span-2 pt-3 border-t border-neutral-200 space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div>
+                        <label className="block text-neutral-800 uppercase font-black text-xs tracking-wider flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-pink-500"></span>
+                          Available Sizes & Stock Distribution
+                        </label>
+                        <p className="text-[11px] text-neutral-500 mt-0.5">
+                          Click to toggle sizes on/off or add custom numbers (e.g. 28, 30, 32 for pants).
+                        </p>
+                      </div>
+
+                      {/* Quick Presets */}
+                      <div className="flex items-center gap-1 flex-wrap">
+                        <span className="text-[10px] text-neutral-400 font-bold uppercase mr-1">Presets:</span>
+                        <button
+                          type="button"
+                          onClick={() => applySizePreset("standard")}
+                          className="px-2 py-0.5 bg-neutral-100 hover:bg-neutral-900 hover:text-white rounded text-[10px] font-bold transition-colors cursor-pointer"
+                        >
+                          S, M, L, XL
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => applySizePreset("extended")}
+                          className="px-2 py-0.5 bg-neutral-100 hover:bg-neutral-900 hover:text-white rounded text-[10px] font-bold transition-colors cursor-pointer"
+                        >
+                          XS – 2XL
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => applySizePreset("onesize")}
+                          className="px-2 py-0.5 bg-neutral-100 hover:bg-neutral-900 hover:text-white rounded text-[10px] font-bold transition-colors cursor-pointer"
+                        >
+                          One Size
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => applySizePreset("all")}
+                          className="px-2 py-0.5 bg-neutral-100 hover:bg-neutral-900 hover:text-white rounded text-[10px] font-bold transition-colors cursor-pointer"
+                        >
+                          All
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Size Pills Toggle Row */}
+                    <div className="flex items-center gap-2 flex-wrap pt-1">
+                      {ALL_STANDARD_SIZES.map((size) => {
+                        const isSelected = selectedSizes.includes(size);
+                        return (
+                          <button
+                            key={size}
+                            type="button"
+                            onClick={() => toggleSize(size)}
+                            className={`h-9 px-3 rounded-lg text-xs font-bold font-mono transition-all flex items-center gap-1.5 cursor-pointer border ${
+                              isSelected
+                                ? "bg-neutral-950 text-white border-neutral-950 shadow-xs"
+                                : "bg-white text-neutral-600 border-neutral-300 hover:border-neutral-900 hover:text-black"
+                            }`}
+                          >
+                            {isSelected && <Check className="w-3.5 h-3.5 text-pink-400" />}
+                            {size}
+                          </button>
+                        );
+                      })}
+
+                      {/* Custom Size Adder */}
+                      <div className="flex items-center gap-1 ml-auto">
+                        <input
+                          type="text"
+                          placeholder="Add size..."
+                          value={customSizeInput}
+                          onChange={(e) => setCustomSizeInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              handleAddCustomSize();
+                            }
+                          }}
+                          className="w-24 px-2.5 py-1.5 border border-neutral-300 rounded-lg text-xs font-mono uppercase focus:outline-none focus:border-black"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleAddCustomSize()}
+                          className="h-8 px-2.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-bold rounded-lg transition-colors cursor-pointer"
+                        >
+                          + Add
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Per-Size Stock Grid */}
+                    <div className="bg-neutral-50/70 p-3 rounded-xl border border-neutral-200 space-y-2">
+                      <div className="flex items-center justify-between text-[11px] font-bold uppercase text-neutral-500 pb-1 border-b border-neutral-200">
+                        <span>Active Sizes Stock Breakdown</span>
+                        <span className="font-mono text-neutral-700">
+                          Total: {newProd.totalStock} units across {selectedSizes.length} sizes
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2 pt-1">
+                        {selectedSizes.map((size) => (
+                          <div
+                            key={size}
+                            className="bg-white p-2 rounded-lg border border-neutral-200 shadow-xs flex flex-col justify-between"
+                          >
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-xs font-black font-mono px-1.5 py-0.5 bg-neutral-100 text-neutral-900 rounded">
+                                {size}
+                              </span>
+                              {selectedSizes.length > 1 && (
+                                <button
+                                  type="button"
+                                  onClick={() => toggleSize(size)}
+                                  className="text-neutral-400 hover:text-red-500 text-[10px] p-0.5 cursor-pointer"
+                                  title={`Remove size ${size}`}
+                                >
+                                  ✕
+                                </button>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1 mt-1">
+                              <input
+                                type="number"
+                                min={0}
+                                value={sizeStocks[size] ?? 10}
+                                onChange={(e) => updateSizeStock(size, parseInt(e.target.value) || 0)}
+                                className="w-full text-center px-1 py-1 border border-neutral-200 rounded text-xs font-mono font-bold focus:outline-none focus:border-black"
+                              />
+                              <span className="text-[10px] text-neutral-400">pcs</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
 
                   {/* Product Story & Rich Description Suite */}

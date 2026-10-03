@@ -18,8 +18,7 @@ import {
 } from "@/lib/dataService";
 import { ArrowRight, ArrowUpRight, Flame } from "lucide-react";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0; // dynamic on request
+export const revalidate = 30; // ISR cache with instant updates on admin changes
 
 export default async function HomePage() {
   const [sections, categories, newArrivals, bestSellers, reviews] = await Promise.all([
