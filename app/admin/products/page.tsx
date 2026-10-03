@@ -1483,7 +1483,7 @@ export default function AdminProductsPage() {
                       {/* Garment Image & Name */}
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-3">
-                          <div className="relative w-12 h-14 bg-neutral-100 rounded-md overflow-hidden flex-shrink-0 border border-neutral-200">
+                          <Link href={`/admin/products/${prod._id}`} className="relative w-12 h-14 bg-neutral-100 rounded-md overflow-hidden flex-shrink-0 border border-neutral-200 hover:opacity-80 transition-opacity">
                             <Image
                               src={prod.images[0] || "/placeholder.jpg"}
                               alt={prod.name}
@@ -1492,7 +1492,7 @@ export default function AdminProductsPage() {
                               className="object-cover"
                               unoptimized
                             />
-                          </div>
+                          </Link>
                           <div className="min-w-0">
                             {inlineEditMode ? (
                               <input
@@ -1504,9 +1504,12 @@ export default function AdminProductsPage() {
                                 className="w-full px-2 py-1 text-xs border border-neutral-300 rounded font-sans font-bold"
                               />
                             ) : (
-                              <span className="font-bold text-neutral-900 block truncate max-w-xs font-sans">
+                              <Link
+                                href={`/admin/products/${prod._id}`}
+                                className="font-bold text-neutral-900 block truncate max-w-xs font-sans hover:underline hover:text-black"
+                              >
                                 {prod.name}
-                              </span>
+                              </Link>
                             )}
                             <span className="text-[10px] text-neutral-400 block font-mono">
                               {prod.variants.length} variant options
@@ -1642,14 +1645,13 @@ export default function AdminProductsPage() {
                           >
                             <Eye className="w-4 h-4" />
                           </Link>
-                          <button
-                            type="button"
-                            onClick={() => openEditModal(prod)}
+                          <Link
+                            href={`/admin/products/${prod._id}`}
                             className="p-1.5 text-neutral-400 hover:text-indigo-600 transition-colors cursor-pointer"
-                            title="Edit garment & description"
+                            title="Edit product in Shopify Studio"
                           >
                             <Edit3 className="w-4 h-4" />
-                          </button>
+                          </Link>
                           <button
                             type="button"
                             onClick={() => setProductToDelete(prod)}

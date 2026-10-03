@@ -390,15 +390,24 @@ export async function getAllProductsAdmin(): Promise<Product[]> {
 export async function getProductBySlug(slug: string): Promise<Product | null> {
   await connectToDatabase();
   await autoSeedMongoIfEmpty();
+  const query = String(slug).trim();
+  const isHex = /^[0-9a-fA-F]{24}$/.test(query);
+
   if (isMongoConnected()) {
     try {
-      const raw = await ProductModel.findOne({ slug }).lean();
+      const orConditions: any[] = [{ slug: query }, { sku: query }];
+      if (isHex) {
+        orConditions.unshift({ _id: new mongoose.Types.ObjectId(query) });
+      }
+      const raw = await ProductModel.findOne({ $or: orConditions }).lean();
       if (raw) return cleanPlainProduct(raw);
     } catch {
       // fallback
     }
   }
-  const match = memoryStore.products.find((p) => p.slug === slug || p._id === slug);
+  const match = memoryStore.products.find(
+    (p) => p.slug === query || p._id === query || p.sku === query
+  );
   return match ? cleanPlainProduct(match) : null;
 }
 
