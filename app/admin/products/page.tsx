@@ -33,6 +33,9 @@ import {
   FileText,
   Star,
   Copy,
+  Wand2,
+  SlidersHorizontal,
+  Info,
 } from "lucide-react";
 
 interface BulkRowItem {
@@ -44,6 +47,7 @@ interface BulkRowItem {
   totalStock: number;
   sku: string;
   image: string;
+  description?: string;
   isUploading?: boolean;
 }
 
@@ -104,7 +108,12 @@ export default function AdminProductsPage() {
     compareAtPrice: 130,
     costPrice: 45,
     sku: `DIM-HOOD-${Date.now().toString().slice(-3)}`,
-    description: "Architectural heavyweight silhouette milled from 480 GSM organic cotton knit.",
+    description: "Architectural heavyweight streetwear silhouette meticulously crafted from 480 GSM organic loopback cotton. Features an oversized boxy drape, dropped shoulder seams, and double-layered hood.",
+    shortDescription: "480 GSM heavyweight loopback fleece hoodie with architectural boxy drape.",
+    fit: "Boxy oversized streetwear fit with dropped shoulders and relaxed sleeve volume.",
+    material: "100% Combed Organic Cotton — 480 GSM Ultra-Heavyweight Loopback Knit.",
+    care: "Machine wash cold at 30°C inside-out with like colors. Hang dry in shade.",
+    shipping: "Dispatched from warehouse within 24h. Global express tracked courier 2-4 days.",
     image: "",
     totalStock: 50,
     featured: true,
@@ -125,6 +134,7 @@ export default function AdminProductsPage() {
       totalStock: 50,
       sku: "DIM-HOOD-01",
       image: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=1200&q=85",
+      description: "480 GSM heavyweight loopback cotton hoodie with dropped shoulders.",
     },
     {
       id: "bulk-2",
@@ -135,6 +145,7 @@ export default function AdminProductsPage() {
       totalStock: 60,
       sku: "DIM-TEE-01",
       image: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=1200&q=85",
+      description: "260 GSM vintage acid-washed combed jersey with high ribbed collar.",
     },
     {
       id: "bulk-3",
@@ -145,6 +156,7 @@ export default function AdminProductsPage() {
       totalStock: 35,
       sku: "DIM-CARGO-01",
       image: "https://images.unsplash.com/photo-1517445312882-bc9910d016b7?auto=format&fit=crop&w=1200&q=85",
+      description: "Durable tactical ripstop trousers with 6 utility pockets and cinch cuffs.",
     },
   ]);
   const [isSubmittingBulk, setIsSubmittingBulk] = useState(false);
@@ -154,6 +166,12 @@ export default function AdminProductsPage() {
   const [csvFileName, setCsvFileName] = useState<string>("");
   const [csvError, setCsvError] = useState<string | null>(null);
   const [isImportingCsv, setIsImportingCsv] = useState(false);
+
+  // Product Edit Modal State
+  const [productToEdit, setProductToEdit] = useState<Product | null>(null);
+  const [editFormData, setEditFormData] = useState<any>(null);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [isUploadingEditImage, setIsUploadingEditImage] = useState(false);
 
   const loadProducts = async () => {
     try {
@@ -377,6 +395,59 @@ export default function AdminProductsPage() {
     setNewProd((p) => ({ ...p, image: url }));
   };
 
+  // Preset Description Generator for Streetwear
+  const applyDescriptionPreset = (type: "hoodie" | "tee" | "cargo" | "jacket") => {
+    if (type === "hoodie") {
+      setNewProd((p) => ({
+        ...p,
+        category: "hoodies",
+        description:
+          "Architectural heavyweight streetwear silhouette meticulously crafted from 480 GSM organic loopback cotton. Features an oversized boxy drape, dropped shoulder seams, double-layered hood with ergonomic cross-over collar, and thick ribbed cuffs designed to maintain structural shape through daily rotation.",
+        shortDescription: "480 GSM heavyweight loopback fleece hoodie with architectural boxy drape.",
+        fit: "Boxy oversized streetwear fit with dropped shoulders and relaxed sleeve volume.",
+        material: "100% Combed Organic Cotton — 480 GSM Ultra-Heavyweight Loopback Knit.",
+        care: "Machine wash cold at 30°C inside-out with like colors. Hang dry in shade. Do not tumble dry. Cool iron avoiding embroidery.",
+        shipping: "Dispatched from warehouse within 24 business hours. Global express tracked courier delivery in 2-4 days.",
+      }));
+    } else if (type === "tee") {
+      setNewProd((p) => ({
+        ...p,
+        category: "t-shirts",
+        description:
+          "Vintage-washed heavyweight streetwear t-shirt constructed from 260 GSM combed cotton jersey. Individually enzyme treated for an authentic lived-in patina and ultra-soft tactile handfeel. Styled with a high ribbed collar, relaxed drop-shoulder cut, and reinforced twin-needle stitching at hem and sleeves.",
+        shortDescription: "260 GSM vintage acid-washed heavyweight tee with relaxed drop shoulders.",
+        fit: "Relaxed streetwear boxy cut, true to modern streetwear sizing.",
+        material: "100% Ring-Spun Combed Cotton — 260 GSM Custom Vintage Dye Jersey.",
+        care: "Machine wash cold with mild detergent. Do not bleach. Air dry flat to preserve garment wash tone.",
+        shipping: "Standard global fulfillment. Tracked door-to-door delivery with live tracking.",
+      }));
+    } else if (type === "cargo") {
+      setNewProd((p) => ({
+        ...p,
+        category: "bottoms",
+        description:
+          "Utilitarian technical cargo trousers engineered from abrasion-resistant cotton-ripstop blend. Features 6 ergonomic storage compartments including dual waterproof YKK zippered thigh pockets, modular bungee drawcords at leg openings for customizable silhouette adjustment, and reinforced gusseted crotch for unrestricted urban mobility.",
+        shortDescription: "Technical ripstop streetwear cargo trousers with 6 modular utility pockets.",
+        fit: "Straight-leg utility profile with adjustable bungee cinch ankles for tapered or relaxed styling.",
+        material: "70% Cotton, 30% High-Density Tactical Nylon Ripstop.",
+        care: "Machine wash warm inside-out. Fasten all zips and velcros prior to washing.",
+        shipping: "Priority tracked courier shipping. Free exchanges on sizing within 14 days.",
+      }));
+    } else if (type === "jacket") {
+      setNewProd((p) => ({
+        ...p,
+        category: "outerwear",
+        description:
+          "Technical streetwear bomber jacket crafted with a water-repellent flight nylon outer shell and lightweight thermal insulation. Features heavy-duty matte black industrial hardware, ribbed collar and waist, utility sleeve pocket with modular pull tab, and satin-quilted interior lining.",
+        shortDescription: "Water-repellent technical bomber jacket with micro-quilted thermal insulation.",
+        fit: "Structured cropped streetwear silhouette with comfortable room for layering over hoodies.",
+        material: "Outer: 100% Weatherproof Flight Nylon. Lining: Quilted Polyester Satin with 80 GSM insulation.",
+        care: "Wipe clean with damp cloth or professional dry clean only.",
+        shipping: "Worldwide tracked courier with secure protective garment bag.",
+      }));
+    }
+  };
+
   // Single product creation
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -402,6 +473,14 @@ export default function AdminProductsPage() {
           ...newProd,
           image: mainImg,
           images: finalImages,
+          description: newProd.description,
+          shortDescription: newProd.shortDescription || newProd.description.slice(0, 160),
+          details: {
+            fit: newProd.fit || "Relaxed oversized streetwear silhouette.",
+            material: newProd.material || "100% Combed Cotton.",
+            care: newProd.care || "Machine wash cold inside-out.",
+            shipping: newProd.shipping || "Express courier shipping worldwide.",
+          },
           slug:
             newProd.slug ||
             newProd.name
@@ -444,6 +523,11 @@ export default function AdminProductsPage() {
           costPrice: 45,
           sku: `DIM-HOOD-${Date.now().toString().slice(-3)}`,
           description: "Architectural heavyweight silhouette milled from 480 GSM organic cotton knit.",
+          shortDescription: "Heavyweight streetwear cut tailored with clean geometric lines.",
+          fit: "Boxy oversized streetwear cut with dropped shoulders.",
+          material: "100% Combed Organic Cotton (480 GSM Loopback French Terry).",
+          care: "Machine wash cold inside-out. Hang dry in shade. Do not iron directly on print.",
+          shipping: "Orders dispatched within 24h. Express tracked global courier.",
           image: "",
           totalStock: 50,
           featured: true,
@@ -456,6 +540,192 @@ export default function AdminProductsPage() {
       }
     } catch {
       alert("Error adding product");
+    }
+  };
+
+  // Edit Product Modal Handlers
+  const openEditModal = (product: Product) => {
+    setProductToEdit(product);
+    setEditFormData({
+      name: product.name,
+      category: product.category,
+      collectionName: product.collectionName || "dimension-core",
+      price: product.price,
+      compareAtPrice: product.compareAtPrice || "",
+      costPrice: product.costPrice || "",
+      totalStock: product.totalStock,
+      sku: product.sku,
+      description: product.description || "",
+      shortDescription: product.shortDescription || "",
+      fit: product.details?.fit || "Relaxed oversized streetwear silhouette.",
+      material: product.details?.material || "100% Combed Cotton.",
+      care: product.details?.care || "Machine wash cold inside-out.",
+      shipping: product.details?.shipping || "Express courier shipping worldwide.",
+      image: product.images?.[0] || "",
+      images:
+        product.images && product.images.length > 0
+          ? product.images
+          : [],
+      featured: Boolean(product.featured),
+      bestSeller: Boolean(product.bestSeller),
+      newArrival: Boolean(product.newArrival),
+    });
+  };
+
+  const handleEditImageUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0 || !editFormData) return;
+    setIsUploadingEditImage(true);
+    try {
+      const newUrls: string[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const formData = new FormData();
+        formData.append("file", file);
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+        const data = await res.json();
+        if (data.success && data.url) {
+          newUrls.push(data.url);
+        }
+      }
+      setEditFormData((prev: any) => ({
+        ...prev,
+        images: [...(prev.images || []), ...newUrls],
+        image: prev.image || newUrls[0] || "",
+      }));
+    } catch (err: any) {
+      alert("Upload failed: " + err.message);
+    } finally {
+      setIsUploadingEditImage(false);
+    }
+  };
+
+  const removeEditImage = (index: number) => {
+    if (!editFormData) return;
+    const target = editFormData.images[index];
+    const filtered = editFormData.images.filter((_: any, i: number) => i !== index);
+    setEditFormData((prev: any) => ({
+      ...prev,
+      images: filtered,
+      image: prev.image === target ? filtered[0] || "" : prev.image,
+    }));
+  };
+
+  const setAsEditMainImage = (url: string) => {
+    if (!editFormData) return;
+    setEditFormData((prev: any) => ({
+      ...prev,
+      image: url,
+      images: [url, ...prev.images.filter((u: string) => u !== url)],
+    }));
+  };
+
+  const applyEditDescriptionPreset = (type: "hoodie" | "tee" | "cargo" | "jacket") => {
+    if (!editFormData) return;
+    if (type === "hoodie") {
+      setEditFormData((p: any) => ({
+        ...p,
+        description:
+          "Architectural heavyweight streetwear silhouette meticulously crafted from 480 GSM organic loopback cotton. Features an oversized boxy drape, dropped shoulder seams, double-layered hood with ergonomic cross-over collar, and thick ribbed cuffs.",
+        shortDescription: "480 GSM heavyweight loopback fleece hoodie with architectural boxy drape.",
+        fit: "Boxy oversized streetwear fit with dropped shoulders and relaxed sleeve volume.",
+        material: "100% Combed Organic Cotton — 480 GSM Ultra-Heavyweight Loopback Knit.",
+        care: "Machine wash cold at 30°C inside-out with like colors. Hang dry in shade.",
+        shipping: "Dispatched within 24h. Express tracked global courier 2-4 days.",
+      }));
+    } else if (type === "tee") {
+      setEditFormData((p: any) => ({
+        ...p,
+        description:
+          "Vintage-washed heavyweight streetwear t-shirt constructed from 260 GSM combed cotton jersey. Individually enzyme treated for an authentic lived-in patina and ultra-soft tactile handfeel. Styled with a high ribbed collar, relaxed drop-shoulder cut, and reinforced twin-needle stitching.",
+        shortDescription: "260 GSM vintage acid-washed heavyweight tee with relaxed drop shoulders.",
+        fit: "Relaxed streetwear boxy cut, true to modern streetwear sizing.",
+        material: "100% Ring-Spun Combed Cotton — 260 GSM Custom Vintage Dye Jersey.",
+        care: "Machine wash cold with mild detergent. Air dry flat to preserve garment wash tone.",
+        shipping: "Standard global fulfillment. Tracked door-to-door delivery.",
+      }));
+    } else if (type === "cargo") {
+      setEditFormData((p: any) => ({
+        ...p,
+        description:
+          "Utilitarian technical cargo trousers engineered from abrasion-resistant cotton-ripstop blend. Features 6 ergonomic storage compartments including dual waterproof YKK zippered thigh pockets, modular bungee drawcords at leg openings, and reinforced gusseted crotch.",
+        shortDescription: "Technical ripstop streetwear cargo trousers with 6 modular utility pockets.",
+        fit: "Straight-leg utility profile with adjustable bungee cinch ankles for tapered or relaxed styling.",
+        material: "70% Cotton, 30% High-Density Tactical Nylon Ripstop.",
+        care: "Machine wash warm inside-out. Fasten all zips and velcros prior to washing.",
+        shipping: "Priority tracked courier shipping. Free exchanges on sizing within 14 days.",
+      }));
+    } else if (type === "jacket") {
+      setEditFormData((p: any) => ({
+        ...p,
+        description:
+          "Technical streetwear bomber jacket crafted with a water-repellent flight nylon outer shell and lightweight thermal insulation. Features heavy-duty matte black industrial hardware, utility sleeve pocket with modular pull tab, and satin-quilted interior lining.",
+        shortDescription: "Water-repellent technical bomber jacket with micro-quilted thermal insulation.",
+        fit: "Structured cropped streetwear silhouette with comfortable room for layering.",
+        material: "Outer: 100% Weatherproof Flight Nylon. Lining: Quilted Polyester Satin with 80 GSM insulation.",
+        care: "Wipe clean with damp cloth or professional dry clean only.",
+        shipping: "Worldwide tracked courier with secure protective garment bag.",
+      }));
+    }
+  };
+
+  const handleSaveProductEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!productToEdit || !editFormData) return;
+    setIsSavingEdit(true);
+
+    try {
+      const payload = {
+        name: editFormData.name,
+        category: editFormData.category,
+        collectionName: editFormData.collectionName,
+        price: Number(editFormData.price) || 0,
+        compareAtPrice: editFormData.compareAtPrice ? Number(editFormData.compareAtPrice) : undefined,
+        costPrice: editFormData.costPrice ? Number(editFormData.costPrice) : undefined,
+        totalStock: Number(editFormData.totalStock) || 0,
+        sku: editFormData.sku,
+        description: editFormData.description,
+        shortDescription: editFormData.shortDescription || editFormData.description.slice(0, 160),
+        details: {
+          fit: editFormData.fit,
+          material: editFormData.material,
+          care: editFormData.care,
+          shipping: editFormData.shipping,
+        },
+        image: editFormData.images?.[0] || editFormData.image,
+        images:
+          editFormData.images && editFormData.images.length > 0
+            ? editFormData.images
+            : [editFormData.image].filter(Boolean),
+        featured: editFormData.featured,
+        bestSeller: editFormData.bestSeller,
+        newArrival: editFormData.newArrival,
+      };
+
+      const res = await fetch(`/api/products/${productToEdit._id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setProducts((prev) =>
+          prev.map((p) => (p._id === productToEdit._id ? { ...p, ...payload } : p))
+        );
+        setProductToEdit(null);
+        setEditFormData(null);
+        setBulkSuccessMsg(`Updated garment "${payload.name}" and description successfully!`);
+        setTimeout(() => setBulkSuccessMsg(null), 3500);
+      } else {
+        alert(data.error || "Failed to update product.");
+      }
+    } catch (err: any) {
+      alert(err.message || "Network error while updating product.");
+    } finally {
+      setIsSavingEdit(false);
     }
   };
 
@@ -547,7 +817,10 @@ export default function AdminProductsPage() {
           r.image ||
             "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=1200&q=85",
         ],
-        description: `Premium streetwear garment: ${r.name.trim()}`,
+        description:
+          r.description && r.description.trim()
+            ? r.description.trim()
+            : `Premium streetwear garment: ${r.name.trim()}`,
       }));
 
       const res = await fetch("/api/products/bulk", {
@@ -1278,6 +1551,14 @@ export default function AdminProductsPage() {
                           >
                             <Eye className="w-4 h-4" />
                           </Link>
+                          <button
+                            type="button"
+                            onClick={() => openEditModal(prod)}
+                            className="p-1.5 text-neutral-400 hover:text-indigo-600 transition-colors cursor-pointer"
+                            title="Edit garment & description"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </button>
                           <button
                             type="button"
                             onClick={() => setProductToDelete(prod)}
@@ -2124,16 +2405,157 @@ export default function AdminProductsPage() {
                     />
                   </div>
 
-                  <div className="col-span-2">
-                    <label className="block text-neutral-600 uppercase font-bold mb-1">
-                      Description
-                    </label>
-                    <textarea
-                      rows={2}
-                      value={newProd.description}
-                      onChange={(e) => setNewProd({ ...newProd, description: e.target.value })}
-                      className="w-full px-3 py-2 border rounded font-sans focus:outline-none focus:border-black"
-                    />
+                  {/* Product Story & Rich Description Suite */}
+                  <div className="col-span-2 pt-3 border-t border-neutral-200 space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5">
+                        <FileText className="w-4 h-4 text-pink-500" />
+                        <span className="text-xs font-bold uppercase text-neutral-900">
+                          Garment Story & Description Suite
+                        </span>
+                      </div>
+
+                      {/* Streetwear Auto-Presets */}
+                      <div className="flex items-center gap-1">
+                        <span className="text-[10px] text-neutral-400 flex items-center gap-1 font-bold">
+                          <Wand2 className="w-3 h-3 text-indigo-500" /> Presets:
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => applyDescriptionPreset("hoodie")}
+                          className="px-2 py-0.5 bg-neutral-100 hover:bg-black hover:text-white rounded text-[10px] font-bold transition-colors cursor-pointer"
+                        >
+                          Hoodie
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => applyDescriptionPreset("tee")}
+                          className="px-2 py-0.5 bg-neutral-100 hover:bg-black hover:text-white rounded text-[10px] font-bold transition-colors cursor-pointer"
+                        >
+                          T-Shirt
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => applyDescriptionPreset("cargo")}
+                          className="px-2 py-0.5 bg-neutral-100 hover:bg-black hover:text-white rounded text-[10px] font-bold transition-colors cursor-pointer"
+                        >
+                          Cargo
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => applyDescriptionPreset("jacket")}
+                          className="px-2 py-0.5 bg-neutral-100 hover:bg-black hover:text-white rounded text-[10px] font-bold transition-colors cursor-pointer"
+                        >
+                          Jacket
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-neutral-600 uppercase font-bold text-[11px]">
+                          Main Product Description *
+                        </label>
+                        <span className="text-[10px] text-neutral-400 font-mono">
+                          {newProd.description.length} chars
+                        </span>
+                      </div>
+                      <textarea
+                        rows={3}
+                        required
+                        value={newProd.description}
+                        onChange={(e) =>
+                          setNewProd({ ...newProd, description: e.target.value })
+                        }
+                        placeholder="Detailed garment story, fabric milling, silhouette drape, and styling details..."
+                        className="w-full px-3 py-2 border rounded font-sans focus:outline-none focus:border-black text-xs leading-relaxed"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-neutral-600 uppercase font-bold mb-1 text-[11px]">
+                        Short Summary (Card Highlight & SEO)
+                      </label>
+                      <input
+                        type="text"
+                        value={newProd.shortDescription}
+                        onChange={(e) =>
+                          setNewProd({ ...newProd, shortDescription: e.target.value })
+                        }
+                        placeholder="e.g. 480 GSM loopback cotton hoodie with architectural boxy drape."
+                        className="w-full px-3 py-1.5 border rounded font-sans text-xs focus:outline-none focus:border-black"
+                      />
+                    </div>
+
+                    {/* Streetwear Technical Garment Specifications */}
+                    <div className="p-3 bg-neutral-50 rounded-xl border border-neutral-200 space-y-2.5">
+                      <span className="text-[11px] font-bold uppercase text-neutral-700 flex items-center gap-1.5">
+                        <SlidersHorizontal className="w-3.5 h-3.5 text-neutral-600" />
+                        <span>Technical Garment Specifications (Shown in Storefront Accordions)</span>
+                      </span>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <label className="block text-neutral-500 uppercase font-bold text-[10px] mb-0.5">
+                            Material & Fabric GSM
+                          </label>
+                          <input
+                            type="text"
+                            value={newProd.material}
+                            onChange={(e) =>
+                              setNewProd({ ...newProd, material: e.target.value })
+                            }
+                            placeholder="e.g. 100% Combed Cotton, 480 GSM Loopback Knit"
+                            className="w-full px-2.5 py-1.5 bg-white border rounded text-[11px] focus:outline-none focus:border-black"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-neutral-500 uppercase font-bold text-[10px] mb-0.5">
+                            Fit & Silhouette Profile
+                          </label>
+                          <input
+                            type="text"
+                            value={newProd.fit}
+                            onChange={(e) =>
+                              setNewProd({ ...newProd, fit: e.target.value })
+                            }
+                            placeholder="e.g. Boxy oversized cut, dropped shoulders"
+                            className="w-full px-2.5 py-1.5 bg-white border rounded text-[11px] focus:outline-none focus:border-black"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-neutral-500 uppercase font-bold text-[10px] mb-0.5">
+                            Washing & Care Instructions
+                          </label>
+                          <input
+                            type="text"
+                            value={newProd.care}
+                            onChange={(e) =>
+                              setNewProd({ ...newProd, care: e.target.value })
+                            }
+                            placeholder="e.g. Machine wash cold, hang dry in shade"
+                            className="w-full px-2.5 py-1.5 bg-white border rounded text-[11px] focus:outline-none focus:border-black"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-neutral-500 uppercase font-bold text-[10px] mb-0.5">
+                            Shipping & Delivery Policy
+                          </label>
+                          <input
+                            type="text"
+                            value={newProd.shipping}
+                            onChange={(e) =>
+                              setNewProd({ ...newProd, shipping: e.target.value })
+                            }
+                            placeholder="e.g. Dispatched in 24h, tracked global courier"
+                            className="w-full px-2.5 py-1.5 bg-white border rounded text-[11px] focus:outline-none focus:border-black"
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Badges Toggles */}
@@ -2529,6 +2951,402 @@ export default function AdminProductsPage() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+      {/* MODAL 6: Edit Garment & Full Description Suite Modal */}
+      {productToEdit && editFormData && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-white rounded-2xl w-full max-w-3xl p-6 space-y-4 my-8 shadow-2xl border border-neutral-200">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b pb-3">
+              <div>
+                <h3 className="text-sm font-black uppercase tracking-tight text-neutral-900 flex items-center gap-2">
+                  <Edit3 className="w-4 h-4 text-indigo-600" />
+                  <span>Edit Garment & Description</span>
+                </h3>
+                <span className="text-xs text-neutral-500 font-mono">
+                  {editFormData.name} ({editFormData.sku})
+                </span>
+              </div>
+              <button
+                onClick={() => {
+                  setProductToEdit(null);
+                  setEditFormData(null);
+                }}
+                className="p-1 text-neutral-400 hover:text-black rounded"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveProductEdit} className="space-y-4 text-xs font-mono">
+              {/* Product Photos in Edit Modal */}
+              <div className="bg-neutral-50 p-3.5 rounded-xl border border-neutral-200 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold uppercase text-neutral-800 flex items-center gap-1.5 text-xs">
+                    <ImageIcon className="w-4 h-4 text-pink-500" />
+                    <span>Garment Photos</span>
+                  </span>
+                  <label className="px-2.5 py-1 bg-black text-white hover:bg-neutral-800 rounded text-[11px] font-bold cursor-pointer flex items-center gap-1 shadow-xs">
+                    <Upload className="w-3 h-3" />
+                    <span>Add Photo</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      disabled={isUploadingEditImage}
+                      onChange={(e) => handleEditImageUpload(e.target.files)}
+                      className="sr-only"
+                    />
+                  </label>
+                </div>
+
+                {/* Thumbnails */}
+                {editFormData.images && editFormData.images.length > 0 && (
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {editFormData.images.map((imgUrl: string, idx: number) => (
+                      <div
+                        key={idx}
+                        className={`relative w-16 h-16 rounded-lg overflow-hidden border-2 group bg-neutral-100 ${
+                          idx === 0 ? "border-pink-500 shadow-xs" : "border-neutral-200"
+                        }`}
+                      >
+                        <img
+                          src={imgUrl}
+                          alt={`Edit img ${idx}`}
+                          className="w-full h-full object-cover"
+                        />
+                        {idx === 0 && (
+                          <span className="absolute top-0.5 left-0.5 bg-pink-500 text-white text-[8px] font-bold px-1 py-0.2 rounded">
+                            Main
+                          </span>
+                        )}
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-1 transition-opacity">
+                          {idx !== 0 && (
+                            <button
+                              type="button"
+                              onClick={() => setAsEditMainImage(imgUrl)}
+                              className="p-1 bg-white text-black text-[8px] font-bold rounded"
+                              title="Make Cover"
+                            >
+                              Cover
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => removeEditImage(idx)}
+                            className="p-1 bg-red-600 text-white rounded"
+                            title="Remove"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Basic Details Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="col-span-2 sm:col-span-4">
+                  <label className="block text-neutral-600 uppercase font-bold mb-1">
+                    Garment Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editFormData.name}
+                    onChange={(e) =>
+                      setEditFormData({ ...editFormData, name: e.target.value })
+                    }
+                    className="w-full px-3 py-1.5 border rounded font-sans focus:outline-none focus:border-black text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-neutral-600 uppercase font-bold mb-1">
+                    Price ($ USD) *
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min={0}
+                    value={editFormData.price}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        price: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                    className="w-full px-3 py-1.5 border rounded focus:outline-none focus:border-black"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-neutral-600 uppercase font-bold mb-1">
+                    Compare Price ($)
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={editFormData.compareAtPrice}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        compareAtPrice: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                    className="w-full px-3 py-1.5 border rounded focus:outline-none focus:border-black"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-neutral-600 uppercase font-bold mb-1">
+                    Total Stock
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min={0}
+                    value={editFormData.totalStock}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        totalStock: parseInt(e.target.value) || 0,
+                      })
+                    }
+                    className="w-full px-3 py-1.5 border rounded focus:outline-none focus:border-black"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-neutral-600 uppercase font-bold mb-1">
+                    Category
+                  </label>
+                  <select
+                    value={editFormData.category}
+                    onChange={(e) =>
+                      setEditFormData({ ...editFormData, category: e.target.value })
+                    }
+                    className="w-full px-2.5 py-1.5 border rounded bg-white uppercase focus:outline-none focus:border-black"
+                  >
+                    <option value="hoodies">hoodies</option>
+                    <option value="t-shirts">t-shirts</option>
+                    <option value="bottoms">bottoms</option>
+                    <option value="outerwear">outerwear</option>
+                    <option value="accessories">accessories</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Description & Technical Specifications Suite */}
+              <div className="pt-2 border-t space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold uppercase text-neutral-800 flex items-center gap-1.5 text-xs">
+                    <FileText className="w-4 h-4 text-indigo-600" />
+                    <span>Product Description & Specifications</span>
+                  </span>
+
+                  {/* Preset Auto-filler */}
+                  <div className="flex items-center gap-1">
+                    <span className="text-[10px] text-neutral-400 font-bold">Presets:</span>
+                    <button
+                      type="button"
+                      onClick={() => applyEditDescriptionPreset("hoodie")}
+                      className="px-2 py-0.5 bg-neutral-100 hover:bg-black hover:text-white rounded text-[10px] font-bold transition-colors cursor-pointer"
+                    >
+                      Hoodie
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => applyEditDescriptionPreset("tee")}
+                      className="px-2 py-0.5 bg-neutral-100 hover:bg-black hover:text-white rounded text-[10px] font-bold transition-colors cursor-pointer"
+                    >
+                      Tee
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => applyEditDescriptionPreset("cargo")}
+                      className="px-2 py-0.5 bg-neutral-100 hover:bg-black hover:text-white rounded text-[10px] font-bold transition-colors cursor-pointer"
+                    >
+                      Cargo
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => applyEditDescriptionPreset("jacket")}
+                      className="px-2 py-0.5 bg-neutral-100 hover:bg-black hover:text-white rounded text-[10px] font-bold transition-colors cursor-pointer"
+                    >
+                      Jacket
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-neutral-600 uppercase font-bold text-[11px]">
+                      Full Product Description
+                    </label>
+                    <span className="text-[10px] text-neutral-400 font-mono">
+                      {editFormData.description?.length || 0} chars
+                    </span>
+                  </div>
+                  <textarea
+                    rows={4}
+                    required
+                    value={editFormData.description}
+                    onChange={(e) =>
+                      setEditFormData({ ...editFormData, description: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border rounded font-sans focus:outline-none focus:border-black text-xs leading-relaxed"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-neutral-600 uppercase font-bold mb-1 text-[11px]">
+                    Short Summary (Card & SEO)
+                  </label>
+                  <input
+                    type="text"
+                    value={editFormData.shortDescription}
+                    onChange={(e) =>
+                      setEditFormData({ ...editFormData, shortDescription: e.target.value })
+                    }
+                    className="w-full px-3 py-1.5 border rounded font-sans text-xs focus:outline-none focus:border-black"
+                  />
+                </div>
+
+                {/* Technical Accordion Details */}
+                <div className="p-3 bg-neutral-50 rounded-xl border border-neutral-200 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <label className="block text-neutral-500 uppercase font-bold text-[10px] mb-0.5">
+                      Material / Fabric
+                    </label>
+                    <input
+                      type="text"
+                      value={editFormData.material}
+                      onChange={(e) =>
+                        setEditFormData({ ...editFormData, material: e.target.value })
+                      }
+                      className="w-full px-2.5 py-1.5 bg-white border rounded text-[11px] focus:outline-none focus:border-black"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-neutral-500 uppercase font-bold text-[10px] mb-0.5">
+                      Fit Profile
+                    </label>
+                    <input
+                      type="text"
+                      value={editFormData.fit}
+                      onChange={(e) =>
+                        setEditFormData({ ...editFormData, fit: e.target.value })
+                      }
+                      className="w-full px-2.5 py-1.5 bg-white border rounded text-[11px] focus:outline-none focus:border-black"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-neutral-500 uppercase font-bold text-[10px] mb-0.5">
+                      Care Instructions
+                    </label>
+                    <input
+                      type="text"
+                      value={editFormData.care}
+                      onChange={(e) =>
+                        setEditFormData({ ...editFormData, care: e.target.value })
+                      }
+                      className="w-full px-2.5 py-1.5 bg-white border rounded text-[11px] focus:outline-none focus:border-black"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-neutral-500 uppercase font-bold text-[10px] mb-0.5">
+                      Shipping Details
+                    </label>
+                    <input
+                      type="text"
+                      value={editFormData.shipping}
+                      onChange={(e) =>
+                        setEditFormData({ ...editFormData, shipping: e.target.value })
+                      }
+                      className="w-full px-2.5 py-1.5 bg-white border rounded text-[11px] focus:outline-none focus:border-black"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Badges */}
+              <div className="flex flex-wrap gap-4 pt-1">
+                <label className="flex items-center gap-2 cursor-pointer font-sans text-xs">
+                  <input
+                    type="checkbox"
+                    checked={editFormData.featured}
+                    onChange={(e) =>
+                      setEditFormData({ ...editFormData, featured: e.target.checked })
+                    }
+                    className="rounded"
+                  />
+                  <span>Featured Garment</span>
+                </label>
+
+                <label className="flex items-center gap-2 cursor-pointer font-sans text-xs">
+                  <input
+                    type="checkbox"
+                    checked={editFormData.newArrival}
+                    onChange={(e) =>
+                      setEditFormData({ ...editFormData, newArrival: e.target.checked })
+                    }
+                    className="rounded"
+                  />
+                  <span>New Arrival</span>
+                </label>
+
+                <label className="flex items-center gap-2 cursor-pointer font-sans text-xs">
+                  <input
+                    type="checkbox"
+                    checked={editFormData.bestSeller}
+                    onChange={(e) =>
+                      setEditFormData({ ...editFormData, bestSeller: e.target.checked })
+                    }
+                    className="rounded"
+                  />
+                  <span>Best Seller</span>
+                </label>
+              </div>
+
+              {/* Footer Actions */}
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setProductToEdit(null);
+                    setEditFormData(null);
+                  }}
+                  className="px-4 py-2 border border-neutral-300 rounded font-bold uppercase text-neutral-600 hover:bg-neutral-100 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingEdit}
+                  className="px-6 py-2 bg-black hover:bg-neutral-800 text-white rounded font-bold uppercase shadow-sm cursor-pointer disabled:opacity-50 flex items-center gap-2"
+                >
+                  {isSavingEdit ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4 text-emerald-400" />
+                      <span>Save Changes</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
