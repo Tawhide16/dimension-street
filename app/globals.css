@@ -12,12 +12,6 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
 
 body {
   background: var(--background);
@@ -334,7 +328,116 @@ a, button {
   color: #000000;
 }
 
+/* Smooth Accordion Animations */
+.accordion-wrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 350ms cubic-bezier(0.4, 0, 0.2, 1), opacity 300ms ease;
+  opacity: 0;
+}
 
+.accordion-wrapper.is-open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
 
+.accordion-inner-content {
+  overflow: hidden;
+}
 
+/* ==========================================================================
+   Universal High-Contrast, Crystal-Clear Placeholder Styling (Full Website)
+   ========================================================================== */
+
+/* 1. Standard Input & Textarea Placeholders (Separated for 100% browser compliance) */
+input::placeholder {
+  color: #64748b !important;
+  opacity: 1 !important;
+  font-weight: 450 !important;
+}
+
+textarea::placeholder {
+  color: #64748b !important;
+  opacity: 1 !important;
+  font-weight: 450 !important;
+}
+
+input::-webkit-input-placeholder {
+  color: #64748b !important;
+  opacity: 1 !important;
+  font-weight: 450 !important;
+}
+
+textarea::-webkit-input-placeholder {
+  color: #64748b !important;
+  opacity: 1 !important;
+  font-weight: 450 !important;
+}
+
+input::-moz-placeholder {
+  color: #64748b !important;
+  opacity: 1 !important;
+  font-weight: 450 !important;
+}
+
+textarea::-moz-placeholder {
+  color: #64748b !important;
+  opacity: 1 !important;
+  font-weight: 450 !important;
+}
+
+input:-ms-input-placeholder {
+  color: #64748b !important;
+  opacity: 1 !important;
+  font-weight: 450 !important;
+}
+
+textarea:-ms-input-placeholder {
+  color: #64748b !important;
+  opacity: 1 !important;
+  font-weight: 450 !important;
+}
+
+/* 2. Dark Inputs & Modals */
+.dark input::placeholder {
+  color: #94a3b8 !important;
+  opacity: 1 !important;
+}
+
+.dark textarea::placeholder {
+  color: #94a3b8 !important;
+  opacity: 1 !important;
+}
+
+input[class*="bg-neutral-900"]::placeholder,
+input[class*="bg-neutral-950"]::placeholder,
+input[class*="bg-black"]::placeholder,
+input[class*="bg-neutral-800"]::placeholder {
+  color: #94a3b8 !important;
+  opacity: 1 !important;
+}
+
+textarea[class*="bg-neutral-900"]::placeholder,
+textarea[class*="bg-black"]::placeholder,
+textarea[class*="bg-neutral-800"]::placeholder {
+  color: #94a3b8 !important;
+  opacity: 1 !important;
+}
+
+/* 3. Subtle focus transition */
+input:focus::placeholder,
+textarea:focus::placeholder {
+  opacity: 0.5 !important;
+  transition: opacity 0.2s ease;
+}
+
+/* 4. Fullwidth 5-column Community Cards Edge-to-Edge */
+@media (min-width: 1024px) {
+  .community-card-5col {
+    flex: 0 0 calc((100% - 24px) / 5) !important;
+    min-width: calc((100% - 24px) / 5) !important;
+    max-width: calc((100% - 24px) / 5) !important;
+    width: calc((100% - 24px) / 5) !important;
+  }
+}
 

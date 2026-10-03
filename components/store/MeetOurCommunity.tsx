@@ -5,14 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/lib/cartContext";
 import { CommunityReel } from "@/types";
-import {
-  ShoppingCart,
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  Volume2,
-  VolumeX,
-} from "lucide-react";
+import { ShoppingCart, Check, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface CommunityCardItem {
   id: string;
@@ -26,59 +19,54 @@ interface CommunityCardItem {
   isMiddleFeatured?: boolean;
 }
 
-const DEFAULT_CARDS: CommunityCardItem[] = [
+const DEFAULT_COMMUNITY_CARDS: CommunityCardItem[] = [
   {
-    id: "reel-1",
-    videoUrl: "",
-    photoUrl: "/images/community_photo_1.jpg",
-    productName: "Community club Kaur hoodie - Navi",
-    priceFormatted: "Tk 6,500.00",
-    numericPrice: 6500,
-    thumbnail: "/images/community_thumb_1.jpg",
-    slug: "architectural-pullover-hoodie-480gsm",
-    isMiddleFeatured: false,
-  },
-  {
-    id: "reel-2",
-    videoUrl: "",
-    photoUrl: "/images/community_photo_2.jpg",
-    productName: "Black stone washed Singh T-shirt",
-    priceFormatted: "Tk 8,400.00",
-    numericPrice: 8400,
-    thumbnail: "/images/community_thumb_2.jpg",
-    slug: "dimension-isometric-heavyweight-tee",
-    isMiddleFeatured: false,
-  },
-  {
-    id: "reel-3",
-    videoUrl: "",
-    photoUrl: "/images/community_photo_3.jpg",
-    productName: "Black stone washed Singh T-shirt",
-    priceFormatted: "Tk 8,400.00",
-    numericPrice: 8400,
-    thumbnail: "/images/community_thumb_3.jpg",
-    slug: "dimension-isometric-heavyweight-tee",
-    isMiddleFeatured: true, // Central Taller Card matching user's image
-  },
-  {
-    id: "reel-4",
-    videoUrl: "",
-    photoUrl: "/images/community_photo_4.jpg",
+    id: "card-1",
+    photoUrl: "/images/community_card_1.jpg",
     productName: "Community club Singh sweater - Green",
-    priceFormatted: "Tk 11,300.00",
-    numericPrice: 11300,
-    thumbnail: "/images/community_thumb_4.jpg",
+    priceFormatted: "Tk 11,200.00",
+    numericPrice: 11200,
+    thumbnail: "/images/community_thumb_c1.png",
     slug: "architectural-pullover-hoodie-480gsm",
     isMiddleFeatured: false,
   },
   {
-    id: "reel-5",
-    videoUrl: "",
-    photoUrl: "/images/community_photo_5.jpg",
+    id: "card-2",
+    photoUrl: "/images/community_card_2.jpg",
     productName: "Community club Singh hoodie - Grey stonewash",
-    priceFormatted: "Tk 13,600.00",
-    numericPrice: 13600,
-    thumbnail: "/images/community_thumb_5.jpg",
+    priceFormatted: "Tk 13,500.00",
+    numericPrice: 13500,
+    thumbnail: "/images/community_thumb_c2.png",
+    slug: "architectural-pullover-hoodie-480gsm",
+    isMiddleFeatured: false,
+  },
+  {
+    id: "card-3",
+    photoUrl: "/images/community_card_3.jpg",
+    productName: "Community club Singh hoodie - Brown",
+    priceFormatted: "Tk 13,500.00",
+    numericPrice: 13500,
+    thumbnail: "/images/community_thumb_c3.png",
+    slug: "architectural-pullover-hoodie-480gsm",
+    isMiddleFeatured: true, // CENTER TALLER CARD
+  },
+  {
+    id: "card-4",
+    photoUrl: "/images/community_card_4.jpg",
+    productName: "Community club Singh hoodie - Blue",
+    priceFormatted: "Tk 13,500.00",
+    numericPrice: 13500,
+    thumbnail: "/images/community_thumb_c4.png",
+    slug: "architectural-pullover-hoodie-480gsm",
+    isMiddleFeatured: false,
+  },
+  {
+    id: "card-5",
+    photoUrl: "/images/community_card_5.jpg",
+    productName: "Community club Kaur hoodie - Navi",
+    priceFormatted: "Tk 13,500.00",
+    numericPrice: 13500,
+    thumbnail: "/images/community_thumb_c5.png",
     slug: "architectural-pullover-hoodie-480gsm",
     isMiddleFeatured: false,
   },
@@ -86,52 +74,79 @@ const DEFAULT_CARDS: CommunityCardItem[] = [
 
 export default function MeetOurCommunity() {
   const { addItem, openCart } = useCart();
-  const [cards, setCards] = useState<CommunityCardItem[]>(DEFAULT_CARDS);
+  const [cards, setCards] = useState<CommunityCardItem[]>(DEFAULT_COMMUNITY_CARDS);
+  const [activeCenterId, setActiveCenterId] = useState<string>("card-3");
   const [justAddedId, setJustAddedId] = useState<string | null>(null);
-  const [mutedStates, setMutedStates] = useState<Record<string, boolean>>({});
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(true);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+  const tickingRef = useRef(false);
 
-  // Mouse drag-to-scroll states
+  // Mouse drag-to-scroll
   const isDraggingRef = useRef(false);
   const startXRef = useRef(0);
   const scrollLeftRef = useRef(0);
 
-  // 1. Fetch live community reels uploaded from Admin Dashboard
+  // Load custom reels from API if uploaded in dashboard
   useEffect(() => {
     fetch("/api/community/reels")
       .then((res) => res.json())
       .then((data) => {
         if (data.success && Array.isArray(data.reels) && data.reels.length > 0) {
           const activeReels = data.reels.filter((r: CommunityReel) => r.isActive !== false);
-          if (activeReels.length > 0) {
+          if (activeReels.length >= 3) {
             const mapped: CommunityCardItem[] = activeReels.map((reel: CommunityReel, index: number) => ({
               id: reel._id,
               videoUrl: reel.videoUrl || "",
-              photoUrl: reel.posterUrl || `/images/community_photo_${(index % 5) + 1}.jpg`,
+              photoUrl: reel.posterUrl || `/images/community_card_${(index % 5) + 1}.jpg`,
               productName: reel.product?.name || reel.title || "Community Item",
-              priceFormatted: `Tk ${(reel.product?.price || 6500).toLocaleString("en-US", {
+              priceFormatted: `Tk ${(reel.product?.price || 13500).toLocaleString("en-US", {
                 minimumFractionDigits: 2,
               })}`,
-              numericPrice: reel.product?.price || 6500,
-              thumbnail:
-                reel.product?.thumbnail || `/images/community_thumb_${(index % 5) + 1}.jpg`,
+              numericPrice: reel.product?.price || 13500,
+              thumbnail: reel.product?.thumbnail || `/images/community_thumb_c${(index % 5) + 1}.png`,
               slug: reel.product?.slug || "architectural-pullover-hoodie-480gsm",
-              // Center card is featured and taller
-              isMiddleFeatured: index === 2 || (activeReels.length >= 3 && index === Math.floor(activeReels.length / 2)),
+              isMiddleFeatured: index === Math.floor(activeReels.length / 2),
             }));
             setCards(mapped);
+            const midIndex = Math.floor(mapped.length / 2);
+            if (mapped[midIndex]) {
+              setActiveCenterId(mapped[midIndex].id);
+            }
           }
         }
       })
-      .catch((err) => {
-        console.warn("Using default community cards:", err);
-      });
+      .catch(() => {});
   }, []);
 
-  // Center the middle card on initial load to match the 2nd image
+  // Center card detection based on scroll position
+  const updateCenterCard = () => {
+    if (!scrollRef.current) return;
+    const container = scrollRef.current;
+    const containerRect = container.getBoundingClientRect();
+    const containerCenter = containerRect.left + containerRect.width / 2;
+
+    const cardElements = container.querySelectorAll<HTMLElement>("[data-card-id]");
+    let closestId = "";
+    let minDistance = Infinity;
+
+    cardElements.forEach((el) => {
+      const rect = el.getBoundingClientRect();
+      const cardCenter = rect.left + rect.width / 2;
+      const distance = Math.abs(cardCenter - containerCenter);
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestId = el.getAttribute("data-card-id") || "";
+      }
+    });
+
+    if (closestId) {
+      setActiveCenterId((prev) => (prev !== closestId ? closestId : prev));
+    }
+  };
+
+  // Center on middle card on initial load
   useEffect(() => {
     const timer = setTimeout(() => {
       if (scrollRef.current) {
@@ -141,41 +156,53 @@ export default function MeetOurCommunity() {
           el.scrollLeft = centerOffset;
         }
         checkScroll();
+        updateCenterCard();
       }
-    }, 150);
+    }, 120);
     return () => clearTimeout(timer);
   }, [cards]);
 
-  // Check scroll position to update arrow states
   const checkScroll = () => {
     if (!scrollRef.current) return;
     const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-    setCanScrollLeft(scrollLeft > 15);
-    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 15);
+    setCanScrollLeft(scrollLeft > 10);
+    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
+  };
+
+  const handleScroll = () => {
+    checkScroll();
+    if (!tickingRef.current) {
+      window.requestAnimationFrame(() => {
+        updateCenterCard();
+        tickingRef.current = false;
+      });
+      tickingRef.current = true;
+    }
   };
 
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    el.addEventListener("scroll", checkScroll, { passive: true });
-    window.addEventListener("resize", checkScroll);
+    el.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleScroll);
     return () => {
-      el.removeEventListener("scroll", checkScroll);
-      window.removeEventListener("resize", checkScroll);
+      el.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
     };
   }, [cards]);
 
-  // Smooth scroll left and right buttons
   const scroll = (direction: "left" | "right") => {
     if (!scrollRef.current) return;
-    const scrollAmount = 380;
-    scrollRef.current.scrollBy({
-      left: direction === "left" ? -scrollAmount : scrollAmount,
+    const container = scrollRef.current;
+    const cardEl = container.querySelector<HTMLElement>("[data-card-id]");
+    const cardWidth = cardEl ? cardEl.offsetWidth + 8 : 340;
+    container.scrollBy({
+      left: direction === "left" ? -cardWidth : cardWidth,
       behavior: "smooth",
     });
   };
 
-  // Mouse Drag to Scroll handlers
+  // Drag handlers
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!scrollRef.current) return;
     isDraggingRef.current = true;
@@ -195,7 +222,6 @@ export default function MeetOurCommunity() {
     isDraggingRef.current = false;
   };
 
-  // Cart Add Handler
   const handleAddToCart = (e: React.MouseEvent, item: CommunityCardItem) => {
     e.preventDefault();
     e.stopPropagation();
@@ -216,169 +242,138 @@ export default function MeetOurCommunity() {
     setTimeout(() => setJustAddedId(null), 1800);
   };
 
-  const toggleSound = (e: React.MouseEvent, id: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setMutedStates((prev) => ({
-      ...prev,
-      [id]: prev[id] === undefined ? false : !prev[id],
-    }));
-  };
-
   return (
-    <section className="w-full relative py-6 select-none overflow-hidden">
-      {/* Title Centered matching reference image */}
-      <div className="w-full text-center mb-6 sm:mb-8 px-4">
-        <h2 className="text-xl sm:text-2xl md:text-[26px] font-bold uppercase tracking-[0.2em] text-neutral-900">
-          MEET OUR COMMUNITY
-        </h2>
-      </div>
-
-      {/* Relative Carousel Wrapper with Floating Navigation Arrows */}
+    <section className="w-full relative py-2 sm:py-4 select-none overflow-hidden bg-white px-0 lg:hidden">
+      {/* Horizontal Carousel Wrapper - 100% Full Width */}
       <div className="relative w-full group/carousel">
-        {/* Floating Left Arrow Button */}
+        {/* Left Floating Arrow (Visible when scrollable) */}
         <button
           type="button"
           onClick={() => scroll("left")}
           disabled={!canScrollLeft}
-          aria-label="Scroll community videos left"
-          className={`absolute left-3 sm:left-6 top-[45%] -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-white/95 hover:bg-black hover:text-white text-black shadow-2xl border border-neutral-200 flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 cursor-pointer ${
-            canScrollLeft
-              ? "opacity-90 hover:opacity-100"
-              : "opacity-30 cursor-not-allowed"
+          aria-label="Scroll left"
+          className={`absolute left-2 sm:left-4 top-[48%] -translate-y-1/2 z-30 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/95 hover:bg-black hover:text-white text-black shadow-lg border border-neutral-200 flex items-center justify-center transition-all cursor-pointer ${
+            canScrollLeft ? "opacity-90 hover:opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >
-          <ChevronLeft className="w-6 h-6 stroke-[2.5]" />
+          <ChevronLeft className="w-5 h-5 stroke-[2.5]" />
         </button>
 
-        {/* Floating Right Arrow Button */}
+        {/* Right Floating Arrow (Visible when scrollable) */}
         <button
           type="button"
           onClick={() => scroll("right")}
           disabled={!canScrollRight}
-          aria-label="Scroll community videos right"
-          className={`absolute right-3 sm:right-6 top-[45%] -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-white/95 hover:bg-black hover:text-white text-black shadow-2xl border border-neutral-200 flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 cursor-pointer ${
-            canScrollRight
-              ? "opacity-90 hover:opacity-100"
-              : "opacity-30 cursor-not-allowed"
+          aria-label="Scroll right"
+          className={`absolute right-2 sm:right-4 top-[48%] -translate-y-1/2 z-30 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/95 hover:bg-black hover:text-white text-black shadow-lg border border-neutral-200 flex items-center justify-center transition-all cursor-pointer ${
+            canScrollRight ? "opacity-90 hover:opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >
-          <ChevronRight className="w-6 h-6 stroke-[2.5]" />
+          <ChevronRight className="w-5 h-5 stroke-[2.5]" />
         </button>
 
-        {/* Horizontal Smooth Scroll Container matching the 2nd image */}
+        {/* Cards Row - 100% Edge-to-Edge Full Width (Same to same as reference) */}
         <div
           ref={scrollRef}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUpOrLeave}
           onMouseLeave={handleMouseUpOrLeave}
-          className="flex items-end gap-3 sm:gap-3.5 md:gap-4 overflow-x-auto scroll-smooth scrollbar-none px-6 sm:px-12 md:px-16 pt-10 sm:pt-14 pb-4 cursor-grab active:cursor-grabbing snap-x snap-mandatory"
+          className="flex items-end gap-1 sm:gap-1.5 overflow-x-auto scroll-smooth scrollbar-none px-0 pt-8 sm:pt-12 pb-2 cursor-grab active:cursor-grabbing snap-x snap-mandatory w-full"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {cards.map((card) => {
-            const isFeatured = card.isMiddleFeatured;
-            const isMuted = mutedStates[card.id] ?? true;
+            const isFeatured = card.id === activeCenterId;
 
             return (
               <div
                 key={card.id}
-                className={`flex-shrink-0 w-[78vw] sm:w-[50vw] md:w-[38vw] lg:w-[340px] xl:w-[370px] 2xl:w-[395px] flex flex-col bg-white overflow-hidden transition-all duration-300 snap-center shadow-xs hover:shadow-md ${
-                  isFeatured ? "lg:-mt-10 lg:shadow-xl z-10" : ""
+                data-card-id={card.id}
+                className={`flex-shrink-0 w-[74vw] sm:w-[45vw] md:w-[32vw] community-card-5col flex flex-col bg-white overflow-hidden snap-center transition-all duration-400 ease-out origin-bottom ${
+                  isFeatured
+                    ? "z-20 -translate-y-4 sm:-translate-y-6 lg:-translate-y-7 shadow-2xl"
+                    : "z-10 shadow-2xs hover:opacity-100"
                 }`}
               >
-                {/* Media Container: Supports Video Upload or Photo */}
+                {/* Media Image / Video Container (Sharp Square Edges matching screenshot) */}
                 <div
-                  className={`relative w-full overflow-hidden bg-neutral-900 group/media ${
+                  className={`relative w-full overflow-hidden bg-neutral-900 transition-all duration-400 ${
                     isFeatured
-                      ? "h-[400px] sm:h-[450px] md:h-[490px] lg:h-[530px] xl:h-[570px]"
-                      : "h-[340px] sm:h-[390px] md:h-[430px] lg:h-[470px] xl:h-[500px]"
+                      ? "h-[420px] sm:h-[480px] md:h-[530px] lg:h-[590px] xl:h-[650px]"
+                      : "h-[360px] sm:h-[420px] md:h-[470px] lg:h-[520px] xl:h-[570px]"
                   }`}
                 >
                   {card.videoUrl ? (
-                    <div className="relative w-full h-full">
-                      <video
-                        src={card.videoUrl}
-                        poster={card.photoUrl}
-                        muted={isMuted}
-                        loop
-                        playsInline
-                        autoPlay
-                        className="w-full h-full object-cover object-center"
-                      />
-                      {/* Audio Toggle Button */}
-                      <button
-                        type="button"
-                        onClick={(e) => toggleSound(e, card.id)}
-                        title={isMuted ? "Unmute video" : "Mute video"}
-                        className="absolute top-2.5 right-2.5 z-20 w-7 h-7 rounded-full bg-black/60 hover:bg-black text-white flex items-center justify-center backdrop-blur-xs transition-opacity opacity-75 hover:opacity-100 cursor-pointer"
-                      >
-                        {isMuted ? (
-                          <VolumeX className="w-3.5 h-3.5" />
-                        ) : (
-                          <Volume2 className="w-3.5 h-3.5 text-emerald-400" />
-                        )}
-                      </button>
-                    </div>
+                    <video
+                      src={card.videoUrl}
+                      poster={card.photoUrl}
+                      muted
+                      loop
+                      playsInline
+                      autoPlay
+                      className="w-full h-full object-cover object-center"
+                    />
                   ) : (
                     <Image
                       src={card.photoUrl}
                       alt={card.productName}
                       fill
-                      sizes="(max-width: 640px) 78vw, (max-width: 1024px) 50vw, 395px"
-                      className="object-cover object-center transition-transform duration-500 hover:scale-105"
+                      sizes="(max-width: 640px) 72vw, (max-width: 1024px) 44vw, 310px"
+                      className="object-cover object-center"
                       priority={isFeatured}
+                      unoptimized
                     />
                   )}
                 </div>
 
-                {/* Bottom Product Info Bar matching reference image */}
-                <div className="border border-neutral-300 bg-white px-3 py-2.5 sm:px-4 sm:py-3 flex items-center justify-between gap-2.5 sm:gap-3">
+                {/* Attached Product Box directly under media (Matching screenshot 1:1) */}
+                <div className="border border-neutral-200 bg-white p-2 sm:p-2.5 flex items-center justify-between gap-1.5 sm:gap-2">
                   {/* Left: Product Thumbnail */}
                   <Link
                     href={`/product/${card.slug}`}
-                    className="relative w-12 h-12 sm:w-14 sm:h-14 bg-white flex-shrink-0 flex items-center justify-center overflow-hidden group"
+                    className="relative w-9 h-9 sm:w-10 sm:h-10 bg-white shrink-0 flex items-center justify-center overflow-hidden border border-neutral-100"
                     title={card.productName}
                   >
                     <Image
                       src={card.thumbnail}
                       alt={card.productName}
                       fill
-                      sizes="60px"
-                      className="object-contain transition-transform duration-300 group-hover:scale-105"
+                      sizes="48px"
+                      className="object-contain"
+                      unoptimized
                     />
                   </Link>
 
-                  {/* Middle: Product Title & Price (Centered) */}
-                  <div className="flex-1 min-w-0 px-1 sm:px-2 text-center flex flex-col items-center justify-center">
+                  {/* Middle: Product Name & Price */}
+                  <div className="flex-1 min-w-0 px-1 text-center flex flex-col items-center justify-center">
                     <Link
                       href={`/product/${card.slug}`}
-                      className="text-xs sm:text-[13px] md:text-sm font-normal text-neutral-900 leading-snug line-clamp-2 block hover:underline"
+                      className="text-[10px] sm:text-[11px] font-medium text-neutral-900 leading-tight line-clamp-2 block hover:underline"
                       title={card.productName}
                     >
                       {card.productName}
                     </Link>
-                    <span className="text-xs sm:text-[13px] md:text-sm font-bold text-neutral-950 block mt-1 tracking-tight">
+                    <span className="text-[10px] sm:text-[11px] font-bold text-black block mt-0.5 tracking-tight">
                       {card.priceFormatted}
                     </span>
                   </div>
 
-                  {/* Right: Black Circular Cart Button */}
+                  {/* Right: Small Circular Black Cart Button */}
                   <button
                     type="button"
                     onClick={(e) => handleAddToCart(e, card)}
                     title="Add to cart"
                     aria-label={`Add ${card.productName} to cart`}
-                    className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 flex-shrink-0 shadow-xs cursor-pointer ${
+                    className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shrink-0 transition-all cursor-pointer ${
                       justAddedId === card.id
                         ? "bg-emerald-600 text-white"
-                        : "bg-black text-white hover:scale-105 active:scale-95"
+                        : "bg-black text-white hover:bg-neutral-800 active:scale-95"
                     }`}
                   >
                     {justAddedId === card.id ? (
-                      <Check className="w-4 h-4 text-white stroke-[2.5]" />
+                      <Check className="w-3.5 h-3.5 text-white stroke-[2.5]" />
                     ) : (
-                      <ShoppingCart className="w-4 h-4 sm:w-[18px] sm:h-[18px] text-white stroke-[2]" />
+                      <ShoppingCart className="w-3.5 h-3.5 text-white stroke-[2]" />
                     )}
                   </button>
                 </div>
@@ -390,3 +385,4 @@ export default function MeetOurCommunity() {
     </section>
   );
 }
+

@@ -4,7 +4,7 @@ import AnnouncementBar from "@/components/store/AnnouncementBar";
 import Header from "@/components/store/Header";
 import Footer from "@/components/store/Footer";
 import ProductDetailView from "@/components/product/ProductDetailView";
-import { getProductBySlug, getProducts } from "@/lib/dataService";
+import { getProductBySlug, getProducts, getReviews } from "@/lib/dataService";
 import type { Metadata } from "next";
 
 export const revalidate = 0;
@@ -49,13 +49,18 @@ export default async function ProductPage({
   // Get related products in same category
   const allRelated = await getProducts({ category: product.category });
   const related = allRelated.filter((p) => p._id !== product._id).slice(0, 4);
+  const initialReviews = await getReviews(product._id);
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <AnnouncementBar />
       <Header />
       <main className="flex-1">
-        <ProductDetailView product={product} relatedProducts={related} />
+        <ProductDetailView
+          product={product}
+          relatedProducts={related}
+          initialReviews={initialReviews}
+        />
       </main>
       <Footer />
     </div>

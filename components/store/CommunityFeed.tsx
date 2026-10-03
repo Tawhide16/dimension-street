@@ -11,7 +11,17 @@ interface CommunityFeedProps {
   reviews?: Review[];
 }
 
-const REVIEW_SLIDES = [
+export interface ReviewFeedItem {
+  id?: string;
+  author: string;
+  quote: string;
+  image: string;
+  productName: string;
+  rating?: number;
+  productSlug?: string;
+}
+
+const REVIEW_SLIDES: ReviewFeedItem[][] = [
   // Slide 1 matching the user's reference image exactly
   [
     {
@@ -193,8 +203,8 @@ export default function CommunityFeed({ reviews }: CommunityFeedProps) {
 
   return (
     <section className="py-10 sm:py-14 bg-white">
-      {/* Meet Our Community Section - Full Width Edge-to-Edge */}
-      <div className="w-full mb-12 sm:mb-16">
+      {/* Meet Our Community Section - Mobile/Tablet only, hidden on desktop */}
+      <div className="w-full mb-12 sm:mb-16 lg:hidden">
         <MeetOurCommunity />
       </div>
 

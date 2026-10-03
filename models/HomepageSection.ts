@@ -14,8 +14,8 @@ export interface IHomepageSection extends Document {
 const HomepageSectionSchema = new Schema<IHomepageSection>(
   {
     type: { type: String, required: true },
-    title: { type: String, required: true },
-    subtitle: { type: String },
+    title: { type: String, default: "" },
+    subtitle: { type: String, default: "" },
     order: { type: Number, required: true, default: 0 },
     isActive: { type: Boolean, default: true },
     data: { type: Schema.Types.Mixed, default: {} },

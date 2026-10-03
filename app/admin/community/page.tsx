@@ -182,7 +182,7 @@ export default function AdminCommunityReelsPage() {
   };
 
   return (
-    <div className="space-y-6 font-mono">
+    <div className="w-full space-y-6 font-mono pb-16">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -263,17 +263,30 @@ export default function AdminCommunityReelsPage() {
                 key={reel._id}
                 className="bg-neutral-50 border border-neutral-200 rounded-lg overflow-hidden flex flex-col justify-between group"
               >
-                {/* Video Preview */}
-                <div className="relative aspect-[9/15] bg-black overflow-hidden">
-                  <video
-                    src={reel.videoUrl}
-                    poster={reel.posterUrl}
-                    playsInline
-                    loop
-                    muted
-                    controls
-                    className="w-full h-full object-cover"
-                  />
+                {/* Video / Photo Preview */}
+                <div className="relative aspect-[9/15] bg-black overflow-hidden flex items-center justify-center">
+                  {reel.videoUrl ? (
+                    <video
+                      src={reel.videoUrl}
+                      poster={reel.posterUrl || undefined}
+                      playsInline
+                      loop
+                      muted
+                      controls
+                      className="w-full h-full object-cover"
+                    />
+                  ) : reel.posterUrl ? (
+                    <Image
+                      src={reel.posterUrl}
+                      alt={reel.title || "Community reel"}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <span className="text-[10px] text-neutral-500 font-mono">
+                      No Media Attached
+                    </span>
+                  )}
                   <div className="absolute top-2 left-2 z-10">
                     <button
                       onClick={() => handleToggleActive(reel._id)}
@@ -396,7 +409,7 @@ export default function AdminCommunityReelsPage() {
                 </div>
 
                 {/* Video Live Preview */}
-                {videoPreviewUrl && (
+                {Boolean(videoPreviewUrl && videoPreviewUrl.trim()) && (
                   <div className="mt-2 relative aspect-[9/12] max-w-[180px] mx-auto bg-black rounded-lg overflow-hidden border border-neutral-300">
                     <video
                       src={videoPreviewUrl}

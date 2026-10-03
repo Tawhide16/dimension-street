@@ -59,14 +59,14 @@ export default function CartDrawer() {
       <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
         {/* Drawer Panel with smooth slide-in/slide-out transform transition */}
         <div
-          className={`w-screen max-w-md bg-white shadow-2xl flex flex-col transform transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          className={`w-screen max-w-md bg-white text-neutral-900 shadow-2xl flex flex-col transform transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
             isOpen ? "translate-x-0" : "translate-x-full"
           }`}
         >
           {/* Header */}
           <div className="p-5 border-b border-neutral-200 flex items-center justify-between bg-neutral-50/50">
             <div className="flex items-center gap-2">
-              <h2 className="text-base font-black tracking-widest uppercase font-mono">
+              <h2 className="text-base font-black tracking-widest uppercase font-mono text-neutral-900">
                 Your Bag
               </h2>
               <span className="text-xs bg-black text-white px-2 py-0.5 rounded-full font-mono font-bold">
@@ -78,14 +78,14 @@ export default function CartDrawer() {
               className="p-1.5 text-neutral-400 hover:text-black transition-colors rounded-full hover:bg-neutral-100 cursor-pointer"
               aria-label="Close Bag"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5 text-neutral-800" />
             </button>
           </div>
 
           {/* Free Shipping Progress Indicator */}
           <div className="bg-neutral-100 px-5 py-3 border-b border-neutral-200">
             <div className="flex items-center justify-between text-xs font-mono font-semibold mb-1.5">
-              <span className="flex items-center gap-1.5">
+              <span className="flex items-center gap-1.5 text-neutral-800">
                 <Truck className="w-3.5 h-3.5 text-neutral-700" />
                 {isFreeShipping ? (
                   <span className="text-emerald-700 font-bold">
@@ -93,11 +93,11 @@ export default function CartDrawer() {
                   </span>
                 ) : (
                   <span>
-                    Add <strong className="text-black">{formatPrice(freeShippingThreshold - subtotal)}</strong> for Free Express Delivery
+                    Add <strong className="text-black font-bold">{formatPrice(freeShippingThreshold - subtotal)}</strong> for Free Express Delivery
                   </span>
                 )}
               </span>
-              <span className="text-[11px] text-neutral-500">{freeShippingProgress}%</span>
+              <span className="text-[11px] text-neutral-600 font-bold">{freeShippingProgress}%</span>
             </div>
             <div className="w-full bg-neutral-200 h-1.5 rounded-full overflow-hidden">
               <div
@@ -114,12 +114,12 @@ export default function CartDrawer() {
             {items.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center py-12">
                 <div className="w-16 h-16 rounded-full bg-neutral-100 flex items-center justify-center mb-4">
-                  <Tag className="w-8 h-8 text-neutral-400" />
+                  <Tag className="w-8 h-8 text-neutral-500" />
                 </div>
-                <h3 className="text-base font-bold uppercase tracking-wider text-neutral-800">
+                <h3 className="text-base font-bold uppercase tracking-wider text-neutral-900">
                   Your bag is empty
                 </h3>
-                <p className="text-xs text-neutral-500 max-w-xs mt-1 mb-6">
+                <p className="text-xs text-neutral-600 max-w-xs mt-1 mb-6">
                   Discover our heavyweight tees, technical cargos, and limited edition outerwear.
                 </p>
                 <Link
@@ -151,7 +151,7 @@ export default function CartDrawer() {
                         <Link
                           href={`/product/${item.slug}`}
                           onClick={closeCart}
-                          className="text-xs font-bold uppercase tracking-wide hover:underline line-clamp-1"
+                          className="text-xs font-bold uppercase tracking-wide text-neutral-900 hover:text-black hover:underline line-clamp-1"
                         >
                           {item.name}
                         </Link>
@@ -164,12 +164,12 @@ export default function CartDrawer() {
                         </button>
                       </div>
 
-                      <div className="flex items-center gap-2 mt-1 text-[11px] text-neutral-500 font-mono">
-                        <span className="bg-neutral-100 px-1.5 py-0.5 rounded text-neutral-700">
+                      <div className="flex items-center gap-2 mt-1 text-[11px] text-neutral-600 font-mono">
+                        <span className="bg-neutral-100 px-1.5 py-0.5 rounded text-neutral-800 font-medium">
                           {item.color}
                         </span>
                         <span>/</span>
-                        <span className="font-bold text-black">{item.size}</span>
+                        <span className="font-bold text-neutral-900">{item.size}</span>
                       </div>
                     </div>
 
@@ -178,17 +178,17 @@ export default function CartDrawer() {
                       <div className="flex items-center border border-neutral-300 rounded-sm">
                         <button
                           onClick={() => updateQuantity(item.sku, item.quantity - 1)}
-                          className="p-1 hover:bg-neutral-100 text-neutral-600 transition-colors"
+                          className="p-1 hover:bg-neutral-100 text-neutral-700 transition-colors"
                           aria-label="Decrease quantity"
                         >
                           <Minus className="w-3 h-3" />
                         </button>
-                        <span className="px-2.5 text-xs font-mono font-bold">
+                        <span className="px-2.5 text-xs font-mono font-bold text-neutral-900">
                           {item.quantity}
                         </span>
                         <button
                           onClick={() => updateQuantity(item.sku, item.quantity + 1)}
-                          className="p-1 hover:bg-neutral-100 text-neutral-600 transition-colors"
+                          className="p-1 hover:bg-neutral-100 text-neutral-700 transition-colors"
                           aria-label="Increase quantity"
                         >
                           <Plus className="w-3 h-3" />
@@ -231,7 +231,7 @@ export default function CartDrawer() {
                       placeholder="Promo Code (e.g. WELCOME10)"
                       value={inputCoupon}
                       onChange={(e) => setInputCoupon(e.target.value)}
-                      className="flex-1 px-3 py-2 text-xs border border-neutral-300 rounded-sm uppercase font-mono placeholder:normal-case focus:outline-none focus:border-black"
+                      className="flex-1 px-3 py-2 text-xs border border-neutral-300 rounded-sm uppercase font-mono placeholder:normal-case focus:outline-none focus:border-black text-neutral-900 bg-white"
                     />
                     <button
                       type="submit"

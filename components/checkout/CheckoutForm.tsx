@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -56,6 +56,22 @@ export default function CheckoutForm() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.success && data?.user) {
+          setFormData((prev) => ({
+            ...prev,
+            fullName: prev.fullName || data.user.name || "",
+            email: prev.email || data.user.email || "",
+            phone: prev.phone || data.user.phone || "",
+          }));
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const shippingCost = isFreeShipping || items.length === 0 ? 0 : 15;
   const finalTotal = Math.max(0, subtotal - discountAmount + shippingCost);

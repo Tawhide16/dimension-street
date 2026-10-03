@@ -7,6 +7,8 @@ import { Category } from "@/types";
 
 interface CategoryGridProps {
   categories?: Category[];
+  title?: string;
+  subtitle?: string;
 }
 
 const SEASON_MUST_HAVES = [
@@ -36,13 +38,22 @@ const SEASON_MUST_HAVES = [
   },
 ];
 
-export default function CategoryGrid({ categories }: CategoryGridProps) {
+export default function CategoryGrid({
+  categories,
+  title = "MUST HAVES FOR THE SEASON",
+  subtitle,
+}: CategoryGridProps) {
   return (
     <section className="w-full px-4 sm:px-8 lg:px-12 xl:px-16 py-8 sm:py-10">
       {/* Clean Minimalist Header matching reference */}
-      <h2 className="text-xl sm:text-2xl md:text-[24px] font-bold uppercase tracking-tight text-neutral-900 mb-5">
-        MUST HAVES FOR THE SEASON
-      </h2>
+      <div className="mb-5">
+        <h2 className="text-xl sm:text-2xl md:text-[24px] font-bold uppercase tracking-tight text-neutral-900">
+          {title}
+        </h2>
+        {subtitle && (
+          <p className="text-xs text-neutral-500 font-mono mt-1">{subtitle}</p>
+        )}
+      </div>
 
       {/* 4 Column Full-Bleed Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-2.5 lg:gap-3">

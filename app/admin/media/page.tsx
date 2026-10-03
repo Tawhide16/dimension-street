@@ -23,7 +23,7 @@ export default function AdminMediaPage() {
   };
 
   return (
-    <div className="space-y-6 font-mono">
+    <div className="w-full space-y-6 font-mono pb-16">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-black uppercase text-neutral-900 font-sans tracking-tight">

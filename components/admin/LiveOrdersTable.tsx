@@ -17,6 +17,10 @@ export default function LiveOrdersTable({
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
+  React.useEffect(() => {
+    setOrders(initialOrders);
+  }, [initialOrders]);
+
   const statusColors: Record<OrderStatus, string> = {
     Pending: "bg-amber-50 text-amber-700 border-amber-200",
     Confirmed: "bg-blue-50 text-blue-700 border-blue-200",

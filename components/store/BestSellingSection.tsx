@@ -55,7 +55,15 @@ const DEFAULT_BESTSELLERS: BestSellerProductItem[] = [
   },
 ];
 
-export default function BestSellingSection() {
+interface BestSellingSectionProps {
+  title?: string;
+  subtitle?: string;
+}
+
+export default function BestSellingSection({
+  title = "BEST SELLING PRODUCTS",
+  subtitle,
+}: BestSellingSectionProps = {}) {
   const { addItem, openCart } = useCart();
   const [addedItemSku, setAddedItemSku] = useState<string | null>(null);
 
@@ -89,9 +97,14 @@ export default function BestSellingSection() {
   return (
     <section className="w-full px-4 sm:px-8 lg:px-12 xl:px-16 py-8 sm:py-10">
       {/* Clean Minimalist Header matching reference */}
-      <h2 className="text-xl sm:text-2xl font-bold uppercase tracking-tight text-neutral-900 mb-5">
-        BEST SELLING PRODUCTS
-      </h2>
+      <div className="mb-5">
+        <h2 className="text-xl sm:text-2xl font-bold uppercase tracking-tight text-neutral-900">
+          {title}
+        </h2>
+        {subtitle && (
+          <p className="text-xs text-neutral-500 font-mono mt-1">{subtitle}</p>
+        )}
+      </div>
 
       {/* 4 Column Product Grid - Exact same gap as New Arrivals */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">

@@ -7,7 +7,7 @@ export default function AdminThemePage() {
   const [saved, setSaved] = useState(false);
 
   return (
-    <div className="space-y-6 font-mono max-w-4xl">
+    <div className="space-y-6 font-mono w-full pb-16">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-black uppercase text-neutral-900 font-sans tracking-tight">

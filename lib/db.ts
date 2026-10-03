@@ -1,4 +1,14 @@
 import mongoose from "mongoose";
+import dns from "dns";
+
+// Fix SRV lookups on Windows / local ISP environments
+if (typeof window === "undefined") {
+  try {
+    dns.setServers(["8.8.8.8", "1.1.1.1"]);
+  } catch {
+    // Ignore in environments where setServers is restricted
+  }
+}
 
 const MONGODB_URI = process.env.MONGODB_URI;
 

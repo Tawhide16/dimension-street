@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { Review, Product } from "@/types";
+import { formatDate } from "@/lib/utils";
 import { Star, CheckCircle2, ThumbsUp, MessageSquarePlus, X, Check } from "lucide-react";
 
 interface ProductReviewsSectionProps {
@@ -30,13 +31,19 @@ export default function ProductReviewsSection({
   const [comment, setComment] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
+  // Sync with initialReviews prop if passed or updated
+  useEffect(() => {
+    if (initialReviews && initialReviews.length > 0) {
+      setReviews(initialReviews);
+    }
+  }, [initialReviews]);
+
   // Fetch reviews for this product on mount
   useEffect(() => {
     fetch(`/api/reviews?productId=${encodeURIComponent(product._id)}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.success && Array.isArray(data.reviews)) {
-          // If product-specific reviews exist, use them. If none yet, provide general community reviews
           if (data.reviews.length > 0) {
             setReviews(data.reviews);
           } else if (initialReviews.length > 0) {
@@ -351,11 +358,7 @@ export default function ProductReviewsSection({
         ) : (
           <div className="divide-y divide-neutral-200">
             {reviews.map((rev) => {
-              const formattedDate = new Date(rev.createdAt).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              });
+              const formattedDate = formatDate(rev.createdAt);
 
               return (
                 <div key={rev._id} className="py-6 first:pt-2 last:pb-2">
@@ -385,7 +388,7 @@ export default function ProductReviewsSection({
                     </div>
 
                     {/* Date */}
-                    <span className="text-[11px] font-mono text-neutral-400">
+                    <span suppressHydrationWarning className="text-[11px] font-mono text-neutral-400">
                       {formattedDate}
                     </span>
                   </div>

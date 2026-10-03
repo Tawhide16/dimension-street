@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getProductBySlug, updateProduct, deleteProduct } from "@/lib/dataService";
+import { revalidatePath } from "next/cache";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(
   req: NextRequest,
@@ -28,6 +31,13 @@ export async function PATCH(
     if (!updated) {
       return NextResponse.json({ success: false, error: "Product not found" }, { status: 404 });
     }
+
+    try {
+      revalidatePath("/admin/products");
+      revalidatePath("/shop");
+      revalidatePath("/");
+    } catch {}
+
     return NextResponse.json({ success: true, product: updated });
   } catch (error) {
     return NextResponse.json({ success: false, error: "Error updating product" }, { status: 500 });
@@ -41,8 +51,18 @@ export async function DELETE(
   try {
     const { id } = await params;
     const success = await deleteProduct(id);
-    return NextResponse.json({ success });
-  } catch (error) {
-    return NextResponse.json({ success: false, error: "Error deleting product" }, { status: 500 });
+
+    try {
+      revalidatePath("/admin/products");
+      revalidatePath("/shop");
+      revalidatePath("/");
+    } catch {}
+
+    return NextResponse.json({ success, message: "Product deleted successfully" });
+  } catch (error: any) {
+    return NextResponse.json(
+      { success: false, error: error?.message || "Error deleting product" },
+      { status: 500 }
+    );
   }
 }
