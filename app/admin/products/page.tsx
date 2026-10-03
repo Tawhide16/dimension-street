@@ -175,7 +175,7 @@ export default function AdminProductsPage() {
 
   const loadProducts = async () => {
     try {
-      const res = await fetch("/api/products");
+      const res = await fetch("/api/products?all=true");
       const data = await res.json();
       if (data.products) setProducts(data.products);
     } catch {

@@ -11,6 +11,7 @@ export async function GET(req: NextRequest) {
     const featured = searchParams.get("featured") === "true";
     const bestSeller = searchParams.get("bestSeller") === "true";
     const newArrival = searchParams.get("newArrival") === "true";
+    const allStatus = searchParams.get("all") === "true" || searchParams.get("admin") === "true";
 
     const products = await getProducts({
       category,
@@ -20,6 +21,7 @@ export async function GET(req: NextRequest) {
       featured,
       bestSeller,
       newArrival,
+      allStatus,
     });
 
     return NextResponse.json({ success: true, count: products.length, products });

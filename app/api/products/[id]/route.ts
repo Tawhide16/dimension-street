@@ -10,7 +10,8 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const product = await getProductBySlug(id);
+    const decodedId = decodeURIComponent(id);
+    const product = await getProductBySlug(decodedId);
     if (!product) {
       return NextResponse.json({ success: false, error: "Product not found" }, { status: 404 });
     }
@@ -26,8 +27,9 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params;
+    const decodedId = decodeURIComponent(id);
     const body = await req.json();
-    const updated = await updateProduct(id, body);
+    const updated = await updateProduct(decodedId, body);
     if (!updated) {
       return NextResponse.json({ success: false, error: "Product not found" }, { status: 404 });
     }
@@ -50,7 +52,8 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const success = await deleteProduct(id);
+    const decodedId = decodeURIComponent(id);
+    const success = await deleteProduct(decodedId);
 
     try {
       revalidatePath("/admin/products");

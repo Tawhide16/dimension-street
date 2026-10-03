@@ -20,6 +20,7 @@ import {
   initialHomepageSections,
   initialUsers,
 } from "./seedData";
+import mongoose from "mongoose";
 import { connectToDatabase, isMongoConnected } from "./db";
 import { ProductModel } from "@/models/Product";
 import { OrderModel } from "@/models/Order";
@@ -189,36 +190,55 @@ let hasSeededMongo = false;
 async function autoSeedMongoIfEmpty() {
   if (hasSeededMongo || !isMongoConnected()) return;
   try {
+    const db = mongoose.connection.db;
+    if (!db) return;
+
+    // Check if the system has already run initial seed before
+    const metaCol = db.collection("system_meta");
+    const seedMeta = await metaCol.findOne({ key: "initial_seed_completed" });
+
+    if (seedMeta) {
+      // Already seeded in the past! Do NOT re-seed even if products were deleted by the user!
+      hasSeededMongo = true;
+      return;
+    }
+
     const productCount = await ProductModel.countDocuments();
     if (productCount === 0) {
-      console.log("🌱 Auto-seeding initial products to MongoDB...");
+      console.log("🌱 First-time initial seed: inserting products to MongoDB...");
       await ProductModel.insertMany(stripId(initialProducts));
     }
     const catCount = await CategoryModel.countDocuments();
     if (catCount === 0) {
-      console.log("🌱 Auto-seeding categories to MongoDB...");
+      console.log("🌱 First-time initial seed: inserting categories to MongoDB...");
       await CategoryModel.insertMany(stripId(initialCategories));
     }
     const colCount = await CollectionModel.countDocuments();
     if (colCount === 0) {
-      console.log("🌱 Auto-seeding collections to MongoDB...");
+      console.log("🌱 First-time initial seed: inserting collections to MongoDB...");
       await CollectionModel.insertMany(stripId(initialCollections));
     }
     const revCount = await ReviewModel.countDocuments();
     if (revCount === 0) {
-      console.log("🌱 Auto-seeding reviews to MongoDB...");
+      console.log("🌱 First-time initial seed: inserting reviews to MongoDB...");
       await ReviewModel.insertMany(stripId(initialReviews));
     }
     const coupCount = await CouponModel.countDocuments();
     if (coupCount === 0) {
-      console.log("🌱 Auto-seeding coupons to MongoDB...");
+      console.log("🌱 First-time initial seed: inserting coupons to MongoDB...");
       await CouponModel.insertMany(stripId(initialCoupons));
     }
     const secCount = await HomepageSectionModel.countDocuments();
     if (secCount === 0) {
-      console.log("🌱 Auto-seeding homepage sections to MongoDB...");
+      console.log("🌱 First-time initial seed: inserting homepage sections to MongoDB...");
       await HomepageSectionModel.insertMany(stripId(initialHomepageSections));
     }
+
+    await metaCol.updateOne(
+      { key: "initial_seed_completed" },
+      { $set: { key: "initial_seed_completed", completedAt: new Date() } },
+      { upsert: true }
+    );
     hasSeededMongo = true;
   } catch (err) {
     console.warn("MongoDB auto-seed note:", err);
@@ -234,6 +254,8 @@ export async function getProducts(options?: {
   featured?: boolean;
   bestSeller?: boolean;
   newArrival?: boolean;
+  status?: string;
+  allStatus?: boolean;
 }): Promise<Product[]> {
   await connectToDatabase();
   await autoSeedMongoIfEmpty();
@@ -241,7 +263,12 @@ export async function getProducts(options?: {
   let list: Product[] = [];
   if (isMongoConnected()) {
     try {
-      const filter: Record<string, unknown> = { status: "active" };
+      const filter: Record<string, unknown> = {};
+      if (!options?.allStatus) {
+        filter.status = options?.status || "active";
+      } else if (options?.status) {
+        filter.status = options.status;
+      }
       if (options?.category && options.category !== "all") {
         filter.category = options.category;
       }
@@ -254,11 +281,20 @@ export async function getProducts(options?: {
 
       const raw = await ProductModel.find(filter).lean();
       list = raw.map((p) => ({ ...p, _id: p._id.toString() } as unknown as Product));
+
+      if (options?.allStatus && !options?.category && !options?.collection && !options?.search) {
+        memoryStore.products = list;
+        saveLocalStore();
+      }
     } catch {
       list = [...memoryStore.products];
     }
   } else {
     list = [...memoryStore.products];
+    if (!options?.allStatus) {
+      const targetStatus = options?.status || "active";
+      list = list.filter((p) => (p.status || "active") === targetStatus);
+    }
   }
 
   // Filter in memory for search or if Mongo was offline
@@ -302,7 +338,10 @@ export async function getAllProductsAdmin(): Promise<Product[]> {
   if (isMongoConnected()) {
     try {
       const raw = await ProductModel.find().sort({ createdAt: -1 }).lean();
-      return raw.map((p) => ({ ...p, _id: p._id.toString() } as unknown as Product));
+      const list = raw.map((p) => ({ ...p, _id: p._id.toString() } as unknown as Product));
+      memoryStore.products = list;
+      saveLocalStore();
+      return list;
     } catch {
       return memoryStore.products;
     }
@@ -326,33 +365,78 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
 }
 
 export async function createProduct(data: Partial<Product>): Promise<Product> {
+  await connectToDatabase();
+
+  const validHexId =
+    data._id && /^[0-9a-fA-F]{24}$/.test(String(data._id))
+      ? String(data._id)
+      : new mongoose.Types.ObjectId().toString();
+
+  const slug =
+    data.slug ||
+    (data.name
+      ? data.name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "") +
+        "-" +
+        Date.now().toString().slice(-4)
+      : `garment-${Date.now()}`);
+
+  const price = typeof data.price === "number" ? data.price : Number(data.price) || 50;
+  const totalStock = typeof data.totalStock === "number" ? data.totalStock : Number(data.totalStock) || 40;
+  const sku = data.sku || `DIM-${Date.now().toString().slice(-5)}`;
+
+  const singleImg = (data as any).image;
+  const images =
+    Array.isArray(data.images) && data.images.length > 0
+      ? data.images
+      : singleImg
+      ? [singleImg]
+      : [
+          "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=1200&q=85",
+        ];
+
   const newProduct: Product = {
-    _id: `prod-${Date.now()}`,
-    name: data.name || "Untitled Streetwear Garment",
-    slug: data.slug || `garment-${Date.now()}`,
+    _id: validHexId,
+    name: (data.name || "Untitled Streetwear Garment").trim(),
+    slug,
     description: data.description || "",
     shortDescription: data.shortDescription || "",
-    images: data.images && data.images.length > 0 ? data.images : [
-      "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=1200&q=85"
-    ],
-    price: data.price || 50,
-    compareAtPrice: data.compareAtPrice,
-    costPrice: data.costPrice || 20,
-    variants: data.variants || [
-      { sku: `SKU-${Date.now()}-M`, color: "Pitch Black", size: "M", price: data.price || 50, stock: 20 },
-      { sku: `SKU-${Date.now()}-L`, color: "Pitch Black", size: "L", price: data.price || 50, stock: 20 },
-    ],
-    category: data.category || "t-shirts",
+    images,
+    price,
+    compareAtPrice: data.compareAtPrice ? Number(data.compareAtPrice) : undefined,
+    costPrice: data.costPrice ? Number(data.costPrice) : Math.round(price * 0.4),
+    variants:
+      data.variants && data.variants.length > 0
+        ? data.variants
+        : [
+            {
+              sku: `${sku}-M`,
+              color: "Pitch Black",
+              size: "M",
+              price,
+              stock: Math.round(totalStock / 2),
+            },
+            {
+              sku: `${sku}-L`,
+              color: "Pitch Black",
+              size: "L",
+              price,
+              stock: Math.round(totalStock / 2),
+            },
+          ],
+    category: data.category || "hoodies",
     collectionName: data.collectionName || "dimension-core",
     tags: data.tags || ["Streetwear"],
-    sku: data.sku || `DIM-${Date.now().toString().slice(-4)}`,
-    totalStock: data.variants ? data.variants.reduce((acc, v) => acc + (v.stock || 0), 0) : 40,
+    sku,
+    totalStock,
     status: data.status || "active",
     featured: Boolean(data.featured),
     bestSeller: Boolean(data.bestSeller),
-    newArrival: Boolean(data.newArrival),
-    rating: 5.0,
-    reviewCount: 0,
+    newArrival: data.newArrival !== undefined ? Boolean(data.newArrival) : true,
+    rating: typeof data.rating === "number" ? data.rating : 5.0,
+    reviewCount: typeof data.reviewCount === "number" ? data.reviewCount : 0,
     details: data.details || {
       fit: "Relaxed streetwear fit.",
       material: "100% Combed Cotton.",
@@ -363,23 +447,71 @@ export async function createProduct(data: Partial<Product>): Promise<Product> {
     updatedAt: new Date().toISOString(),
   };
 
-  memoryStore.products.unshift(newProduct);
-  saveLocalStore();
-
-  await connectToDatabase();
+  // 1. Insert into MongoDB with valid ObjectId
   if (isMongoConnected()) {
     try {
-      await ProductModel.create(newProduct);
+      const doc = await ProductModel.create({
+        ...newProduct,
+        _id: new mongoose.Types.ObjectId(validHexId),
+      });
+      newProduct._id = doc._id.toString();
+      console.log(`[createProduct] Successfully saved to MongoDB: "${newProduct.name}" (ID: ${newProduct._id})`);
     } catch (e) {
-      console.warn("Mongo insert product failed:", e);
+      console.error("[createProduct] MongoDB insert failed:", e);
+      throw e;
     }
   }
+
+  // 2. Also keep in memory and update local store
+  memoryStore.products.unshift(newProduct);
+  saveLocalStore();
 
   return newProduct;
 }
 
 export async function updateProduct(id: string, data: Partial<Product>): Promise<Product | null> {
-  const index = memoryStore.products.findIndex((p) => p._id === id || p.slug === id);
+  const strId = String(id).trim();
+  const isHex = /^[0-9a-fA-F]{24}$/.test(strId);
+  await connectToDatabase();
+
+  let updatedProduct: Product | null = null;
+
+  // 1. Update in MongoDB
+  if (isMongoConnected()) {
+    try {
+      const orQuery: any[] = [{ slug: strId }, { sku: strId }];
+      if (isHex) {
+        orQuery.unshift({ _id: new mongoose.Types.ObjectId(strId) });
+      }
+      const existing = await ProductModel.findOne({ $or: orQuery });
+      if (existing) {
+        const updatePayload: any = { ...data, updatedAt: new Date() };
+        delete updatePayload._id; // Never overwrite _id
+        if (updatePayload.variants && Array.isArray(updatePayload.variants)) {
+          updatePayload.totalStock = updatePayload.variants.reduce(
+            (acc: number, v: any) => acc + (v.stock || 0),
+            0
+          );
+        }
+        await ProductModel.updateOne({ _id: existing._id }, { $set: updatePayload });
+        const fresh = await ProductModel.findById(existing._id).lean();
+        if (fresh) {
+          updatedProduct = {
+            ...fresh,
+            _id: fresh._id.toString(),
+          } as unknown as Product;
+        }
+        console.log(`[updateProduct] Successfully updated in MongoDB: "${existing.name}"`);
+      }
+    } catch (e) {
+      console.error("[updateProduct] Mongo update product failed:", e);
+    }
+  }
+
+  // 2. Update memoryStore and local store
+  const index = memoryStore.products.findIndex(
+    (p) => String(p._id) === strId || p.slug === strId || p.sku === strId
+  );
   if (index !== -1) {
     const updated = {
       ...memoryStore.products[index],
@@ -390,42 +522,47 @@ export async function updateProduct(id: string, data: Partial<Product>): Promise
       updated.totalStock = updated.variants.reduce((acc, v) => acc + (v.stock || 0), 0);
     }
     memoryStore.products[index] = updated;
-    saveLocalStore();
-
-    await connectToDatabase();
-    if (isMongoConnected()) {
-      try {
-        await ProductModel.updateOne({ _id: id }, updated);
-      } catch (e) {
-        console.warn("Mongo update product failed:", e);
-      }
-    }
-    return updated;
+    if (!updatedProduct) updatedProduct = updated;
+  } else if (updatedProduct) {
+    memoryStore.products.unshift(updatedProduct);
   }
-  return null;
+  saveLocalStore();
+
+  return updatedProduct;
 }
 
 export async function deleteProduct(id: string): Promise<boolean> {
-  const strId = String(id);
+  const strId = String(id).trim();
+  const isHex = /^[0-9a-fA-F]{24}$/.test(strId);
+
+  await connectToDatabase();
+  let deletedFromMongo = false;
+
+  // 1. Delete from MongoDB
+  if (isMongoConnected()) {
+    try {
+      const orConditions: any[] = [{ slug: strId }, { sku: strId }];
+      if (isHex) {
+        orConditions.unshift({ _id: new mongoose.Types.ObjectId(strId) });
+      }
+      const res = await ProductModel.deleteOne({ $or: orConditions });
+      console.log(`[deleteProduct] MongoDB deleteOne for "${strId}": deletedCount = ${res.deletedCount}`);
+      if (res.deletedCount && res.deletedCount > 0) {
+        deletedFromMongo = true;
+      }
+    } catch (err) {
+      console.error("[deleteProduct] Mongo deleteProduct error:", err);
+    }
+  }
+
+  // 2. Delete from memoryStore and local store
+  const prevCount = memoryStore.products.length;
   memoryStore.products = memoryStore.products.filter(
-    (p) => String(p._id) !== strId && p.slug !== strId
+    (p) => String(p._id) !== strId && p.slug !== strId && p.sku !== strId
   );
   saveLocalStore();
 
-  await connectToDatabase();
-  if (isMongoConnected()) {
-    try {
-      const isHex = /^[0-9a-fA-F]{24}$/.test(strId);
-      await ProductModel.deleteOne(
-        isHex
-          ? { $or: [{ _id: strId }, { slug: strId }] }
-          : { slug: strId }
-      );
-    } catch (err) {
-      console.warn("Mongo deleteProduct error:", err);
-    }
-  }
-  return true;
+  return deletedFromMongo || memoryStore.products.length < prevCount;
 }
 
 export async function bulkUpdateProducts(
@@ -549,32 +686,36 @@ export async function bulkUpdateProducts(
 
 export async function bulkDeleteProducts(ids: string[]): Promise<{ deletedCount: number }> {
   await connectToDatabase();
-  const idSet = new Set(ids.map(String));
+  const idSet = new Set(ids.map(String).map((s) => s.trim()));
   let mongoDeleted = 0;
 
   if (isMongoConnected()) {
     try {
-      const validHexIds = ids.filter((id) => /^[0-9a-fA-F]{24}$/.test(String(id)));
+      const validHexIds = ids
+        .filter((id) => /^[0-9a-fA-F]{24}$/.test(String(id).trim()))
+        .map((id) => new mongoose.Types.ObjectId(String(id).trim()));
+
       const res = await ProductModel.deleteMany({
         $or: [
           ...(validHexIds.length > 0 ? [{ _id: { $in: validHexIds } }] : []),
-          { slug: { $in: ids } },
+          { slug: { $in: Array.from(idSet) } },
+          { sku: { $in: Array.from(idSet) } },
         ],
       });
       mongoDeleted = res.deletedCount || 0;
+      console.log(`[bulkDeleteProducts] MongoDB deletedCount = ${mongoDeleted}`);
     } catch (err) {
-      console.warn("Mongo bulkDeleteProducts error:", err);
+      console.error("[bulkDeleteProducts] Mongo bulkDeleteProducts error:", err);
     }
   }
 
   const initialCount = memoryStore.products.length;
   memoryStore.products = memoryStore.products.filter(
-    (p) => !idSet.has(String(p._id)) && !idSet.has(p.slug)
+    (p) => !idSet.has(String(p._id)) && !idSet.has(p.slug) && !idSet.has(p.sku)
   );
-  const memDeleted = initialCount - memoryStore.products.length;
   saveLocalStore();
 
-  return { deletedCount: Math.max(mongoDeleted, memDeleted) };
+  return { deletedCount: Math.max(mongoDeleted, initialCount - memoryStore.products.length) };
 }
 
 // ---------------- CATEGORIES & COLLECTIONS ----------------
