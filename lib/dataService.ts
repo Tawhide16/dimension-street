@@ -1431,6 +1431,9 @@ export async function getHomepageSections(): Promise<HomepageSection[]> {
 
       list = Array.from(byType.values()).map((s) => ({
         ...s,
+        isActive: s.isActive !== false,
+        hideOnDesktop: Boolean(s.hideOnDesktop),
+        hideOnMobile: Boolean(s.hideOnMobile),
         order: CANONICAL_TYPES.indexOf(s.type) + 1,
       } as unknown as HomepageSection));
 
@@ -1505,15 +1508,26 @@ export async function updateHomepageSection(
           subtitle: updates.subtitle ?? "",
           order: updates.order ?? 1,
           isActive: updates.isActive !== undefined ? updates.isActive : true,
+          hideOnDesktop: Boolean(updates.hideOnDesktop),
+          hideOnMobile: Boolean(updates.hideOnMobile),
           data: updates.data || {},
         });
       } else {
         if (updates.title !== undefined) doc.title = updates.title;
         if (updates.subtitle !== undefined) doc.subtitle = updates.subtitle;
         if (updates.order !== undefined) doc.order = updates.order;
-        if (updates.isActive !== undefined) doc.isActive = updates.isActive;
-        if (updates.hideOnDesktop !== undefined) (doc as any).hideOnDesktop = updates.hideOnDesktop;
-        if (updates.hideOnMobile !== undefined) (doc as any).hideOnMobile = updates.hideOnMobile;
+        if (updates.isActive !== undefined) {
+          doc.isActive = updates.isActive;
+          doc.markModified("isActive");
+        }
+        if (updates.hideOnDesktop !== undefined) {
+          (doc as any).hideOnDesktop = Boolean(updates.hideOnDesktop);
+          doc.markModified("hideOnDesktop");
+        }
+        if (updates.hideOnMobile !== undefined) {
+          (doc as any).hideOnMobile = Boolean(updates.hideOnMobile);
+          doc.markModified("hideOnMobile");
+        }
         if (updates.data !== undefined) {
           doc.data = { ...(doc.data || {}), ...updates.data };
           doc.markModified("data");

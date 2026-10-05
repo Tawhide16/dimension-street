@@ -24,8 +24,12 @@ const HomepageSectionSchema = new Schema<IHomepageSection>(
     hideOnMobile: { type: Boolean, default: false },
     data: { type: Schema.Types.Mixed, default: {} },
   },
-  { timestamps: true }
+  { timestamps: true, strict: false }
 );
+
+if (mongoose.models.HomepageSection) {
+  delete (mongoose.models as any).HomepageSection;
+}
 
 export const HomepageSectionModel: Model<IHomepageSection> =
   mongoose.models.HomepageSection ||

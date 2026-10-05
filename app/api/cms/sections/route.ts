@@ -38,9 +38,10 @@ export async function PATCH(req: NextRequest) {
     } catch {}
 
     return NextResponse.json({ success: true, section });
-  } catch (error) {
+  } catch (error: any) {
+    console.error("PATCH /api/cms/sections error:", error);
     return NextResponse.json(
-      { success: false, error: "Failed to update section" },
+      { success: false, error: error?.message || String(error) },
       { status: 500 }
     );
   }

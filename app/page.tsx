@@ -18,13 +18,14 @@ import {
 } from "@/lib/dataService";
 import { ArrowRight, ArrowUpRight, Flame } from "lucide-react";
 
-export const revalidate = 30; // ISR cache with instant updates on admin changes
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 function getSectionVisibility(section?: { isActive?: boolean; hideOnDesktop?: boolean; hideOnMobile?: boolean }) {
   if (!section || section.isActive === false) return "hidden";
   if (section.hideOnDesktop && section.hideOnMobile) return "hidden";
-  if (section.hideOnDesktop) return "block md:hidden";
-  if (section.hideOnMobile) return "hidden md:block";
+  if (section.hideOnDesktop) return "hidden-on-desktop";
+  if (section.hideOnMobile) return "hidden-on-mobile";
   return "";
 }
 

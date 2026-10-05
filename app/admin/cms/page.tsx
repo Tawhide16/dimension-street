@@ -203,6 +203,7 @@ export default function AdminCMSBuilderPage() {
   const [openSectionId, setOpenSectionId] = useState<string | null>("sec-hero");
   const [isSaving, setIsSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [savingSectionId, setSavingSectionId] = useState<string | null>(null);
 
   // Load sections and collections from API
@@ -278,14 +279,18 @@ export default function AdminCMSBuilderPage() {
           updates: {
             title: section.title,
             subtitle: section.subtitle,
-            isActive: section.isActive,
+            isActive: Boolean(section.isActive),
             order: section.order,
             data: updatedData,
           },
         }),
       });
+      setStatusMessage("✓ Image applied and saved to live storefront!");
       setSavedSuccess(true);
-      setTimeout(() => setSavedSuccess(false), 3500);
+      setTimeout(() => {
+        setSavedSuccess(false);
+        setStatusMessage(null);
+      }, 3500);
     } catch (err) {
       console.error("Auto-save error:", err);
     }
@@ -298,6 +303,8 @@ export default function AdminCMSBuilderPage() {
   ) => {
     const currentVal = Boolean(section[field]);
     const newVal = !currentVal;
+    const deviceLabel = field === "hideOnDesktop" ? "Desktop screen" : "Mobile screen";
+    const secName = section.title || section.type.replace(/_/g, " ").toUpperCase();
 
     // 1. Instant optimistic state update
     setSections((prev) =>
@@ -308,9 +315,11 @@ export default function AdminCMSBuilderPage() {
       )
     );
 
+    setStatusMessage(`Updating ${secName} for ${deviceLabel}...`);
+
     // 2. Persist to MongoDB & JSON store immediately
     try {
-      await fetch("/api/cms/sections", {
+      const res = await fetch("/api/cms/sections", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -320,37 +329,88 @@ export default function AdminCMSBuilderPage() {
           },
         }),
       });
-      setSavedSuccess(true);
-      setTimeout(() => setSavedSuccess(false), 2500);
+      const data = await res.json();
+      if (data.success && data.section) {
+        setSections((prev) =>
+          prev.map((s) =>
+            s._id === data.section._id || s.type === data.section.type
+              ? { ...s, ...data.section }
+              : s
+          )
+        );
+        setStatusMessage(
+          newVal
+            ? `✓ ${secName} is now HIDDEN on ${deviceLabel}!`
+            : `✓ ${secName} is now VISIBLE on ${deviceLabel}!`
+        );
+        setSavedSuccess(true);
+        setTimeout(() => {
+          setSavedSuccess(false);
+          setStatusMessage(null);
+        }, 3500);
+      }
     } catch (err) {
       console.error("Device toggle auto-save error:", err);
     }
   };
 
-  // Instantly toggle active/hidden state and auto-save
+  // Instantly toggle master active/hidden state and auto-save
   const handleToggleActive = async (section: HomepageSection) => {
     const newVal = !section.isActive;
+    const secName = section.title || section.type.replace(/_/g, " ").toUpperCase();
+
+    const updates: Partial<HomepageSection> = {
+      isActive: newVal,
+    };
+    // When activating, if both desktop and mobile were turned off, restore both to visible
+    if (newVal && section.hideOnDesktop && section.hideOnMobile) {
+      updates.hideOnDesktop = false;
+      updates.hideOnMobile = false;
+    }
+
     setSections((prev) =>
       prev.map((s) =>
         s._id === section._id || s.type === section.type
-          ? { ...s, isActive: newVal }
+          ? { ...s, ...updates }
           : s
       )
     );
 
+    setStatusMessage(
+      newVal
+        ? `Activating ${secName}...`
+        : `Hiding ${secName} completely from live storefront...`
+    );
+
     try {
-      await fetch("/api/cms/sections", {
+      const res = await fetch("/api/cms/sections", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id: section._id || section.type,
-          updates: {
-            isActive: newVal,
-          },
+          updates,
         }),
       });
-      setSavedSuccess(true);
-      setTimeout(() => setSavedSuccess(false), 2500);
+      const data = await res.json();
+      if (data.success && data.section) {
+        setSections((prev) =>
+          prev.map((s) =>
+            s._id === data.section._id || s.type === data.section.type
+              ? { ...s, ...data.section }
+              : s
+          )
+        );
+        setStatusMessage(
+          newVal
+            ? `✓ ${secName} is now LIVE on the storefront!`
+            : `✓ ${secName} is now completely HIDDEN from your live storefront!`
+        );
+        setSavedSuccess(true);
+        setTimeout(() => {
+          setSavedSuccess(false);
+          setStatusMessage(null);
+        }, 3500);
+      }
     } catch (err) {
       console.error("Active toggle auto-save error:", err);
     }
@@ -358,28 +418,51 @@ export default function AdminCMSBuilderPage() {
 
   // Save an individual section
   const handleSaveSingleSection = async (section: HomepageSection) => {
-    setSavingSectionId(section._id);
+    const targetId = section._id || section.type;
+    const secName = section.title || section.type.replace(/_/g, " ").toUpperCase();
+    setSavingSectionId(targetId);
     try {
       const res = await fetch("/api/cms/sections", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          id: section._id,
+          id: targetId,
           updates: {
             title: section.title,
             subtitle: section.subtitle,
-            isActive: section.isActive,
-            hideOnDesktop: section.hideOnDesktop || false,
-            hideOnMobile: section.hideOnMobile || false,
+            isActive: Boolean(section.isActive),
+            hideOnDesktop: Boolean(section.hideOnDesktop),
+            hideOnMobile: Boolean(section.hideOnMobile),
             order: section.order,
             data: section.data,
           },
         }),
       });
       const data = await res.json();
-      if (data.success) {
+      if (data.success && data.section) {
+        setSections((prev) =>
+          prev.map((s) =>
+            s._id === data.section._id || s.type === data.section.type
+              ? { ...s, ...data.section }
+              : s
+          )
+        );
+        setStatusMessage(
+          `✓ ${secName} saved successfully! ${
+            !section.isActive
+              ? "(Currently HIDDEN from store)"
+              : section.hideOnDesktop
+              ? "(Hidden on Desktop)"
+              : section.hideOnMobile
+              ? "(Hidden on Mobile)"
+              : "(LIVE on Store)"
+          }`
+        );
         setSavedSuccess(true);
-        setTimeout(() => setSavedSuccess(false), 3000);
+        setTimeout(() => {
+          setSavedSuccess(false);
+          setStatusMessage(null);
+        }, 3500);
       }
     } catch (err) {
       console.error("Save section error:", err);
@@ -398,9 +481,14 @@ export default function AdminCMSBuilderPage() {
         body: JSON.stringify({ sections }),
       });
       const data = await res.json();
-      if (data.success) {
+      if (data.success && data.sections) {
+        setSections(data.sections);
+        setStatusMessage("✓ All homepage sections published successfully!");
         setSavedSuccess(true);
-        setTimeout(() => setSavedSuccess(false), 3500);
+        setTimeout(() => {
+          setSavedSuccess(false);
+          setStatusMessage(null);
+        }, 3500);
       }
     } catch (err) {
       console.error("Save all error:", err);
@@ -512,6 +600,10 @@ export default function AdminCMSBuilderPage() {
         {sections.map((section, idx) => {
           const isOpen = openSectionId === section._id || openSectionId === section.type;
           const data = (section.data || {}) as Record<string, any>;
+          const isSectionHidden = !section.isActive || (Boolean(section.hideOnDesktop) && Boolean(section.hideOnMobile));
+          const isDesktopHiddenOnly = section.isActive && Boolean(section.hideOnDesktop) && !section.hideOnMobile;
+          const isMobileHiddenOnly = section.isActive && !section.hideOnDesktop && Boolean(section.hideOnMobile);
+
           const meta = {
             hero: {
               label: "HERO BILLBOARD BANNER (Top Main Banner)",
@@ -562,31 +654,92 @@ export default function AdminCMSBuilderPage() {
           return (
             <div
               key={section._id || section.type}
-              className={`bg-white border rounded-xl overflow-hidden transition-all shadow-xs ${
-                section.isActive ? "border-neutral-300" : "border-neutral-200 opacity-75"
+              className={`bg-white rounded-xl overflow-hidden transition-all ${
+                isSectionHidden
+                  ? "border-2 border-rose-400 shadow-md ring-2 ring-rose-200/50"
+                  : isDesktopHiddenOnly || isMobileHiddenOnly
+                  ? "border-2 border-amber-400 shadow-sm"
+                  : "border border-neutral-300 shadow-xs"
               }`}
             >
+              {/* Prominent Hidden Banner if Section is completely hidden */}
+              {isSectionHidden && (
+                <div className="bg-rose-600 text-white px-4 py-2 text-xs font-mono font-bold flex items-center justify-between gap-2 shadow-inner">
+                  <div className="flex items-center gap-2">
+                    <EyeOff className="w-4 h-4 shrink-0" />
+                    <span>⚠️ THIS SECTION IS CURRENTLY HIDDEN FROM LIVE STOREFRONT</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleToggleActive(section);
+                    }}
+                    className="px-2.5 py-0.5 bg-white text-rose-800 hover:bg-rose-50 text-[10px] font-bold uppercase rounded transition-colors cursor-pointer shrink-0 shadow-xs"
+                  >
+                    Make Live
+                  </button>
+                </div>
+              )}
+
               {/* Header Bar */}
               <div
                 className={`p-4 flex items-center justify-between cursor-pointer select-none transition-colors ${
-                  isOpen ? "bg-neutral-50/80 border-b border-neutral-200" : "hover:bg-neutral-50/50"
+                  isOpen
+                    ? isSectionHidden
+                      ? "bg-rose-50/60 border-b border-rose-200"
+                      : "bg-neutral-50/80 border-b border-neutral-200"
+                    : isSectionHidden
+                    ? "bg-rose-50/30 hover:bg-rose-50/60"
+                    : "hover:bg-neutral-50/50"
                 }`}
                 onClick={() =>
                   setOpenSectionId(isOpen ? null : section._id || section.type)
                 }
               >
                 <div className="flex items-center gap-3.5">
-                  <span className="w-7 h-7 rounded-md bg-neutral-900 text-white text-xs font-mono font-bold flex items-center justify-center shrink-0">
+                  <span
+                    className={`w-7 h-7 rounded-md text-xs font-mono font-bold flex items-center justify-center shrink-0 ${
+                      isSectionHidden ? "bg-rose-700 text-white" : "bg-neutral-900 text-white"
+                    }`}
+                  >
                     #{idx + 1}
                   </span>
                   <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-bold text-neutral-900 text-sm tracking-tight uppercase">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3
+                        className={`font-bold text-sm tracking-tight uppercase ${
+                          isSectionHidden ? "text-neutral-700 line-through" : "text-neutral-900"
+                        }`}
+                      >
                         {meta.label}
                       </h3>
                       <span className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded font-bold ${meta.color}`}>
                         {meta.badge}
                       </span>
+
+                      {/* Prominent Status Pill next to title */}
+                      {isSectionHidden ? (
+                        <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded font-black bg-rose-600 text-white flex items-center gap-1 shadow-2xs">
+                          <EyeOff className="w-3 h-3" />
+                          <span>HIDDEN</span>
+                        </span>
+                      ) : isDesktopHiddenOnly ? (
+                        <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded font-black bg-amber-600 text-white flex items-center gap-1 shadow-2xs">
+                          <Smartphone className="w-3 h-3" />
+                          <span>MOBILE ONLY</span>
+                        </span>
+                      ) : isMobileHiddenOnly ? (
+                        <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded font-black bg-amber-600 text-white flex items-center gap-1 shadow-2xs">
+                          <Monitor className="w-3 h-3" />
+                          <span>DESKTOP ONLY</span>
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded font-bold bg-emerald-600 text-white flex items-center gap-1">
+                          <Check className="w-3 h-3" />
+                          <span>LIVE</span>
+                        </span>
+                      )}
                     </div>
                     {section.subtitle && (
                       <p className="text-xs text-neutral-500 font-sans line-clamp-1 mt-0.5">
@@ -597,55 +750,76 @@ export default function AdminCMSBuilderPage() {
                 </div>
 
                 <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap justify-end" onClick={(e) => e.stopPropagation()}>
-                  {/* Desktop Visibility Toggle Action Button */}
+                  {/* Desktop Visibility Quick Button */}
                   <button
                     type="button"
                     onClick={() => handleToggleDevice(section, "hideOnDesktop")}
                     title={section.hideOnDesktop ? "Desktop: HIDDEN (Click to Show)" : "Desktop: VISIBLE (Click to Hide)"}
                     className={`px-2.5 py-1 text-xs font-mono rounded-md font-bold flex items-center gap-1.5 transition-all border cursor-pointer ${
                       section.hideOnDesktop
-                        ? "bg-rose-50 text-rose-700 border-rose-300 hover:bg-rose-100 line-through opacity-85"
+                        ? "bg-rose-100 text-rose-800 border-rose-300 hover:bg-rose-200 line-through"
                         : "bg-white text-neutral-800 border-neutral-300 hover:border-neutral-900 hover:bg-neutral-50 shadow-2xs"
                     }`}
                   >
                     <Monitor className="w-3.5 h-3.5" />
                     <span className="hidden sm:inline">Desktop</span>
-                    <span className={`text-[10px] uppercase font-bold px-1 rounded ${section.hideOnDesktop ? "bg-rose-200 text-rose-900" : "bg-neutral-200 text-neutral-800"}`}>
+                    <span
+                      className={`text-[10px] uppercase font-bold px-1 rounded ${
+                        section.hideOnDesktop ? "bg-rose-200 text-rose-900" : "bg-emerald-100 text-emerald-800"
+                      }`}
+                    >
                       {section.hideOnDesktop ? "Off" : "On"}
                     </span>
                   </button>
 
-                  {/* Mobile Visibility Toggle Action Button */}
+                  {/* Mobile Visibility Quick Button */}
                   <button
                     type="button"
                     onClick={() => handleToggleDevice(section, "hideOnMobile")}
                     title={section.hideOnMobile ? "Mobile: HIDDEN (Click to Show)" : "Mobile: VISIBLE (Click to Hide)"}
                     className={`px-2.5 py-1 text-xs font-mono rounded-md font-bold flex items-center gap-1.5 transition-all border cursor-pointer ${
                       section.hideOnMobile
-                        ? "bg-rose-50 text-rose-700 border-rose-300 hover:bg-rose-100 line-through opacity-85"
+                        ? "bg-rose-100 text-rose-800 border-rose-300 hover:bg-rose-200 line-through"
                         : "bg-white text-neutral-800 border-neutral-300 hover:border-neutral-900 hover:bg-neutral-50 shadow-2xs"
                     }`}
                   >
                     <Smartphone className="w-3.5 h-3.5" />
                     <span className="hidden sm:inline">Mobile</span>
-                    <span className={`text-[10px] uppercase font-bold px-1 rounded ${section.hideOnMobile ? "bg-rose-200 text-rose-900" : "bg-neutral-200 text-neutral-800"}`}>
+                    <span
+                      className={`text-[10px] uppercase font-bold px-1 rounded ${
+                        section.hideOnMobile ? "bg-rose-200 text-rose-900" : "bg-emerald-100 text-emerald-800"
+                      }`}
+                    >
                       {section.hideOnMobile ? "Off" : "On"}
                     </span>
                   </button>
 
-                  {/* Master Active/Inactive Toggle Pill */}
+                  {/* Master Active/Hidden Toggle Button */}
                   <button
                     type="button"
                     onClick={() => handleToggleActive(section)}
-                    title={section.isActive ? "Master Status: ACTIVE (Click to Hide entirely)" : "Master Status: HIDDEN (Click to Activate)"}
-                    className={`px-3 py-1 text-xs font-mono rounded-full font-bold flex items-center gap-1.5 transition-colors border cursor-pointer ${
+                    title={
                       section.isActive
-                        ? "bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100"
-                        : "bg-neutral-100 text-neutral-500 border-neutral-300 hover:bg-neutral-200"
+                        ? "Master Status: ACTIVE (Click to completely Hide from store)"
+                        : "Master Status: HIDDEN (Click to Activate on store)"
+                    }
+                    className={`px-3 py-1 text-xs font-mono rounded-lg font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs ${
+                      section.isActive
+                        ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                        : "bg-rose-600 hover:bg-rose-700 text-white"
                     }`}
                   >
-                    <Power className="w-3 h-3" />
-                    <span>{section.isActive ? "Active" : "Hidden"}</span>
+                    {section.isActive ? (
+                      <>
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>Active</span>
+                      </>
+                    ) : (
+                      <>
+                        <EyeOff className="w-3.5 h-3.5" />
+                        <span>Hidden</span>
+                      </>
+                    )}
                   </button>
 
                   {/* Expand/Collapse Chevron */}
@@ -669,46 +843,100 @@ export default function AdminCMSBuilderPage() {
               {/* Collapsible Content Body */}
               {isOpen && (
                 <div className="p-6 space-y-6 bg-white animate-in fade-in duration-150">
-                  {/* DEVICE DISPLAY SETTINGS BAR */}
-                  <div className="bg-neutral-50 p-4 rounded-xl border border-neutral-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <Sliders className="w-4 h-4 text-neutral-700" />
-                        <span className="text-xs font-mono font-bold uppercase tracking-wider text-neutral-900">
-                          Responsive Device Display Controls
-                        </span>
+                  {/* SECTION VISIBILITY CONTROL CENTER */}
+                  <div
+                    className={`p-4 rounded-xl border flex flex-col gap-3.5 transition-colors ${
+                      isSectionHidden
+                        ? "bg-rose-50/90 border-rose-300"
+                        : isDesktopHiddenOnly || isMobileHiddenOnly
+                        ? "bg-amber-50/70 border-amber-300"
+                        : "bg-neutral-50 border-neutral-200"
+                    }`}
+                  >
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Sliders className="w-4 h-4 text-neutral-800" />
+                          <span className="text-xs font-mono font-bold uppercase tracking-wider text-neutral-900">
+                            Section Visibility & Device Controls
+                          </span>
+                          {isSectionHidden ? (
+                            <span className="bg-rose-600 text-white text-[10px] font-mono px-2 py-0.5 rounded font-black uppercase tracking-wider flex items-center gap-1 shadow-2xs">
+                              <EyeOff className="w-3 h-3" />
+                              <span>CURRENTLY HIDDEN FROM LIVE STORE</span>
+                            </span>
+                          ) : (
+                            <span className="bg-emerald-600 text-white text-[10px] font-mono px-2 py-0.5 rounded font-black uppercase tracking-wider flex items-center gap-1 shadow-2xs">
+                              <Check className="w-3 h-3" />
+                              <span>CURRENTLY LIVE ON STORE</span>
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-neutral-600 font-sans mt-0.5">
+                          {isSectionHidden
+                            ? "This section is completely hidden from customers on all devices. Click 'MAKE SECTION LIVE' to display it."
+                            : "This section is currently visible to your customers. You can hide it entirely or hide it on specific devices."}
+                        </p>
                       </div>
-                      <p className="text-[11px] text-neutral-500 font-sans mt-0.5">
-                        Instantly hide or show this section on Desktop computers (≥768px) and Mobile screens (&lt;768px).
-                      </p>
+
+                      {/* Master 1-Click Hide/Show Button */}
+                      <button
+                        type="button"
+                        onClick={() => handleToggleActive(section)}
+                        className={`px-4 py-2 text-xs font-mono rounded-lg font-bold uppercase flex items-center gap-2 transition-all cursor-pointer shadow-xs shrink-0 ${
+                          section.isActive
+                            ? "bg-rose-600 hover:bg-rose-700 text-white"
+                            : "bg-emerald-600 hover:bg-emerald-700 text-white"
+                        }`}
+                      >
+                        {section.isActive ? (
+                          <>
+                            <EyeOff className="w-4 h-4" />
+                            <span>Hide Entire Section</span>
+                          </>
+                        ) : (
+                          <>
+                            <Eye className="w-4 h-4" />
+                            <span>Make Section Live</span>
+                          </>
+                        )}
+                      </button>
                     </div>
 
-                    <div className="flex items-center gap-2.5 flex-wrap">
-                      <button
-                        type="button"
-                        onClick={() => handleToggleDevice(section, "hideOnDesktop")}
-                        className={`px-3 py-1.5 text-xs font-mono rounded-lg font-bold flex items-center gap-2 transition-all border cursor-pointer ${
-                          section.hideOnDesktop
-                            ? "bg-rose-50 text-rose-700 border-rose-300 hover:bg-rose-100"
-                            : "bg-white text-neutral-900 border-neutral-300 hover:border-black hover:bg-neutral-50 shadow-2xs"
-                        }`}
-                      >
-                        <Monitor className="w-3.5 h-3.5" />
-                        <span>Desktop: <strong>{section.hideOnDesktop ? "HIDDEN ✕" : "VISIBLE ✓"}</strong></span>
-                      </button>
+                    {/* Device Display Toggles */}
+                    <div className="pt-3 border-t border-neutral-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="text-[11px] font-mono text-neutral-600">
+                        <span className="font-bold text-neutral-800 uppercase">Device Display:</span>
+                        <span className="ml-1 text-neutral-500">Toggle whether this section appears on Desktop or Mobile devices</span>
+                      </div>
 
-                      <button
-                        type="button"
-                        onClick={() => handleToggleDevice(section, "hideOnMobile")}
-                        className={`px-3 py-1.5 text-xs font-mono rounded-lg font-bold flex items-center gap-2 transition-all border cursor-pointer ${
-                          section.hideOnMobile
-                            ? "bg-rose-50 text-rose-700 border-rose-300 hover:bg-rose-100"
-                            : "bg-white text-neutral-900 border-neutral-300 hover:border-black hover:bg-neutral-50 shadow-2xs"
-                        }`}
-                      >
-                        <Smartphone className="w-3.5 h-3.5" />
-                        <span>Mobile: <strong>{section.hideOnMobile ? "HIDDEN ✕" : "VISIBLE ✓"}</strong></span>
-                      </button>
+                      <div className="flex items-center gap-2.5 flex-wrap">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleDevice(section, "hideOnDesktop")}
+                          className={`px-3 py-1.5 text-xs font-mono rounded-lg font-bold flex items-center gap-2 transition-all border cursor-pointer ${
+                            section.hideOnDesktop
+                              ? "bg-rose-100 text-rose-800 border-rose-300 hover:bg-rose-200 line-through"
+                              : "bg-white text-neutral-900 border-neutral-300 hover:border-black hover:bg-neutral-50 shadow-2xs"
+                          }`}
+                        >
+                          <Monitor className="w-3.5 h-3.5" />
+                          <span>Desktop Screen: <strong>{section.hideOnDesktop ? "HIDDEN ✕" : "VISIBLE ✓"}</strong></span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleToggleDevice(section, "hideOnMobile")}
+                          className={`px-3 py-1.5 text-xs font-mono rounded-lg font-bold flex items-center gap-2 transition-all border cursor-pointer ${
+                            section.hideOnMobile
+                              ? "bg-rose-100 text-rose-800 border-rose-300 hover:bg-rose-200 line-through"
+                              : "bg-white text-neutral-900 border-neutral-300 hover:border-black hover:bg-neutral-50 shadow-2xs"
+                          }`}
+                        >
+                          <Smartphone className="w-3.5 h-3.5" />
+                          <span>Mobile Screen: <strong>{section.hideOnMobile ? "HIDDEN ✕" : "VISIBLE ✓"}</strong></span>
+                        </button>
+                      </div>
                     </div>
                   </div>
 

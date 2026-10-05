@@ -34,6 +34,25 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Device Section Visibility Helpers */
+.hidden-on-desktop {
+  display: block !important;
+}
+@media (min-width: 768px) {
+  .hidden-on-desktop {
+    display: none !important;
+  }
+}
+
+.hidden-on-mobile {
+  display: none !important;
+}
+@media (min-width: 768px) {
+  .hidden-on-mobile {
+    display: block !important;
+  }
+}
+
 @keyframes marquee {
   0% {
     transform: translateX(0%);
