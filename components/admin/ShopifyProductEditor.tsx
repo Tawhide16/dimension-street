@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   Tag,
@@ -35,6 +36,7 @@ import {
   Globe,
   Sliders,
   Paintbrush,
+  Copy,
 } from "lucide-react";
 import { Product, ProductVariant } from "@/types";
 
@@ -138,7 +140,17 @@ export default function ShopifyProductEditor({
 
   // VARIANT MATRIX (Key = `${color.name}__${size}`)
   const [variantMatrix, setVariantMatrix] = useState<
-    Record<string, { price: number; stock: number; sku: string; colorHex?: string }>
+    Record<
+      string,
+      {
+        price: number;
+        stock: number;
+        sku: string;
+        colorHex?: string;
+        image?: string;
+        linkedProductSlug?: string;
+      }
+    >
   >({});
 
   // Metafields / Specs
@@ -166,6 +178,36 @@ export default function ShopifyProductEditor({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showMoreActions, setShowMoreActions] = useState(false);
+
+  // Duplicate Product State
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
+  const [duplicateTitle, setDuplicateTitle] = useState("");
+  const [duplicateStatus, setDuplicateStatus] = useState<"draft" | "active">("draft");
+  const [isDuplicating, setIsDuplicating] = useState(false);
+  const [duplicateError, setDuplicateError] = useState<string | null>(null);
+
+  // Color Variant Image & Linked Product Configuration
+  const [colorSettings, setColorSettings] = useState<
+    Record<string, { image?: string; linkedProductSlug?: string }>
+  >({});
+  const [activeConfigColor, setActiveConfigColor] = useState<string | null>(null);
+  const [availableStoreProducts, setAvailableStoreProducts] = useState<
+    { name: string; slug: string }[]
+  >([]);
+
+  // Fetch store products for variant linking dropdown
+  useEffect(() => {
+    fetch("/api/products?all=true")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success && Array.isArray(d.products)) {
+          setAvailableStoreProducts(
+            d.products.map((p: any) => ({ name: p.name, slug: p.slug }))
+          );
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // 1. Fetch Product for Edit Mode
   useEffect(() => {
@@ -230,15 +272,23 @@ export default function ShopifyProductEditor({
         if (p.variants && p.variants.length > 0) {
           const colorMap = new Map<string, string>();
           const sizesSet = new Set<string>();
+          const initialColorSettings: Record<string, { image?: string; linkedProductSlug?: string }> = {};
           const initialMatrix: Record<
             string,
-            { price: number; stock: number; sku: string; colorHex?: string }
+            { price: number; stock: number; sku: string; colorHex?: string; image?: string; linkedProductSlug?: string }
           > = {};
 
           p.variants.forEach((v) => {
             const colName = v.color || "Pitch Black";
             const colHex = v.colorHex || "#111111";
             colorMap.set(colName, colHex);
+
+            if (v.image || v.linkedProductSlug) {
+              initialColorSettings[colName] = {
+                image: v.image || initialColorSettings[colName]?.image,
+                linkedProductSlug: v.linkedProductSlug || initialColorSettings[colName]?.linkedProductSlug,
+              };
+            }
 
             const sz = v.size || "M";
             sizesSet.add(sz);
@@ -249,12 +299,15 @@ export default function ShopifyProductEditor({
               stock: v.stock !== undefined ? v.stock : 10,
               sku: v.sku || `${p.sku}-${sz}`,
               colorHex: colHex,
+              image: v.image,
+              linkedProductSlug: v.linkedProductSlug,
             };
           });
 
           setSelectedColors(
             Array.from(colorMap.entries()).map(([name, hex]) => ({ name, hex }))
           );
+          setColorSettings(initialColorSettings);
           setSelectedSizes(Array.from(sizesSet));
           setVariantMatrix(initialMatrix);
         }
@@ -301,16 +354,24 @@ export default function ShopifyProductEditor({
               stock: 15,
               sku: `${sku}-${colorSlug}-${size}`,
               colorHex: color.hex,
+              image: colorSettings[color.name]?.image,
+              linkedProductSlug: colorSettings[color.name]?.linkedProductSlug,
             };
           } else {
-            // Keep colorHex up to date
+            // Keep colorHex, image, and linkedProductSlug up to date
             next[key].colorHex = color.hex;
+            if (colorSettings[color.name]?.image !== undefined) {
+              next[key].image = colorSettings[color.name]?.image;
+            }
+            if (colorSettings[color.name]?.linkedProductSlug !== undefined) {
+              next[key].linkedProductSlug = colorSettings[color.name]?.linkedProductSlug;
+            }
           }
         });
       });
       return next;
     });
-  }, [selectedColors, selectedSizes, price, sku]);
+  }, [selectedColors, selectedSizes, price, sku, colorSettings]);
 
   // Total Stock calculation from all active matrix items
   const totalStock = selectedColors.reduce((sumCol, col) => {
@@ -493,6 +554,7 @@ export default function ShopifyProductEditor({
     // Build variants array from active colors × sizes
     const variants: ProductVariant[] = [];
     selectedColors.forEach((color) => {
+      const colSetting = colorSettings[color.name] || {};
       selectedSizes.forEach((size) => {
         const key = `${color.name}__${size}`;
         const entry = variantMatrix[key];
@@ -505,6 +567,8 @@ export default function ShopifyProductEditor({
           price: entry?.price !== undefined ? Number(entry.price) : Number(price) || 0,
           compareAtPrice: typeof compareAtPrice === "number" ? compareAtPrice : undefined,
           stock: entry?.stock !== undefined ? Number(entry.stock) : 10,
+          image: colSetting.image || entry?.image || undefined,
+          linkedProductSlug: colSetting.linkedProductSlug || entry?.linkedProductSlug || undefined,
         });
       });
     });
@@ -598,6 +662,116 @@ export default function ShopifyProductEditor({
     }
   };
 
+  // DUPLICATE PRODUCT HANDLERS
+  const handleOpenDuplicateModal = () => {
+    setDuplicateTitle(title ? `Copy of ${title}` : "Copy of Product");
+    setDuplicateStatus("draft");
+    setDuplicateError(null);
+    setShowDuplicateModal(true);
+    setShowMoreActions(false);
+  };
+
+  const handleDuplicateProduct = async () => {
+    if (!duplicateTitle.trim()) {
+      alert("Please provide a name for the duplicated product.");
+      return;
+    }
+    setIsDuplicating(true);
+    setDuplicateError(null);
+
+    const newSlug =
+      duplicateTitle
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "") +
+      "-" +
+      Date.now().toString().slice(-4);
+
+    const newSku = sku ? `${sku}-COPY` : `DIM-${Date.now().toString().slice(-5)}`;
+
+    // Clone variants with updated SKUs
+    const clonedVariants: ProductVariant[] = [];
+    selectedColors.forEach((color) => {
+      const colSetting = colorSettings[color.name] || {};
+      selectedSizes.forEach((size) => {
+        const key = `${color.name}__${size}`;
+        const entry = variantMatrix[key];
+        const colorSlug = color.name.slice(0, 3).toUpperCase().replace(/[^A-Z]/g, "X");
+        clonedVariants.push({
+          sku: `${newSku}-${colorSlug}-${size}`,
+          color: color.name,
+          colorHex: color.hex,
+          size,
+          price: entry?.price !== undefined ? Number(entry.price) : Number(price) || 0,
+          compareAtPrice: typeof compareAtPrice === "number" ? compareAtPrice : undefined,
+          stock: entry?.stock !== undefined ? Number(entry.stock) : 10,
+          image: entry?.image || colSetting.image || undefined,
+          linkedProductSlug: entry?.linkedProductSlug || colSetting.linkedProductSlug || undefined,
+        });
+      });
+    });
+
+    const payload = {
+      name: duplicateTitle.trim(),
+      slug: newSlug,
+      category,
+      collectionName: collections[0] || "dimension-core",
+      price: Number(price) || 0,
+      compareAtPrice: typeof compareAtPrice === "number" ? compareAtPrice : undefined,
+      costPrice: typeof costPrice === "number" ? costPrice : undefined,
+      sku: newSku,
+      description,
+      shortDescription: description.slice(0, 160),
+      images: uploadedImages.length > 0 ? uploadedImages : ["/images/placeholder.jpg"],
+      totalStock: clonedVariants.reduce((s, v) => s + (v.stock || 0), 0),
+      status: duplicateStatus,
+      featured: false,
+      newArrival: true,
+      tags,
+      vendor,
+      productType,
+      inventoryTracked: trackInventory,
+      barcode,
+      packageType,
+      dimensions,
+      weight,
+      countryOfOrigin,
+      hsCode,
+      chargeTax,
+      themeTemplate,
+      details: {
+        fit,
+        material,
+        care,
+        shipping: shippingNotice,
+      },
+      seo: {
+        metaTitle: `${duplicateTitle.trim()} — Dimension Street`,
+        metaDescription: seoDescription || description.slice(0, 160),
+        keywords: tags,
+      },
+      variants: clonedVariants,
+    };
+
+    try {
+      const res = await fetch("/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Failed to duplicate product.");
+      }
+      setShowDuplicateModal(false);
+      // Redirect to newly duplicated product edit page
+      router.push(`/admin/products/${data.product._id}`);
+    } catch (err: any) {
+      setDuplicateError(err.message || "Failed to duplicate product.");
+      setIsDuplicating(false);
+    }
+  };
+
   // Skeleton Loader for Edit Mode Initial Load
   if (isLoadingProduct) {
     return (
@@ -683,6 +857,17 @@ export default function ShopifyProductEditor({
             <span>Share</span>
           </button>
 
+          {/* Duplicate Product Button */}
+          <button
+            type="button"
+            onClick={handleOpenDuplicateModal}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-neutral-700 bg-white border border-neutral-300 hover:bg-neutral-50 rounded-lg shadow-2xs transition-colors cursor-pointer"
+            title="Duplicate this product"
+          >
+            <Copy className="w-3.5 h-3.5 text-neutral-500" />
+            <span>Duplicate</span>
+          </button>
+
           {/* More actions dropdown */}
           <div className="relative">
             <button
@@ -695,7 +880,15 @@ export default function ShopifyProductEditor({
             </button>
 
             {showMoreActions && (
-              <div className="absolute right-0 top-full mt-1.5 w-44 bg-white border border-neutral-200 rounded-xl shadow-lg py-1.5 z-40 text-xs font-medium">
+              <div className="absolute right-0 top-full mt-1.5 w-48 bg-white border border-neutral-200 rounded-xl shadow-lg py-1.5 z-40 text-xs font-medium">
+                <button
+                  type="button"
+                  onClick={handleOpenDuplicateModal}
+                  className="w-full text-left px-3 py-2 text-neutral-700 hover:bg-neutral-50 flex items-center gap-2 cursor-pointer"
+                >
+                  <Copy className="w-3.5 h-3.5 text-neutral-500" />
+                  <span>Duplicate Product</span>
+                </button>
                 {mode === "edit" && (
                   <button
                     type="button"
@@ -713,7 +906,7 @@ export default function ShopifyProductEditor({
                     setStatus(status === "active" ? "draft" : "active");
                     setShowMoreActions(false);
                   }}
-                  className="w-full text-left px-3 py-2 text-neutral-700 hover:bg-neutral-50 flex items-center gap-2 cursor-pointer"
+                  className="w-full text-left px-3 py-2 text-neutral-700 hover:bg-neutral-50 flex items-center gap-2 cursor-pointer border-t border-neutral-100"
                 >
                   <Sliders className="w-3.5 h-3.5" />
                   <span>Toggle {status === "active" ? "Draft" : "Active"}</span>
@@ -1427,27 +1620,195 @@ export default function ShopifyProductEditor({
 
               {/* Active Colors Chips */}
               <div className="flex items-center gap-2 flex-wrap">
-                {selectedColors.map((color) => (
-                  <div
-                    key={color.name}
-                    className="flex items-center gap-2 bg-white px-2.5 py-1.5 rounded-lg border border-neutral-300 shadow-2xs text-xs font-medium text-neutral-800"
-                  >
-                    <span
-                      className="w-3.5 h-3.5 rounded-full border border-neutral-300 shadow-2xs shrink-0"
-                      style={{ backgroundColor: color.hex }}
-                    />
-                    <span className="font-semibold">{color.name}</span>
+                {selectedColors.map((color) => {
+                  const setting = colorSettings[color.name] || {};
+                  const isConfiguring = activeConfigColor === color.name;
+                  return (
+                    <div
+                      key={color.name}
+                      className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all ${
+                        isConfiguring
+                          ? "bg-neutral-900 text-white border-neutral-900 shadow-md"
+                          : "bg-white border-neutral-300 text-neutral-800 shadow-2xs"
+                      }`}
+                    >
+                      {setting.image ? (
+                        <div className="w-4 h-4 rounded-full overflow-hidden border border-neutral-300 shrink-0 relative">
+                          <Image src={setting.image} alt={color.name} fill sizes="16px" className="object-cover" />
+                        </div>
+                      ) : (
+                        <span
+                          className="w-3.5 h-3.5 rounded-full border border-neutral-300 shadow-2xs shrink-0"
+                          style={{ backgroundColor: color.hex }}
+                        />
+                      )}
+                      <span className="font-semibold">{color.name}</span>
+                      {setting.linkedProductSlug && (
+                        <span className="text-[10px] px-1 py-0.2 bg-indigo-50 text-indigo-700 rounded font-mono font-bold">
+                          Linked
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setActiveConfigColor(isConfiguring ? null : color.name)}
+                        className={`text-[10px] font-mono px-1.5 py-0.5 rounded cursor-pointer ${
+                          isConfiguring
+                            ? "bg-white/20 text-white"
+                            : "bg-neutral-100 hover:bg-neutral-200 text-neutral-700"
+                        }`}
+                        title="Configure photo and product link for this color"
+                      >
+                        Photo & Link
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeColor(color.name)}
+                        className="text-neutral-400 hover:text-red-500 p-0.5 ml-0.5 cursor-pointer"
+                        title={`Remove color ${color.name}`}
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Color Configuration Panel: Attach Image & Link Product */}
+              {activeConfigColor && (
+                <div className="p-4 bg-white border-2 border-neutral-800 rounded-xl space-y-3 animate-in fade-in duration-150">
+                  <div className="flex items-center justify-between border-b border-neutral-100 pb-2">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="w-3.5 h-3.5 rounded-full border border-neutral-300 shadow-2xs"
+                        style={{
+                          backgroundColor:
+                            selectedColors.find((c) => c.name === activeConfigColor)?.hex || "#111",
+                        }}
+                      />
+                      <span className="font-bold text-xs text-neutral-900 uppercase">
+                        Configure Color: {activeConfigColor}
+                      </span>
+                    </div>
                     <button
                       type="button"
-                      onClick={() => removeColor(color.name)}
-                      className="text-neutral-400 hover:text-red-500 p-0.5 ml-0.5"
-                      title={`Remove color ${color.name}`}
+                      onClick={() => setActiveConfigColor(null)}
+                      className="text-neutral-400 hover:text-black p-1 cursor-pointer"
                     >
-                      <X className="w-3 h-3" />
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
-                ))}
-              </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* 1. Variant Photo URL / Gallery Picker */}
+                    <div className="space-y-1.5">
+                      <label className="block text-[11px] font-mono font-bold uppercase text-neutral-700">
+                        Color Variant Photo
+                      </label>
+                      <p className="text-[11px] text-neutral-500">
+                        When customers select &quot;{activeConfigColor}&quot;, the main product image switches to this photo.
+                      </p>
+                      <input
+                        type="text"
+                        placeholder="e.g. /images/review_green_hoodie.jpg or URL..."
+                        value={colorSettings[activeConfigColor]?.image || ""}
+                        onChange={(e) =>
+                          setColorSettings((prev) => ({
+                            ...prev,
+                            [activeConfigColor]: {
+                              ...prev[activeConfigColor],
+                              image: e.target.value.trim(),
+                            },
+                          }))
+                        }
+                        className="w-full px-3 py-1.5 text-xs border border-neutral-300 rounded-lg focus:outline-none focus:border-black bg-white font-mono"
+                      />
+
+                      {/* Quick pick from already uploaded images */}
+                      {uploadedImages.length > 0 && (
+                        <div className="pt-1">
+                          <span className="text-[10px] text-neutral-400 uppercase font-bold block mb-1">
+                            Or Pick From Product Gallery:
+                          </span>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {uploadedImages.map((img, i) => (
+                              <button
+                                key={i}
+                                type="button"
+                                onClick={() =>
+                                  setColorSettings((prev) => ({
+                                    ...prev,
+                                    [activeConfigColor]: {
+                                      ...prev[activeConfigColor],
+                                      image: img,
+                                    },
+                                  }))
+                                }
+                                className={`relative w-8 h-8 rounded border overflow-hidden cursor-pointer ${
+                                  colorSettings[activeConfigColor]?.image === img
+                                    ? "ring-2 ring-black border-black"
+                                    : "border-neutral-200 opacity-60 hover:opacity-100"
+                                }`}
+                              >
+                                <Image src={img} alt="pick" fill sizes="32px" className="object-cover" />
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 2. Linked Product Dropdown */}
+                    <div className="space-y-1.5">
+                      <label className="block text-[11px] font-mono font-bold uppercase text-neutral-700">
+                        Link To Another Product Page (Optional)
+                      </label>
+                      <p className="text-[11px] text-neutral-500">
+                        Clicking &quot;{activeConfigColor}&quot; can navigate directly to a separate product page for this color.
+                      </p>
+                      <select
+                        value={colorSettings[activeConfigColor]?.linkedProductSlug || ""}
+                        onChange={(e) =>
+                          setColorSettings((prev) => ({
+                            ...prev,
+                            [activeConfigColor]: {
+                              ...prev[activeConfigColor],
+                              linkedProductSlug: e.target.value || undefined,
+                            },
+                          }))
+                        }
+                        className="w-full px-3 py-2 text-xs border border-neutral-300 rounded-lg focus:outline-none focus:border-black bg-white cursor-pointer"
+                      >
+                        <option value="">None (Same product page)</option>
+                        {availableStoreProducts
+                          .filter((p) => p.slug !== urlHandle)
+                          .map((p) => (
+                            <option key={p.slug} value={p.slug}>
+                              {p.name} ({p.slug})
+                            </option>
+                          ))}
+                      </select>
+                      <div className="flex items-center gap-1 pt-1">
+                        <span className="text-[10px] text-neutral-400">Or custom slug:</span>
+                        <input
+                          type="text"
+                          placeholder="e.g. green-hoodie"
+                          value={colorSettings[activeConfigColor]?.linkedProductSlug || ""}
+                          onChange={(e) =>
+                            setColorSettings((prev) => ({
+                              ...prev,
+                              [activeConfigColor]: {
+                                ...prev[activeConfigColor],
+                                linkedProductSlug: e.target.value.trim(),
+                              },
+                            }))
+                          }
+                          className="flex-1 px-2 py-1 text-xs border border-neutral-200 rounded font-mono"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Streetwear Quick Preset Color Swatches */}
               <div className="space-y-1.5 pt-1 border-t border-neutral-200">
@@ -2019,8 +2380,17 @@ export default function ShopifyProductEditor({
         <div className="flex items-center gap-3">
           <button
             type="button"
+            onClick={handleOpenDuplicateModal}
+            className="px-3.5 py-2 text-xs font-semibold text-neutral-700 hover:text-black border border-neutral-300 rounded-lg hover:bg-neutral-50 transition-colors flex items-center gap-1.5 cursor-pointer"
+            title="Create a copy of this product"
+          >
+            <Copy className="w-3.5 h-3.5 text-neutral-500" />
+            <span>Duplicate</span>
+          </button>
+          <button
+            type="button"
             onClick={() => router.push("/admin/products")}
-            className="px-4 py-2 text-xs font-semibold text-neutral-600 hover:text-black border border-neutral-300 rounded-lg hover:bg-neutral-50 transition-colors"
+            className="px-4 py-2 text-xs font-semibold text-neutral-600 hover:text-black border border-neutral-300 rounded-lg hover:bg-neutral-50 transition-colors cursor-pointer"
           >
             Discard
           </button>
@@ -2046,6 +2416,115 @@ export default function ShopifyProductEditor({
           </button>
         </div>
       </div>
+
+      {/* 4. DUPLICATE PRODUCT MODAL */}
+      {showDuplicateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-neutral-200 overflow-hidden">
+            <div className="px-6 py-4 border-b border-neutral-100 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-neutral-100 flex items-center justify-center text-neutral-700">
+                  <Copy className="w-4 h-4" />
+                </div>
+                <h3 className="font-bold text-neutral-900 text-sm">Duplicate product</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowDuplicateModal(false)}
+                className="text-neutral-400 hover:text-black p-1 rounded-lg cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <p className="text-xs text-neutral-600 leading-relaxed">
+                Provide a title for the duplicate product. All images, variants, specs, and prices will be copied into the new item.
+              </p>
+
+              <div>
+                <label className="block text-[11px] font-mono font-bold uppercase text-neutral-700 mb-1.5">
+                  Title
+                </label>
+                <input
+                  type="text"
+                  value={duplicateTitle}
+                  onChange={(e) => setDuplicateTitle(e.target.value)}
+                  placeholder="e.g. Copy of Heavyweight Hoodie"
+                  className="w-full px-3 py-2 text-xs sm:text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-black bg-white"
+                  autoFocus
+                />
+              </div>
+
+              <div className="p-3 bg-neutral-50 border border-neutral-200 rounded-lg space-y-2">
+                <label className="text-[11px] font-bold text-neutral-800 block">
+                  Set status for duplicate
+                </label>
+                <div className="flex items-center gap-4 text-xs">
+                  <label className="flex items-center gap-1.5 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="dupStatus"
+                      value="draft"
+                      checked={duplicateStatus === "draft"}
+                      onChange={() => setDuplicateStatus("draft")}
+                      className="text-black focus:ring-black cursor-pointer"
+                    />
+                    <span>Draft (Recommended)</span>
+                  </label>
+                  <label className="flex items-center gap-1.5 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="dupStatus"
+                      value="active"
+                      checked={duplicateStatus === "active"}
+                      onChange={() => setDuplicateStatus("active")}
+                      className="text-black focus:ring-black cursor-pointer"
+                    />
+                    <span>Active</span>
+                  </label>
+                </div>
+              </div>
+
+              {duplicateError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-600 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{duplicateError}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="px-6 py-3.5 bg-neutral-50 border-t border-neutral-100 flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setShowDuplicateModal(false)}
+                disabled={isDuplicating}
+                className="px-4 py-2 text-xs font-semibold text-neutral-600 hover:text-black border border-neutral-200 rounded-lg hover:bg-neutral-100 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDuplicateProduct}
+                disabled={isDuplicating || !duplicateTitle.trim()}
+                className="px-5 py-2 text-xs font-bold text-white bg-black hover:bg-neutral-800 rounded-lg shadow-sm flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              >
+                {isDuplicating ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Duplicating...</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Duplicate Product</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

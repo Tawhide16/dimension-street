@@ -85,7 +85,7 @@ export default function PromoCountdownBanner({
           <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-6 sm:gap-8 lg:gap-12">
             {/* Left Column: Heading & Call to Action (Desktop) */}
             <div className="flex flex-col items-center md:items-start text-center md:text-left space-y-4 order-1 md:order-1">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[44px] font-bold text-white tracking-tight leading-tight drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-[40px] font-bold text-white tracking-tight leading-tight drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] whitespace-nowrap">
                 {title}
               </h2>
               {/* Desktop-only button */}

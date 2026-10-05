@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Product, ProductVariant, Review } from "@/types";
 import { formatPrice, formatDate } from "@/lib/utils";
 import { useCart } from "@/lib/cartContext";
@@ -25,29 +26,125 @@ import {
   MessageSquarePlus,
   X,
   Maximize2,
+  Link2,
+  ExternalLink,
 } from "lucide-react";
 
 interface ProductDetailViewProps {
   product: Product;
   relatedProducts: Product[];
+  allCategoryProducts?: Product[];
   initialReviews?: Review[];
 }
 
 export default function ProductDetailView({
-  product,
+  product: initialProduct,
   relatedProducts,
+  allCategoryProducts = [],
   initialReviews = [],
 }: ProductDetailViewProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { addItem, isInWishlist, toggleWishlist } = useCart();
 
+  // Active product stored in state for 0ms INSTANT client-side switching!
+  const [product, setProduct] = useState<Product>(initialProduct);
+
+  useEffect(() => {
+    setProduct(initialProduct);
+  }, [initialProduct]);
+
+  // Preload primary images of all sister products in browser cache for instantaneous render
+  useEffect(() => {
+    const pool = [
+      initialProduct,
+      ...(allCategoryProducts || []),
+      ...(relatedProducts || []),
+    ];
+    pool.forEach((p) => {
+      if (p.images && Array.isArray(p.images)) {
+        p.images.slice(0, 2).forEach((src) => {
+          if (src && !src.startsWith("data:") && typeof window !== "undefined") {
+            const img = new window.Image();
+            img.src = src;
+          }
+        });
+      }
+    });
+  }, [initialProduct, allCategoryProducts, relatedProducts]);
+
+  // Listen to browser Back/Forward navigation for instant zero-lag history switching
+  useEffect(() => {
+    const handlePopState = () => {
+      if (typeof window === "undefined") return;
+      const pathname = window.location.pathname;
+      const match = pathname.match(/^\/product\/([^/?#]+)/);
+      if (match) {
+        const slug = match[1];
+        const pool = [
+          initialProduct,
+          ...(allCategoryProducts || []),
+          ...(relatedProducts || []),
+        ];
+        const found = pool.find((p) => p.slug === slug);
+        if (found) {
+          setProduct(found);
+          const search = new URLSearchParams(window.location.search);
+          const col = search.get("color");
+          if (col) {
+            setSelectedColor(col);
+          }
+          setActiveImageIndex(0);
+        }
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [initialProduct, allCategoryProducts, relatedProducts]);
+
+  // The gallery must strictly show only THIS product's images
+  const allGalleryImages = React.useMemo(() => {
+    const list = [...(product.images || [])];
+    return list.length > 0 ? list : ["/images/placeholder.jpg"];
+  }, [product.images]);
+
+  // Determine the primary color matching this specific product
+  const defaultProductColor = React.useMemo(() => {
+    // 1. If URL has ?color= matching a variant
+    const param = searchParams?.get("color");
+    if (param) {
+      const match = product.variants?.find(
+        (v) => v.color.toLowerCase() === param.toLowerCase()
+      );
+      if (match) return match.color;
+    }
+
+    // 2. Check if a variant links to this product's own slug
+    const selfLinked = product.variants?.find(
+      (v) => v.linkedProductSlug && v.linkedProductSlug === product.slug
+    );
+    if (selfLinked) return selfLinked.color;
+
+    // 3. Match words in product name or slug to a variant's color
+    const pName = `${product.name} ${product.slug}`.toLowerCase();
+    const nameMatched = product.variants?.find((v) => {
+      const colWords = v.color.toLowerCase().split(/[\s-_]+/).filter((w) => w.length >= 3);
+      return colWords.some((w) => pName.includes(w));
+    });
+    if (nameMatched) return nameMatched.color;
+
+    // 4. Fallback to first variant
+    return product.variants?.[0]?.color || "Standard";
+  }, [product.name, product.slug, product.variants, searchParams]);
+
   // Active variant state
-  const [selectedColor, setSelectedColor] = useState<string>(
-    product.variants[0]?.color || "Standard"
-  );
+  const [selectedColor, setSelectedColor] = useState<string>(defaultProductColor);
   const [selectedSize, setSelectedSize] = useState<string>(
     product.variants[0]?.size || "M"
   );
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [navigatingColor, setNavigatingColor] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
   const [showAddedBanner, setShowAddedBanner] = useState(false);
@@ -168,6 +265,128 @@ export default function ProductDetailView({
   const inWishlist = isInWishlist(product._id);
   const isOutOfStock = (activeVariant?.stock || 0) <= 0;
 
+  // Helper to resolve linked product slug and image for a color variant
+  const resolveColorTarget = (v: ProductVariant) => {
+    // 1. If this variant belongs to the current product, use product's primary image
+    if (
+      v.color.toLowerCase() === defaultProductColor.toLowerCase() ||
+      v.linkedProductSlug === product.slug
+    ) {
+      return {
+        slug: product.slug,
+        image: product.images?.[0] || v.image,
+      };
+    }
+
+    // 2. If explicit linkedProductSlug is defined and valid
+    if (v.linkedProductSlug) {
+      const pool = [
+        ...(allCategoryProducts || []),
+        ...(relatedProducts || []),
+      ];
+      const linkedProd = pool.find((p) => p.slug === v.linkedProductSlug);
+      return {
+        slug: v.linkedProductSlug,
+        image: linkedProd?.images?.[0] || v.image,
+      };
+    }
+
+    // 3. Intelligent search across allCategoryProducts and relatedProducts
+    const pool = [
+      ...(allCategoryProducts || []),
+      ...(relatedProducts || []),
+    ];
+
+    const colNorm = (v.color || "").toLowerCase().trim();
+    const colKeywords = colNorm.split(/[\s-_]+/).filter((w) => w.length >= 3);
+
+    const sister = pool.find((p) => {
+      if (p._id === product._id) return false;
+      const pText = `${p.name} ${p.slug} ${(p.tags || []).join(" ")}`.toLowerCase();
+      return colKeywords.some((kw) => pText.includes(kw));
+    });
+
+    if (sister) {
+      return {
+        slug: sister.slug,
+        image: sister.images?.[0] || v.image,
+      };
+    }
+
+    return {
+      slug: undefined,
+      image: v.image,
+    };
+  };
+
+  // Handle selecting a color variant with 0ms instantaneous transition
+  const handleColorSelect = (v: ProductVariant) => {
+    const target = resolveColorTarget(v);
+
+    // 1. If variant is linked to a separate product
+    if (target.slug && target.slug !== product.slug) {
+      const pool = [
+        initialProduct,
+        ...(allCategoryProducts || []),
+        ...(relatedProducts || []),
+      ];
+      const targetProd = pool.find((p) => p.slug === target.slug);
+
+      if (targetProd) {
+        // INSTANT 0ms ZERO-LATENCY IN-MEMORY SWITCH!
+        setProduct(targetProd);
+        setSelectedColor(v.color);
+        setActiveImageIndex(0);
+
+        // Adjust selectedSize if not available in target product for this color
+        const targetSizes = (targetProd.variants || [])
+          .filter((x) => x.color.toLowerCase() === v.color.toLowerCase())
+          .map((x) => x.size);
+        if (targetSizes.length > 0 && !targetSizes.includes(selectedSize)) {
+          setSelectedSize(targetSizes[0]);
+        }
+
+        // Update URL bar silently without triggering server reload
+        const newUrl = `/product/${targetProd.slug}?color=${encodeURIComponent(v.color)}`;
+        window.history.pushState(null, "", newUrl);
+        if (typeof document !== "undefined") {
+          document.title = `${targetProd.name} — DIMENSION STREET`;
+        }
+
+        // Preload route in Next.js router in background
+        router.prefetch(newUrl);
+        return;
+      }
+
+      // Fallback if not found in memory
+      setNavigatingColor(v.color);
+      router.push(`/product/${target.slug}?color=${encodeURIComponent(v.color)}`);
+      return;
+    }
+
+    // 2. Select this color on same product
+    setSelectedColor(v.color);
+  };
+
+  // Sync color selection with URL query param ?color= or defaultProductColor on initial mount
+  const isInitialMount = React.useRef(true);
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      const colorParam = searchParams?.get("color");
+      if (colorParam) {
+        const matched = product.variants.find(
+          (v) => v.color.toLowerCase() === colorParam.toLowerCase()
+        );
+        if (matched) {
+          setSelectedColor(matched.color);
+          return;
+        }
+      }
+      setSelectedColor(defaultProductColor);
+    }
+  }, [searchParams, product.variants, defaultProductColor]);
+
   const handleAddToCart = () => {
     if (isOutOfStock) return;
     setIsAdding(true);
@@ -177,7 +396,7 @@ export default function ProductDetailView({
         productId: product._id,
         name: product.name,
         slug: product.slug,
-        image: product.images[activeImageIndex] || product.images[0],
+        image: activeVariant.image || allGalleryImages[activeImageIndex] || allGalleryImages[0],
         color: activeVariant.color,
         size: activeVariant.size,
         sku: activeVariant.sku,
@@ -219,7 +438,7 @@ export default function ProductDetailView({
           {/* Main Large Image: object-contain with clean neutral backdrop prevents any cropping */}
           <div className="flex-1 relative min-h-[440px] sm:min-h-[540px] lg:min-h-[620px] aspect-[4/5] sm:aspect-[3/4] bg-neutral-50/80 rounded-xl overflow-hidden border border-neutral-200/90 flex items-center justify-center p-2 sm:p-4 group">
             <Image
-              src={product.images[activeImageIndex] || product.images[0]}
+              src={allGalleryImages[activeImageIndex] || allGalleryImages[0]}
               alt={product.name}
               fill
               priority
@@ -253,13 +472,13 @@ export default function ProductDetailView({
           </div>
 
           {/* Thumbnails Sidebar / Row */}
-          {product.images.length > 1 && (
+          {allGalleryImages.length > 1 && (
             <div className="flex md:flex-col gap-3 overflow-x-auto md:overflow-y-auto w-full md:w-20 flex-shrink-0">
-              {product.images.map((img, idx) => (
+              {allGalleryImages.map((img, idx) => (
                 <button
                   key={idx}
                   onClick={() => setActiveImageIndex(idx)}
-                  className={`relative aspect-square w-16 md:w-full rounded-lg overflow-hidden border transition-all flex-shrink-0 bg-neutral-50 p-1 flex items-center justify-center ${
+                  className={`relative aspect-square w-16 md:w-full rounded-lg overflow-hidden border transition-all flex-shrink-0 bg-neutral-50 p-1 flex items-center justify-center cursor-pointer ${
                     activeImageIndex === idx
                       ? "border-black ring-2 ring-black/10 shadow-xs"
                       : "border-neutral-200 opacity-70 hover:opacity-100 hover:border-neutral-400"
@@ -310,7 +529,7 @@ export default function ProductDetailView({
 
             {/* Short Tagline */}
             {product.shortDescription && (
-              <p className="mt-3 text-xs text-neutral-600 leading-relaxed font-normal">
+              <p className="mt-3 text-xs text-neutral-600 leading-relaxed font-normal font-description">
                 {product.shortDescription}
               </p>
             )}
@@ -322,27 +541,72 @@ export default function ProductDetailView({
               <span className="uppercase text-neutral-500 tracking-wider">
                 COLOR: <strong className="text-black">{selectedColor}</strong>
               </span>
-            </div>
-            <div className="flex flex-wrap gap-2.5">
-              {availableColors.map((v) => (
-                <button
-                  key={v.color}
-                  onClick={() => setSelectedColor(v.color)}
-                  className={`px-3 py-2 text-xs font-mono rounded-xs border flex items-center gap-2 transition-all ${
-                    selectedColor === v.color
-                      ? "border-black bg-neutral-900 text-white font-bold"
-                      : "border-neutral-300 bg-white text-neutral-800 hover:border-black"
-                  }`}
+              {activeVariant?.linkedProductSlug && activeVariant.linkedProductSlug !== product.slug && (
+                <Link
+                  href={`/product/${activeVariant.linkedProductSlug}`}
+                  className="text-[11px] font-mono text-neutral-600 hover:text-black flex items-center gap-1 underline"
+                  title="View separate product page for this color"
                 >
-                  {v.colorHex && (
-                    <span
-                      className="w-3 h-3 rounded-full border border-white/50"
-                      style={{ backgroundColor: v.colorHex }}
-                    />
-                  )}
-                  <span>{v.color}</span>
-                </button>
-              ))}
+                  <ExternalLink className="w-3 h-3" />
+                  <span>View Separate Page</span>
+                </Link>
+              )}
+            </div>
+
+            {/* Visual Color Thumbnail Cards (matching reference layout) */}
+            <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+              {availableColors.map((v) => {
+                const isSelected = selectedColor === v.color;
+                const target = resolveColorTarget(v);
+                const isLinked = Boolean(target.slug && target.slug !== product.slug);
+                const isSwitching = navigatingColor === v.color;
+                const previewImg = target.image || v.image || (isSelected ? product.images?.[0] : undefined);
+
+                return (
+                  <button
+                    key={v.color}
+                    type="button"
+                    onClick={() => handleColorSelect(v)}
+                    disabled={isSwitching}
+                    className={`group relative flex items-center justify-center rounded-lg border transition-all cursor-pointer p-1.5 sm:p-2 bg-white overflow-hidden ${
+                      isSelected
+                        ? "border-black ring-2 ring-black/15 shadow-sm scale-102"
+                        : "border-neutral-200 hover:border-neutral-400 hover:shadow-xs opacity-80 hover:opacity-100"
+                    } ${isSwitching ? "opacity-60 animate-pulse" : ""}`}
+                    title={
+                      isLinked
+                        ? `Switch to ${v.color} product`
+                        : `Select ${v.color}`
+                    }
+                  >
+                    {/* Visual Product Thumbnail Box */}
+                    <div className="relative w-16 h-20 sm:w-20 sm:h-24 flex items-center justify-center">
+                      {previewImg ? (
+                        <Image
+                          src={previewImg}
+                          alt={v.color}
+                          fill
+                          sizes="96px"
+                          unoptimized={previewImg.startsWith("data:")}
+                          className="object-contain object-center transition-transform duration-200 group-hover:scale-105"
+                        />
+                      ) : (
+                        <div
+                          className="w-8 h-8 rounded-full border border-neutral-300 shadow-2xs"
+                          style={{ backgroundColor: v.colorHex || "#111" }}
+                        />
+                      )}
+
+                      {/* Loading spinner overlay if navigating */}
+                      {isSwitching && (
+                        <div className="absolute inset-0 bg-white/70 backdrop-blur-2xs flex items-center justify-center z-10 rounded-md">
+                          <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -491,21 +755,21 @@ export default function ProductDetailView({
                 }`}
               >
                 <div className="accordion-inner-content">
-                  <div className="pb-6 pt-1 text-neutral-700 font-sans text-xs sm:text-[13px] leading-relaxed space-y-4">
-                    <p>{product.description}</p>
+                  <div className="pb-6 pt-1 text-neutral-700 font-description text-xs sm:text-[13px] leading-relaxed space-y-4">
+                    <p className="font-description">{product.description}</p>
 
                     {/* Highlights */}
                     <div className="grid grid-cols-2 gap-2 pt-2 pb-1 font-mono text-[11px] text-neutral-600">
                       {product.details?.fit && (
                         <div className="bg-neutral-50 p-2.5 border border-neutral-200">
                           <span className="font-bold text-neutral-900 uppercase block mb-0.5">FIT PROFILE</span>
-                          <span className="line-clamp-2">{product.details.fit}</span>
+                          <span className="line-clamp-2 font-description">{product.details.fit}</span>
                         </div>
                       )}
                       {product.details?.material && (
                         <div className="bg-neutral-50 p-2.5 border border-neutral-200">
                           <span className="font-bold text-neutral-900 uppercase block mb-0.5">MATERIAL</span>
-                          <span className="line-clamp-2">{product.details.material}</span>
+                          <span className="line-clamp-2 font-description">{product.details.material}</span>
                         </div>
                       )}
                     </div>
@@ -704,7 +968,7 @@ export default function ProductDetailView({
                                   {rev.title}
                                 </h5>
                               )}
-                              <p className="text-xs text-neutral-600 font-sans leading-relaxed">
+                              <p className="text-xs text-neutral-600 font-description leading-relaxed">
                                 {rev.comment}
                               </p>
 
@@ -817,7 +1081,7 @@ export default function ProductDetailView({
                                 {rev.title}
                               </h5>
                             )}
-                            <p className="text-xs text-neutral-600 font-sans leading-relaxed">
+                            <p className="text-xs text-neutral-600 font-description leading-relaxed">
                               {rev.comment}
                             </p>
 
@@ -861,7 +1125,7 @@ export default function ProductDetailView({
                 }`}
               >
                 <div className="accordion-inner-content">
-                  <div className="pb-5 text-neutral-600 font-sans text-xs leading-relaxed space-y-2">
+                  <div className="pb-5 text-neutral-600 font-description text-xs leading-relaxed space-y-2">
                     <p>{product.details?.fit || "Relaxed streetwear oversized cut."}</p>
                     <table className="w-full border border-neutral-200 text-center text-[11px] font-mono mt-2">
                       <thead className="bg-neutral-100 text-neutral-800">
@@ -925,7 +1189,7 @@ export default function ProductDetailView({
                 }`}
               >
                 <div className="accordion-inner-content">
-                  <div className="pb-5 text-neutral-600 font-sans text-xs leading-relaxed">
+                  <div className="pb-5 text-neutral-600 font-description text-xs leading-relaxed">
                     <p>{product.details?.material || "100% Combed Heavyweight Organic Cotton."}</p>
                   </div>
                 </div>
@@ -953,7 +1217,7 @@ export default function ProductDetailView({
                 }`}
               >
                 <div className="accordion-inner-content">
-                  <div className="pb-5 text-neutral-600 font-sans text-xs leading-relaxed">
+                  <div className="pb-5 text-neutral-600 font-description text-xs leading-relaxed">
                     <p>{product.details?.shipping || "Standard delivery 1-3 business days. Free shipping over $150."}</p>
                   </div>
                 </div>
@@ -981,7 +1245,7 @@ export default function ProductDetailView({
                 }`}
               >
                 <div className="accordion-inner-content">
-                  <div className="pb-5 text-neutral-600 font-sans text-xs leading-relaxed">
+                  <div className="pb-5 text-neutral-600 font-description text-xs leading-relaxed">
                     <p>{product.details?.care || "Cold wash inside out. Line dry in shade."}</p>
                   </div>
                 </div>
@@ -1041,7 +1305,7 @@ export default function ProductDetailView({
             onClick={(e) => e.stopPropagation()}
           >
             <Image
-              src={product.images[activeImageIndex] || product.images[0]}
+              src={allGalleryImages[activeImageIndex] || allGalleryImages[0]}
               alt={product.name}
               fill
               sizes="95vw"

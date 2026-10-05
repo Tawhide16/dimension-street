@@ -272,6 +272,7 @@ export function cleanPlainProduct(p: any): Product {
       compareAtPrice: v.compareAtPrice ? Number(v.compareAtPrice) : undefined,
       stock: Number(v.stock) || 0,
       image: v.image ? String(v.image) : undefined,
+      linkedProductSlug: v.linkedProductSlug ? String(v.linkedProductSlug) : undefined,
     })),
   };
 }

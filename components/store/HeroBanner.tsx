@@ -63,14 +63,14 @@ export default function HeroBanner({
       {/* Gradient Scrim - Centered on Mobile, Bottom-Left on Desktop */}
       <div className="absolute inset-0 z-10 flex flex-col justify-end items-center sm:items-start px-6 sm:px-12 lg:px-16 pb-10 sm:pb-12 md:pb-14 bg-gradient-to-t from-black/85 via-black/40 to-transparent pointer-events-none">
         {/* Text Content & Buttons - Centered on mobile devices, Left-aligned on Desktop */}
-        <div className="w-full max-w-xl space-y-2.5 sm:space-y-3 pointer-events-auto text-center sm:text-left flex flex-col items-center sm:items-start">
+        <div className="w-full max-w-3xl lg:max-w-5xl space-y-2.5 sm:space-y-3 pointer-events-auto text-center sm:text-left flex flex-col items-center sm:items-start">
           {/* Main Title */}
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-black uppercase text-white tracking-tight leading-none drop-shadow-md text-center sm:text-left">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black uppercase text-white tracking-tight leading-none drop-shadow-md text-center sm:text-left whitespace-nowrap">
             {displayTitle}
           </h1>
 
           {/* Subtitle */}
-          <p className="text-xs sm:text-sm md:text-base font-normal text-white/90 drop-shadow-sm text-center sm:text-left max-w-md sm:max-w-none">
+          <p className="text-xs sm:text-sm md:text-base font-normal text-white/90 drop-shadow-sm text-center sm:text-left max-w-md sm:max-w-none font-description">
             {displaySubtitle}
           </p>
 

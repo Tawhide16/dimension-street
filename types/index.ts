@@ -7,6 +7,7 @@ export interface ProductVariant {
   compareAtPrice?: number;
   stock: number;
   image?: string;
+  linkedProductSlug?: string;
 }
 
 export interface ProductSEO {

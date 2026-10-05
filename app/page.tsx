@@ -173,7 +173,7 @@ export default async function HomePage() {
               <h2 className="text-2xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight leading-tight">
                 {statementSection?.title || "WE DON'T FOLLOW TRENDS. WE FORGE THE CONSTANTS."}
               </h2>
-              <p className="text-xs sm:text-sm text-neutral-400 max-w-xl mx-auto font-light leading-relaxed">
+              <p className="text-xs sm:text-sm text-neutral-400 max-w-xl mx-auto font-light leading-relaxed font-description">
                 {statementData.description ||
                   "Every seam, weight, and silhouette is engineered with deliberate purpose. Built to endure season after season."}
               </p>

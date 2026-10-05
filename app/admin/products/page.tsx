@@ -93,6 +93,7 @@ export default function AdminProductsPage() {
   const [inlineEditMode, setInlineEditMode] = useState(false);
   const [editedProducts, setEditedProducts] = useState<Record<string, Partial<Product>>>({});
   const [isSavingInline, setIsSavingInline] = useState(false);
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
 
   // Add Product Modal & Bulk State
   const [showAddModal, setShowAddModal] = useState(false);
@@ -516,6 +517,53 @@ export default function AdminProductsPage() {
         care: "Wipe clean with damp cloth or professional dry clean only.",
         shipping: "Worldwide tracked courier with secure protective garment bag.",
       }));
+    }
+  };
+
+  // Duplicate product directly from table row
+  const handleDuplicateProductRow = async (prod: Product) => {
+    setDuplicatingId(prod._id);
+    try {
+      const copyTitle = `Copy of ${prod.name}`;
+      const newSku = prod.sku ? `${prod.sku}-COPY` : `DIM-${Date.now().toString().slice(-5)}`;
+      const newSlug =
+        copyTitle
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "") +
+        "-" +
+        Date.now().toString().slice(-4);
+
+      const clonedVariants = (prod.variants || []).map((v) => ({
+        ...v,
+        sku: `${newSku}-${v.size || "M"}`,
+      }));
+
+      const res = await fetch("/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...prod,
+          _id: undefined,
+          name: copyTitle,
+          slug: newSlug,
+          sku: newSku,
+          status: "draft",
+          variants: clonedVariants,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setProducts((prev) => [data.product, ...prev]);
+        setBulkSuccessMsg(`Successfully duplicated "${prod.name}" as "${copyTitle}"!`);
+      } else {
+        alert(data.error || "Failed to duplicate product.");
+      }
+    } catch (err: any) {
+      alert(err.message || "Failed to duplicate product.");
+    } finally {
+      setDuplicatingId(null);
     }
   };
 
@@ -1652,6 +1700,19 @@ export default function AdminProductsPage() {
                           >
                             <Edit3 className="w-4 h-4" />
                           </Link>
+                          <button
+                            type="button"
+                            onClick={() => handleDuplicateProductRow(prod)}
+                            disabled={duplicatingId === prod._id}
+                            className="p-1.5 text-neutral-400 hover:text-emerald-600 transition-colors cursor-pointer"
+                            title="Duplicate this product"
+                          >
+                            {duplicatingId === prod._id ? (
+                              <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
+                            ) : (
+                              <Copy className="w-4 h-4" />
+                            )}
+                          </button>
                           <button
                             type="button"
                             onClick={() => setProductToDelete(prod)}

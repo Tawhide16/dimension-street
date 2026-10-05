@@ -1084,7 +1084,7 @@ export default function AdminCMSBuilderPage() {
                         onAutoSave={(newUrl) =>
                           handleAutoSaveImage(section, "image", newUrl)
                         }
-                        aspectHint="Recommended: 1000x1200px portrait"
+                        aspectHint="Any aspect ratio supported (100% uncropped display, 1000x1200px portrait recommended)"
                       />
 
                       {/* 3 Pillars */}

@@ -1,5 +1,5 @@
+import { Inter, Montserrat, Open_Sans } from "next/font/google";
 import type { Metadata } from "next";
-import { Inter, Montserrat } from "next/font/google";
 import "./globals.css";
 import Script from "next/script";
 import { CartProvider } from "@/lib/cartContext";
@@ -14,6 +14,13 @@ const inter = Inter({
 const montserrat = Montserrat({
   subsets: ["latin"],
   variable: "--font-mono",
+});
+
+const openSans = Open_Sans({
+  subsets: ["latin"],
+  variable: "--font-open-sans",
+  weight: ["300", "400", "500", "600", "700"],
+  display: "swap",
 });
 
 import { getSeoConfig } from "@/lib/dataService";
@@ -101,7 +108,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${inter.variable} ${montserrat.variable} h-full antialiased scroll-smooth`}
+      className={`${inter.variable} ${montserrat.variable} ${openSans.variable} h-full antialiased scroll-smooth`}
     >
       <head>
         <link

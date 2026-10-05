@@ -38,16 +38,29 @@ export default function BrandStorySection({
     <section className="w-full px-4 sm:px-8 lg:px-12 xl:px-16 py-4 sm:py-8">
       <div className="w-full bg-[#f4f2ee] overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-2 items-stretch min-h-0 lg:min-h-[540px]">
-          {/* Top on Mobile (order-1), Right Column on Desktop (lg:order-2): Photograph */}
-          <div className="order-1 lg:order-2 relative w-full h-[260px] sm:h-[380px] lg:h-auto min-h-[240px] lg:min-h-full bg-neutral-200">
-            <Image
-              src={image}
-              alt="Dimension Streetwear Community - Our Story"
-              fill
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              priority
-              className="object-cover object-center"
+          {/* Top on Mobile (order-1), Right Column on Desktop (lg:order-2): Photograph (Full Uncropped Display) */}
+          <div className="order-1 lg:order-2 relative w-full min-h-[300px] sm:min-h-[420px] lg:min-h-[540px] flex items-center justify-center overflow-hidden bg-neutral-900/5 p-3 sm:p-6 lg:p-8">
+            {/* Ambient Blurred Backdrop from the image for seamless luxury aesthetics */}
+            <div
+              className="absolute inset-0 scale-125 filter blur-3xl opacity-20 pointer-events-none"
+              style={{
+                backgroundImage: `url(${image})`,
+                backgroundPosition: "center",
+                backgroundSize: "cover",
+              }}
             />
+
+            {/* Crisp Foreground Image (100% visible, zero cropping) */}
+            <div className="relative z-10 w-full h-full min-h-[280px] sm:min-h-[380px] lg:min-h-[480px] flex items-center justify-center">
+              <Image
+                src={image}
+                alt="Dimension Streetwear Community - Our Story"
+                fill
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                priority
+                className="object-contain object-center drop-shadow-md rounded-md transition-all duration-300"
+              />
+            </div>
           </div>
 
           {/* Bottom on Mobile (order-2), Left Column on Desktop (lg:order-1): Story, Copy, 3 Pillars & CTA */}
@@ -63,7 +76,7 @@ export default function BrandStorySection({
             </h2>
 
             {/* Explanatory Paragraph */}
-            <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed font-normal mb-4 sm:mb-6 max-w-lg">
+            <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed font-normal mb-4 sm:mb-6 max-w-lg font-description">
               {description}
             </p>
 

@@ -15,7 +15,7 @@ export default function AnnouncementBar() {
 
   const content = (
     <span
-      className="text-xs sm:text-sm md:text-[14px] font-semibold tracking-wider sm:tracking-widest uppercase text-center px-8 transition-colors"
+      className="text-xs sm:text-sm md:text-[14px] font-semibold tracking-wider sm:tracking-widest uppercase text-center px-8 transition-colors whitespace-nowrap truncate"
       style={{ color: announcement.textColor || "#ffffff" }}
     >
       {announcement.text || "Dimension Street — Made in Bangladesh"}

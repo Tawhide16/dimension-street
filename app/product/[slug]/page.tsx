@@ -48,6 +48,21 @@ export default async function ProductPage({
 
   // Get related products in same category
   const allRelated = await getProducts({ category: product.category });
+
+  // Also ensure any explicitly linked variant sister products are included
+  const linkedSlugs = (product.variants || [])
+    .map((v) => v.linkedProductSlug)
+    .filter((s): s is string => Boolean(s && s !== product.slug && !allRelated.some((p) => p.slug === s)));
+
+  if (linkedSlugs.length > 0) {
+    const extraProds = await Promise.all(linkedSlugs.map((s) => getProductBySlug(s)));
+    for (const ep of extraProds) {
+      if (ep && !allRelated.some((p) => p._id === ep._id)) {
+        allRelated.push(ep);
+      }
+    }
+  }
+
   const related = allRelated.filter((p) => p._id !== product._id).slice(0, 4);
   const initialReviews = await getReviews(product._id);
 
@@ -57,8 +72,10 @@ export default async function ProductPage({
       <Header />
       <main className="flex-1">
         <ProductDetailView
+          key={product.slug}
           product={product}
           relatedProducts={related}
+          allCategoryProducts={allRelated}
           initialReviews={initialReviews}
         />
       </main>

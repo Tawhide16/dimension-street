@@ -53,10 +53,10 @@ export default async function CollectionDetailPage({
             <span className="text-[10px] font-mono tracking-[0.3em] uppercase text-neutral-400 block mb-2">
               COLLECTION ARCHIVE
             </span>
-            <h1 className="text-3xl sm:text-5xl font-black uppercase tracking-tight">
+            <h1 className="text-2xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight whitespace-nowrap">
               {title}
             </h1>
-            <p className="text-xs sm:text-sm text-neutral-300 font-light mt-2 max-w-xl mx-auto">
+            <p className="text-xs sm:text-sm text-neutral-300 font-light mt-2 max-w-xl mx-auto font-description">
               {description}
             </p>
           </div>

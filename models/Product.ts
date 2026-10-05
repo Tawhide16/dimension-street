@@ -9,6 +9,7 @@ export interface IProductVariant {
   compareAtPrice?: number;
   stock: number;
   image?: string;
+  linkedProductSlug?: string;
 }
 
 export interface IProduct extends Document {
@@ -75,6 +76,7 @@ const ProductVariantSchema = new Schema<IProductVariant>({
   compareAtPrice: { type: Number },
   stock: { type: Number, required: true, default: 0 },
   image: { type: String },
+  linkedProductSlug: { type: String },
 }, { _id: false });
 
 const ProductSchema = new Schema<IProduct>(
@@ -133,5 +135,10 @@ const ProductSchema = new Schema<IProduct>(
   { timestamps: true }
 );
 
+if (process.env.NODE_ENV === "development" && mongoose.models.Product) {
+  delete (mongoose.models as any).Product;
+}
+
 export const ProductModel: Model<IProduct> =
   mongoose.models.Product || mongoose.model<IProduct>("Product", ProductSchema);
+

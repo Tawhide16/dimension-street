@@ -22,6 +22,7 @@ export default function ProductCard({
   const { addItem, isInWishlist, toggleWishlist } = useCart();
   const [isHovered, setIsHovered] = useState(false);
   const [addedSize, setAddedSize] = useState<string | null>(null);
+  const [activeColorVariant, setActiveColorVariant] = useState<(typeof product.variants)[0] | null>(null);
 
   const primaryImage = product.images[0] || "/images/placeholder.jpg";
   const hoverImage = product.images[1] || primaryImage;
@@ -105,10 +106,16 @@ export default function ProductCard({
     toggleWishlist(product._id);
   };
 
-  // Unique colors available
-  const uniqueColors = Array.from(
-    new Set(product.variants.map((v) => v.colorHex || "#000"))
-  ).slice(0, 4);
+  // Unique distinct color variants
+  const colorVariants = React.useMemo(() => {
+    const map = new Map<string, (typeof rawVariants)[0]>();
+    for (const v of rawVariants) {
+      if (v.color && !map.has(v.color)) {
+        map.set(v.color, v);
+      }
+    }
+    return Array.from(map.values()).slice(0, 6);
+  }, [rawVariants]);
 
   return (
     <div
@@ -122,13 +129,22 @@ export default function ProductCard({
           aspectRatio === "portrait" ? "aspect-3/4" : "aspect-square"
         }`}
       >
-        <Link href={`/product/${product.slug}`} className="relative block w-full h-full">
+        <Link
+          href={
+            activeColorVariant?.linkedProductSlug
+              ? `/product/${activeColorVariant.linkedProductSlug}`
+              : activeColorVariant
+              ? `/product/${product.slug}?color=${encodeURIComponent(activeColorVariant.color)}`
+              : `/product/${product.slug}`
+          }
+          className="relative block w-full h-full"
+        >
           <Image
-            src={isHovered && hoverImage ? hoverImage : primaryImage}
+            src={activeColorVariant?.image || (isHovered && hoverImage ? hoverImage : primaryImage)}
             alt={product.name}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-cover object-center"
+            className="object-cover object-center transition-all duration-300"
           />
         </Link>
 
@@ -234,16 +250,33 @@ export default function ProductCard({
 
       {/* Info Section */}
       <div className="pt-3 pb-2 flex flex-col space-y-1">
-        {/* Colors swatches if multiple */}
-        {uniqueColors.length > 1 && (
-          <div className="flex items-center gap-1.5 mb-1">
-            {uniqueColors.map((hex, idx) => (
-              <span
-                key={idx}
-                className="w-2.5 h-2.5 rounded-full border border-neutral-300 inline-block shadow-2xs"
-                style={{ backgroundColor: hex }}
-              />
-            ))}
+        {/* Interactive Colors swatches */}
+        {colorVariants.length > 1 && (
+          <div
+            className="flex items-center gap-1.5 mb-1 z-10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {colorVariants.map((v) => {
+              const isSelected = activeColorVariant?.color === v.color;
+              const linkUrl = v.linkedProductSlug
+                ? `/product/${v.linkedProductSlug}?color=${encodeURIComponent(v.color)}`
+                : `/product/${product.slug}?color=${encodeURIComponent(v.color)}`;
+              return (
+                <Link
+                  key={v.color}
+                  href={linkUrl}
+                  onMouseEnter={() => setActiveColorVariant(v)}
+                  onClick={() => setActiveColorVariant(v)}
+                  className={`w-3.5 h-3.5 rounded-full border transition-all cursor-pointer ${
+                    isSelected
+                      ? "ring-2 ring-black ring-offset-1 scale-115 border-black shadow-xs"
+                      : "border-neutral-300 hover:scale-115"
+                  }`}
+                  style={{ backgroundColor: v.colorHex || "#111111" }}
+                  title={`${v.color} (Click to view)`}
+                />
+              );
+            })}
           </div>
         )}
 
@@ -254,7 +287,11 @@ export default function ProductCard({
 
         {/* Product Title */}
         <Link
-          href={`/product/${product.slug}`}
+          href={
+            activeColorVariant?.linkedProductSlug
+              ? `/product/${activeColorVariant.linkedProductSlug}?color=${encodeURIComponent(activeColorVariant.color)}`
+              : `/product/${product.slug}`
+          }
           className="text-xs sm:text-sm font-bold uppercase tracking-wide text-neutral-900 hover:text-black line-clamp-1 transition-colors"
         >
           {product.name}
