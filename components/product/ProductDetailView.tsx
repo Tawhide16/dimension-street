@@ -28,6 +28,7 @@ import {
   Maximize2,
   Link2,
   ExternalLink,
+  Zap,
 } from "lucide-react";
 
 interface ProductDetailViewProps {
@@ -149,6 +150,7 @@ export default function ProductDetailView({
   const [isAdding, setIsAdding] = useState(false);
   const [showAddedBanner, setShowAddedBanner] = useState(false);
   const [isZoomModalOpen, setIsZoomModalOpen] = useState(false);
+  const [isBuyingNow, setIsBuyingNow] = useState(false);
 
   // Accordion state
   const [openAccordion, setOpenAccordion] = useState<string | null>("description");
@@ -410,6 +412,28 @@ export default function ProductDetailView({
     setTimeout(() => setShowAddedBanner(false), 3000);
   };
 
+  // Direct Buy Now: adds item to cart and immediately redirects to checkout
+  const handleBuyNow = () => {
+    if (isOutOfStock) return;
+    setIsBuyingNow(true);
+
+    addItem(
+      {
+        productId: product._id,
+        name: product.name,
+        slug: product.slug,
+        image: activeVariant.image || allGalleryImages[activeImageIndex] || allGalleryImages[0],
+        color: activeVariant.color,
+        size: activeVariant.size,
+        sku: activeVariant.sku,
+        price: activeVariant.price || product.price,
+      },
+      quantity
+    );
+
+    router.push("/checkout");
+  };
+
   const toggleAccordion = (name: string) => {
     setOpenAccordion(openAccordion === name ? null : name);
   };
@@ -664,41 +688,60 @@ export default function ProductDetailView({
             )}
           </div>
 
-          {/* Quantity and Add to Bag */}
-          <div className="flex gap-3 pt-2">
-            {/* Quantity */}
-            <div className="flex items-center border border-neutral-300 rounded-xs bg-white">
+          {/* Purchase Actions: Quantity, Add to Cart & Direct Buy Now */}
+          <div className="space-y-2.5 pt-2">
+            {/* Row 1: Quantity Selector & Add to Cart */}
+            <div className="flex gap-2.5 sm:gap-3">
+              {/* Quantity */}
+              <div className="flex items-center border border-neutral-300 rounded-xs bg-white shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="px-3 py-3 text-neutral-600 hover:text-black font-mono cursor-pointer"
+                  aria-label="Decrease quantity"
+                >
+                  -
+                </button>
+                <span className="px-2 text-xs font-mono font-bold text-black min-w-8 text-center">
+                  {quantity}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setQuantity(Math.min(activeVariant?.stock || 10, quantity + 1))}
+                  className="px-3 py-3 text-neutral-600 hover:text-black font-mono cursor-pointer"
+                  aria-label="Increase quantity"
+                >
+                  +
+                </button>
+              </div>
+
+              {/* Add to Bag CTA */}
               <button
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="px-3 py-3 text-neutral-600 hover:text-black font-mono"
-                aria-label="Decrease quantity"
+                type="button"
+                onClick={handleAddToCart}
+                disabled={isOutOfStock || isAdding}
+                className={`flex-1 py-3 px-4 text-xs font-mono font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all border border-neutral-900 bg-white text-neutral-900 hover:bg-neutral-100 cursor-pointer active:scale-98 ${
+                  isOutOfStock ? "opacity-50 cursor-not-allowed border-neutral-300" : ""
+                }`}
               >
-                -
-              </button>
-              <span className="px-3 text-xs font-mono font-bold text-black min-w-8 text-center">
-                {quantity}
-              </span>
-              <button
-                onClick={() => setQuantity(Math.min(activeVariant?.stock || 10, quantity + 1))}
-                className="px-3 py-3 text-neutral-600 hover:text-black font-mono"
-                aria-label="Increase quantity"
-              >
-                +
+                <ShoppingBag className="w-4 h-4" />
+                <span>{isOutOfStock ? "SOLD OUT" : isAdding ? "ADDING..." : "ADD TO CART"}</span>
               </button>
             </div>
 
-            {/* Add to Bag CTA */}
+            {/* Row 2: DIRECT BUY NOW Button */}
             <button
-              onClick={handleAddToCart}
-              disabled={isOutOfStock || isAdding}
-              className={`flex-1 py-3.5 px-6 text-xs font-mono font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-md active:scale-98 ${
+              type="button"
+              onClick={handleBuyNow}
+              disabled={isOutOfStock || isBuyingNow}
+              className={`w-full py-3.5 sm:py-4 px-6 text-xs sm:text-[13px] font-mono font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-md active:scale-98 cursor-pointer ${
                 isOutOfStock
-                  ? "bg-neutral-300 text-neutral-500 cursor-not-allowed"
-                  : "bg-black text-white hover:bg-neutral-800"
+                  ? "bg-neutral-300 text-neutral-500 cursor-not-allowed shadow-none"
+                  : "bg-black text-white hover:bg-neutral-800 shadow-neutral-900/20 hover:shadow-lg"
               }`}
             >
-              <ShoppingBag className="w-4 h-4" />
-              <span>{isOutOfStock ? "SOLD OUT" : "ADD TO BAG"}</span>
+              <Zap className="w-4 h-4 fill-amber-400 text-amber-400" />
+              <span>{isOutOfStock ? "OUT OF STOCK" : isBuyingNow ? "PROCEEDING TO CHECKOUT..." : "BUY IT NOW"}</span>
             </button>
           </div>
 
