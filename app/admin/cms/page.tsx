@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { HomepageSection, CollectionItem, Category } from "@/types";
 import {
   LayoutTemplate,
@@ -197,14 +197,41 @@ function ImageUploadField({
   );
 }
 
+// Helper to create a stable signature of all sections to detect unsaved changes
+function getSectionsSignature(list: HomepageSection[]): string {
+  if (!list || list.length === 0) return "";
+  return JSON.stringify(
+    list.map((s) => ({
+      id: s._id || s.type,
+      type: s.type,
+      title: (s.title || "").trim(),
+      subtitle: (s.subtitle || "").trim(),
+      isActive: Boolean(s.isActive),
+      hideOnDesktop: Boolean(s.hideOnDesktop),
+      hideOnMobile: Boolean(s.hideOnMobile),
+      order: s.order,
+      data: s.data || {},
+    }))
+  );
+}
+
 export default function AdminCMSBuilderPage() {
   const [sections, setSections] = useState<HomepageSection[]>([]);
+  const [savedSnapshot, setSavedSnapshot] = useState<string>("");
   const [collectionsList, setCollectionsList] = useState<CollectionItem[]>([]);
   const [openSectionId, setOpenSectionId] = useState<string | null>("sec-hero");
   const [isSaving, setIsSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [savingSectionId, setSavingSectionId] = useState<string | null>(null);
+
+  // Compute whether any section has unsaved edits
+  const currentSignature = useMemo(() => getSectionsSignature(sections), [sections]);
+  const hasChanges = Boolean(
+    savedSnapshot &&
+    currentSignature &&
+    currentSignature !== savedSnapshot
+  );
 
   // Load sections and collections from API
   const loadSections = async () => {
@@ -213,6 +240,7 @@ export default function AdminCMSBuilderPage() {
       const data = await res.json();
       if (data.sections && data.sections.length > 0) {
         setSections(data.sections);
+        setSavedSnapshot(getSectionsSignature(data.sections));
       }
     } catch (e) {
       console.error("Failed to load sections", e);
@@ -285,6 +313,19 @@ export default function AdminCMSBuilderPage() {
           },
         }),
       });
+      setSavedSnapshot((prev) => {
+        try {
+          const list = JSON.parse(prev) as HomepageSection[];
+          const updated = list.map((s) =>
+            s._id === section._id || s.type === section.type
+              ? { ...s, data: updatedData }
+              : s
+          );
+          return getSectionsSignature(updated);
+        } catch {
+          return prev;
+        }
+      });
       setStatusMessage("✓ Image applied and saved to live storefront!");
       setSavedSuccess(true);
       setTimeout(() => {
@@ -331,13 +372,15 @@ export default function AdminCMSBuilderPage() {
       });
       const data = await res.json();
       if (data.success && data.section) {
-        setSections((prev) =>
-          prev.map((s) =>
+        setSections((prev) => {
+          const updated = prev.map((s) =>
             s._id === data.section._id || s.type === data.section.type
               ? { ...s, ...data.section }
               : s
-          )
-        );
+          );
+          setSavedSnapshot(getSectionsSignature(updated));
+          return updated;
+        });
         setStatusMessage(
           newVal
             ? `✓ ${secName} is now HIDDEN on ${deviceLabel}!`
@@ -393,13 +436,15 @@ export default function AdminCMSBuilderPage() {
       });
       const data = await res.json();
       if (data.success && data.section) {
-        setSections((prev) =>
-          prev.map((s) =>
+        setSections((prev) => {
+          const updated = prev.map((s) =>
             s._id === data.section._id || s.type === data.section.type
               ? { ...s, ...data.section }
               : s
-          )
-        );
+          );
+          setSavedSnapshot(getSectionsSignature(updated));
+          return updated;
+        });
         setStatusMessage(
           newVal
             ? `✓ ${secName} is now LIVE on the storefront!`
@@ -440,13 +485,15 @@ export default function AdminCMSBuilderPage() {
       });
       const data = await res.json();
       if (data.success && data.section) {
-        setSections((prev) =>
-          prev.map((s) =>
+        setSections((prev) => {
+          const updated = prev.map((s) =>
             s._id === data.section._id || s.type === data.section.type
               ? { ...s, ...data.section }
               : s
-          )
-        );
+          );
+          setSavedSnapshot(getSectionsSignature(updated));
+          return updated;
+        });
         setStatusMessage(
           `✓ ${secName} saved successfully! ${
             !section.isActive
@@ -473,6 +520,7 @@ export default function AdminCMSBuilderPage() {
 
   // Save all sections at once
   const handleSaveAll = async () => {
+    if (!hasChanges && !isSaving) return;
     setIsSaving(true);
     try {
       const res = await fetch("/api/cms/sections", {
@@ -483,7 +531,8 @@ export default function AdminCMSBuilderPage() {
       const data = await res.json();
       if (data.success && data.sections) {
         setSections(data.sections);
-        setStatusMessage("✓ All homepage sections published successfully!");
+        setSavedSnapshot(getSectionsSignature(data.sections));
+        setStatusMessage("✓ All homepage changes published successfully to live store!");
         setSavedSuccess(true);
         setTimeout(() => {
           setSavedSuccess(false);
@@ -528,18 +577,45 @@ export default function AdminCMSBuilderPage() {
             <span>Storefront Live Preview ↗</span>
           </a>
 
+          {hasChanges && (
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-800 border border-amber-300 text-xs font-mono font-bold rounded-lg animate-pulse">
+              <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+              <span>Unsaved Changes</span>
+            </span>
+          )}
+
           <button
             type="button"
-            disabled={isSaving}
+            disabled={!hasChanges || isSaving}
             onClick={handleSaveAll}
-            className="px-5 py-2 bg-black hover:bg-neutral-800 text-white text-xs font-mono font-bold uppercase rounded flex items-center gap-2 shadow-sm transition-all cursor-pointer"
+            title={
+              hasChanges
+                ? "You have unsaved changes! Click to publish everything to live storefront."
+                : "No unsaved changes. All sections are published and up to date."
+            }
+            className={`px-5 py-2 text-xs font-mono font-bold uppercase rounded flex items-center gap-2 transition-all select-none ${
+              hasChanges
+                ? "bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white shadow-md cursor-pointer ring-2 ring-emerald-400/50"
+                : "bg-neutral-200 text-neutral-400 border border-neutral-300 cursor-not-allowed opacity-75"
+            }`}
           >
             {isSaving ? (
-              <RefreshCw className="w-4 h-4 animate-spin text-pink-400" />
+              <RefreshCw className="w-4 h-4 animate-spin text-white" />
+            ) : hasChanges ? (
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-200 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
+              </span>
             ) : (
-              <Check className="w-4 h-4 text-emerald-400" />
+              <Check className="w-4 h-4 text-neutral-400" />
             )}
-            <span>{isSaving ? "Publishing..." : "Publish All Changes"}</span>
+            <span>
+              {isSaving
+                ? "Publishing..."
+                : hasChanges
+                ? "Publish All Changes ●"
+                : "All Changes Published"}
+            </span>
           </button>
         </div>
       </div>
@@ -550,7 +626,7 @@ export default function AdminCMSBuilderPage() {
           <div className="flex items-center gap-2.5">
             <Check className="w-4 h-4 text-emerald-600 shrink-0" />
             <span className="font-bold">
-              Homepage changes published successfully to live storefront and database!
+              {statusMessage || "Homepage changes published successfully to live storefront and database!"}
             </span>
           </div>
           <Link
@@ -1728,6 +1804,35 @@ export default function AdminCMSBuilderPage() {
           );
         })}
       </div>
+
+      {/* Floating Bottom Bar when there are unsaved changes */}
+      {hasChanges && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-neutral-950/95 backdrop-blur-md text-white px-5 py-3 rounded-2xl shadow-2xl border border-neutral-700 flex items-center gap-4 animate-in slide-in-from-bottom-4 duration-200">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400"></span>
+            </span>
+            <span className="text-xs font-mono font-bold text-neutral-100">
+              Unsaved changes ready to publish
+            </span>
+          </div>
+
+          <button
+            type="button"
+            disabled={isSaving}
+            onClick={handleSaveAll}
+            className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-mono font-bold uppercase rounded-lg flex items-center gap-2 transition-all cursor-pointer shadow-sm"
+          >
+            {isSaving ? (
+              <RefreshCw className="w-3.5 h-3.5 animate-spin text-white" />
+            ) : (
+              <Check className="w-3.5 h-3.5 text-white" />
+            )}
+            <span>{isSaving ? "Publishing..." : "Publish All Changes"}</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
