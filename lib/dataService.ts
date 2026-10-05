@@ -1512,6 +1512,8 @@ export async function updateHomepageSection(
         if (updates.subtitle !== undefined) doc.subtitle = updates.subtitle;
         if (updates.order !== undefined) doc.order = updates.order;
         if (updates.isActive !== undefined) doc.isActive = updates.isActive;
+        if (updates.hideOnDesktop !== undefined) (doc as any).hideOnDesktop = updates.hideOnDesktop;
+        if (updates.hideOnMobile !== undefined) (doc as any).hideOnMobile = updates.hideOnMobile;
         if (updates.data !== undefined) {
           doc.data = { ...(doc.data || {}), ...updates.data };
           doc.markModified("data");
@@ -1548,6 +1550,8 @@ export async function updateHomepageSection(
       subtitle: updates.subtitle || "",
       order: updates.order || 1,
       isActive: updates.isActive !== undefined ? updates.isActive : true,
+      hideOnDesktop: updates.hideOnDesktop !== undefined ? updates.hideOnDesktop : false,
+      hideOnMobile: updates.hideOnMobile !== undefined ? updates.hideOnMobile : false,
       data: updates.data || {},
       createdAt: new Date().toISOString(),
     };
@@ -1557,6 +1561,8 @@ export async function updateHomepageSection(
     if (updates.subtitle !== undefined) section.subtitle = updates.subtitle;
     if (updates.order !== undefined) section.order = updates.order;
     if (updates.isActive !== undefined) section.isActive = updates.isActive;
+    if (updates.hideOnDesktop !== undefined) section.hideOnDesktop = updates.hideOnDesktop;
+    if (updates.hideOnMobile !== undefined) section.hideOnMobile = updates.hideOnMobile;
     if (updates.data !== undefined) {
       section.data = { ...(section.data || {}), ...updates.data };
     }

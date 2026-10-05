@@ -6,6 +6,8 @@ export interface IHomepageSection extends Document {
   subtitle?: string;
   order: number;
   isActive: boolean;
+  hideOnDesktop?: boolean;
+  hideOnMobile?: boolean;
   data: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
@@ -18,6 +20,8 @@ const HomepageSectionSchema = new Schema<IHomepageSection>(
     subtitle: { type: String, default: "" },
     order: { type: Number, required: true, default: 0 },
     isActive: { type: Boolean, default: true },
+    hideOnDesktop: { type: Boolean, default: false },
+    hideOnMobile: { type: Boolean, default: false },
     data: { type: Schema.Types.Mixed, default: {} },
   },
   { timestamps: true }

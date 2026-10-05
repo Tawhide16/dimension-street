@@ -190,6 +190,8 @@ export interface HomepageSection {
   subtitle?: string;
   order: number;
   isActive: boolean;
+  hideOnDesktop?: boolean;
+  hideOnMobile?: boolean;
   data: Record<string, unknown>;
   createdAt: string;
 }

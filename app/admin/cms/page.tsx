@@ -5,6 +5,7 @@ import { HomepageSection, CollectionItem, Category } from "@/types";
 import {
   LayoutTemplate,
   Eye,
+  EyeOff,
   Check,
   Power,
   Upload,
@@ -20,6 +21,8 @@ import {
   ArrowRight,
   ExternalLink,
   Menu,
+  Monitor,
+  Smartphone,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -288,6 +291,71 @@ export default function AdminCMSBuilderPage() {
     }
   };
 
+  // Instantly toggle desktop or mobile visibility and auto-save
+  const handleToggleDevice = async (
+    section: HomepageSection,
+    field: "hideOnDesktop" | "hideOnMobile"
+  ) => {
+    const currentVal = Boolean(section[field]);
+    const newVal = !currentVal;
+
+    // 1. Instant optimistic state update
+    setSections((prev) =>
+      prev.map((s) =>
+        s._id === section._id || s.type === section.type
+          ? { ...s, [field]: newVal }
+          : s
+      )
+    );
+
+    // 2. Persist to MongoDB & JSON store immediately
+    try {
+      await fetch("/api/cms/sections", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: section._id || section.type,
+          updates: {
+            [field]: newVal,
+          },
+        }),
+      });
+      setSavedSuccess(true);
+      setTimeout(() => setSavedSuccess(false), 2500);
+    } catch (err) {
+      console.error("Device toggle auto-save error:", err);
+    }
+  };
+
+  // Instantly toggle active/hidden state and auto-save
+  const handleToggleActive = async (section: HomepageSection) => {
+    const newVal = !section.isActive;
+    setSections((prev) =>
+      prev.map((s) =>
+        s._id === section._id || s.type === section.type
+          ? { ...s, isActive: newVal }
+          : s
+      )
+    );
+
+    try {
+      await fetch("/api/cms/sections", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: section._id || section.type,
+          updates: {
+            isActive: newVal,
+          },
+        }),
+      });
+      setSavedSuccess(true);
+      setTimeout(() => setSavedSuccess(false), 2500);
+    } catch (err) {
+      console.error("Active toggle auto-save error:", err);
+    }
+  };
+
   // Save an individual section
   const handleSaveSingleSection = async (section: HomepageSection) => {
     setSavingSectionId(section._id);
@@ -301,6 +369,8 @@ export default function AdminCMSBuilderPage() {
             title: section.title,
             subtitle: section.subtitle,
             isActive: section.isActive,
+            hideOnDesktop: section.hideOnDesktop || false,
+            hideOnMobile: section.hideOnMobile || false,
             order: section.order,
             data: section.data,
           },
@@ -526,18 +596,49 @@ export default function AdminCMSBuilderPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
-                  {/* Active/Inactive Toggle Pill */}
+                <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap justify-end" onClick={(e) => e.stopPropagation()}>
+                  {/* Desktop Visibility Toggle Action Button */}
                   <button
                     type="button"
-                    onClick={() =>
-                      updateSectionField(
-                        section._id,
-                        "isActive",
-                        !section.isActive
-                      )
-                    }
-                    className={`px-3 py-1 text-xs font-mono rounded-full font-bold flex items-center gap-1.5 transition-colors border ${
+                    onClick={() => handleToggleDevice(section, "hideOnDesktop")}
+                    title={section.hideOnDesktop ? "Desktop: HIDDEN (Click to Show)" : "Desktop: VISIBLE (Click to Hide)"}
+                    className={`px-2.5 py-1 text-xs font-mono rounded-md font-bold flex items-center gap-1.5 transition-all border cursor-pointer ${
+                      section.hideOnDesktop
+                        ? "bg-rose-50 text-rose-700 border-rose-300 hover:bg-rose-100 line-through opacity-85"
+                        : "bg-white text-neutral-800 border-neutral-300 hover:border-neutral-900 hover:bg-neutral-50 shadow-2xs"
+                    }`}
+                  >
+                    <Monitor className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Desktop</span>
+                    <span className={`text-[10px] uppercase font-bold px-1 rounded ${section.hideOnDesktop ? "bg-rose-200 text-rose-900" : "bg-neutral-200 text-neutral-800"}`}>
+                      {section.hideOnDesktop ? "Off" : "On"}
+                    </span>
+                  </button>
+
+                  {/* Mobile Visibility Toggle Action Button */}
+                  <button
+                    type="button"
+                    onClick={() => handleToggleDevice(section, "hideOnMobile")}
+                    title={section.hideOnMobile ? "Mobile: HIDDEN (Click to Show)" : "Mobile: VISIBLE (Click to Hide)"}
+                    className={`px-2.5 py-1 text-xs font-mono rounded-md font-bold flex items-center gap-1.5 transition-all border cursor-pointer ${
+                      section.hideOnMobile
+                        ? "bg-rose-50 text-rose-700 border-rose-300 hover:bg-rose-100 line-through opacity-85"
+                        : "bg-white text-neutral-800 border-neutral-300 hover:border-neutral-900 hover:bg-neutral-50 shadow-2xs"
+                    }`}
+                  >
+                    <Smartphone className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Mobile</span>
+                    <span className={`text-[10px] uppercase font-bold px-1 rounded ${section.hideOnMobile ? "bg-rose-200 text-rose-900" : "bg-neutral-200 text-neutral-800"}`}>
+                      {section.hideOnMobile ? "Off" : "On"}
+                    </span>
+                  </button>
+
+                  {/* Master Active/Inactive Toggle Pill */}
+                  <button
+                    type="button"
+                    onClick={() => handleToggleActive(section)}
+                    title={section.isActive ? "Master Status: ACTIVE (Click to Hide entirely)" : "Master Status: HIDDEN (Click to Activate)"}
+                    className={`px-3 py-1 text-xs font-mono rounded-full font-bold flex items-center gap-1.5 transition-colors border cursor-pointer ${
                       section.isActive
                         ? "bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100"
                         : "bg-neutral-100 text-neutral-500 border-neutral-300 hover:bg-neutral-200"
@@ -554,6 +655,7 @@ export default function AdminCMSBuilderPage() {
                       setOpenSectionId(isOpen ? null : section._id || section.type)
                     }
                     className="p-1 text-neutral-400 hover:text-black rounded"
+                    title={isOpen ? "Collapse Section" : "Expand Section"}
                   >
                     {isOpen ? (
                       <ChevronUp className="w-5 h-5" />
@@ -567,6 +669,49 @@ export default function AdminCMSBuilderPage() {
               {/* Collapsible Content Body */}
               {isOpen && (
                 <div className="p-6 space-y-6 bg-white animate-in fade-in duration-150">
+                  {/* DEVICE DISPLAY SETTINGS BAR */}
+                  <div className="bg-neutral-50 p-4 rounded-xl border border-neutral-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <Sliders className="w-4 h-4 text-neutral-700" />
+                        <span className="text-xs font-mono font-bold uppercase tracking-wider text-neutral-900">
+                          Responsive Device Display Controls
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-neutral-500 font-sans mt-0.5">
+                        Instantly hide or show this section on Desktop computers (≥768px) and Mobile screens (&lt;768px).
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={() => handleToggleDevice(section, "hideOnDesktop")}
+                        className={`px-3 py-1.5 text-xs font-mono rounded-lg font-bold flex items-center gap-2 transition-all border cursor-pointer ${
+                          section.hideOnDesktop
+                            ? "bg-rose-50 text-rose-700 border-rose-300 hover:bg-rose-100"
+                            : "bg-white text-neutral-900 border-neutral-300 hover:border-black hover:bg-neutral-50 shadow-2xs"
+                        }`}
+                      >
+                        <Monitor className="w-3.5 h-3.5" />
+                        <span>Desktop: <strong>{section.hideOnDesktop ? "HIDDEN ✕" : "VISIBLE ✓"}</strong></span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleToggleDevice(section, "hideOnMobile")}
+                        className={`px-3 py-1.5 text-xs font-mono rounded-lg font-bold flex items-center gap-2 transition-all border cursor-pointer ${
+                          section.hideOnMobile
+                            ? "bg-rose-50 text-rose-700 border-rose-300 hover:bg-rose-100"
+                            : "bg-white text-neutral-900 border-neutral-300 hover:border-black hover:bg-neutral-50 shadow-2xs"
+                        }`}
+                      >
+                        <Smartphone className="w-3.5 h-3.5" />
+                        <span>Mobile: <strong>{section.hideOnMobile ? "HIDDEN ✕" : "VISIBLE ✓"}</strong></span>
+                      </button>
+                    </div>
+                  </div>
+
                   {/* SPECIFIC CONTROLS PER SECTION TYPE */}
 
                   {/* 1. HERO BANNER */}
