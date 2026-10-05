@@ -23,6 +23,7 @@ import {
   Menu,
   Monitor,
   Smartphone,
+  RotateCcw,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -218,6 +219,7 @@ function getSectionsSignature(list: HomepageSection[]): string {
 export default function AdminCMSBuilderPage() {
   const [sections, setSections] = useState<HomepageSection[]>([]);
   const [savedSnapshot, setSavedSnapshot] = useState<string>("");
+  const [savedSections, setSavedSections] = useState<HomepageSection[]>([]);
   const [collectionsList, setCollectionsList] = useState<CollectionItem[]>([]);
   const [openSectionId, setOpenSectionId] = useState<string | null>("sec-hero");
   const [isSaving, setIsSaving] = useState(false);
@@ -240,6 +242,7 @@ export default function AdminCMSBuilderPage() {
       const data = await res.json();
       if (data.sections && data.sections.length > 0) {
         setSections(data.sections);
+        setSavedSections(JSON.parse(JSON.stringify(data.sections)));
         setSavedSnapshot(getSectionsSignature(data.sections));
       }
     } catch (e) {
@@ -337,6 +340,57 @@ export default function AdminCMSBuilderPage() {
     );
   };
 
+  // Discard all unsaved changes and revert to last saved state
+  const handleDiscardChanges = () => {
+    if (savedSections && savedSections.length > 0) {
+      setSections(JSON.parse(JSON.stringify(savedSections)));
+      setStatusMessage("✓ All unsaved changes discarded. Restored to last published state.");
+      setSavedSuccess(true);
+      setTimeout(() => {
+        setSavedSuccess(false);
+        setStatusMessage(null);
+      }, 3500);
+    }
+  };
+
+  // Check if a specific section has unsaved edits
+  const isSectionModified = (sec: HomepageSection) => {
+    const savedSec = savedSections.find(
+      (s) => (s._id && s._id === sec._id) || s.type === sec.type
+    );
+    if (!savedSec) return false;
+    return (
+      (sec.title || "").trim() !== (savedSec.title || "").trim() ||
+      (sec.subtitle || "").trim() !== (savedSec.subtitle || "").trim() ||
+      Boolean(sec.isActive) !== Boolean(savedSec.isActive) ||
+      Boolean(sec.hideOnDesktop) !== Boolean(savedSec.hideOnDesktop) ||
+      Boolean(sec.hideOnMobile) !== Boolean(savedSec.hideOnMobile) ||
+      JSON.stringify(sec.data || {}) !== JSON.stringify(savedSec.data || {})
+    );
+  };
+
+  // Discard unsaved changes for a single section
+  const handleDiscardSingleSection = (section: HomepageSection) => {
+    const savedSec = savedSections.find(
+      (s) => (s._id && s._id === section._id) || s.type === section.type
+    );
+    if (!savedSec) return;
+    setSections((prev) =>
+      prev.map((s) =>
+        (s._id && s._id === section._id) || s.type === section.type
+          ? JSON.parse(JSON.stringify(savedSec))
+          : s
+      )
+    );
+    const secName = section.title || section.type.replace(/_/g, " ").toUpperCase();
+    setStatusMessage(`✓ Changes for ${secName} discarded.`);
+    setSavedSuccess(true);
+    setTimeout(() => {
+      setSavedSuccess(false);
+      setStatusMessage(null);
+    }, 2500);
+  };
+
   // Save an individual section
   const handleSaveSingleSection = async (section: HomepageSection) => {
     const targetId = section._id || section.type;
@@ -367,8 +421,16 @@ export default function AdminCMSBuilderPage() {
               ? { ...s, ...data.section }
               : s
           );
-          setSavedSnapshot(getSectionsSignature(updated));
           return updated;
+        });
+        setSavedSections((savedPrev) => {
+          const newSaved = savedPrev.map((s) =>
+            s._id === data.section._id || s.type === data.section.type
+              ? { ...s, ...data.section }
+              : s
+          );
+          setSavedSnapshot(getSectionsSignature(newSaved));
+          return newSaved;
         });
         setStatusMessage(
           `✓ ${secName} saved successfully! ${
@@ -407,6 +469,7 @@ export default function AdminCMSBuilderPage() {
       const data = await res.json();
       if (data.success && data.sections) {
         setSections(data.sections);
+        setSavedSections(JSON.parse(JSON.stringify(data.sections)));
         setSavedSnapshot(getSectionsSignature(data.sections));
         setStatusMessage("✓ All homepage changes published successfully to live store!");
         setSavedSuccess(true);
@@ -442,7 +505,7 @@ export default function AdminCMSBuilderPage() {
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
           <a
             href="/"
             target="_blank"
@@ -458,6 +521,18 @@ export default function AdminCMSBuilderPage() {
               <span className="w-2 h-2 rounded-full bg-amber-500"></span>
               <span>Unsaved Changes</span>
             </span>
+          )}
+
+          {hasChanges && (
+            <button
+              type="button"
+              onClick={handleDiscardChanges}
+              title="Discard all unsaved changes and restore to last saved version"
+              className="px-4 py-2 bg-white hover:bg-red-50 text-neutral-700 hover:text-red-600 border border-neutral-300 hover:border-red-300 text-xs font-mono font-bold uppercase rounded flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95"
+            >
+              <RotateCcw className="w-3.5 h-3.5 text-red-500" />
+              <span>Discard Changes</span>
+            </button>
           )}
 
           <button
@@ -1653,26 +1728,40 @@ export default function AdminCMSBuilderPage() {
                   )}
 
                   {/* Section Bottom Action Row */}
-                  <div className="pt-4 border-t border-neutral-100 flex items-center justify-between">
+                  <div className="pt-4 border-t border-neutral-100 flex items-center justify-between gap-3 flex-wrap">
                     <span className="text-[11px] font-mono text-neutral-400">
                       Changes are synced to MongoDB Atlas and local persistent cache.
                     </span>
 
-                    <button
-                      type="button"
-                      disabled={savingSectionId === section._id}
-                      onClick={() => handleSaveSingleSection(section)}
-                      className="px-4 py-1.5 bg-neutral-900 hover:bg-black text-white text-xs font-mono font-bold uppercase rounded flex items-center gap-1.5 transition-colors cursor-pointer"
-                    >
-                      {savingSectionId === section._id ? (
-                        <RefreshCw className="w-3.5 h-3.5 animate-spin text-pink-400" />
-                      ) : (
-                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    <div className="flex items-center gap-2">
+                      {isSectionModified(section) && (
+                        <button
+                          type="button"
+                          onClick={() => handleDiscardSingleSection(section)}
+                          className="px-3 py-1.5 bg-white hover:bg-red-50 text-neutral-700 hover:text-red-600 text-xs font-mono font-bold uppercase rounded flex items-center gap-1.5 transition-colors cursor-pointer border border-neutral-300 hover:border-red-300"
+                          title="Discard unsaved edits for this section"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5 text-neutral-500 hover:text-red-500" />
+                          <span>Discard</span>
+                        </button>
                       )}
-                      <span>
-                        {savingSectionId === section._id ? "Saving..." : "Save Section"}
-                      </span>
-                    </button>
+
+                      <button
+                        type="button"
+                        disabled={savingSectionId === section._id}
+                        onClick={() => handleSaveSingleSection(section)}
+                        className="px-4 py-1.5 bg-neutral-900 hover:bg-black text-white text-xs font-mono font-bold uppercase rounded flex items-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        {savingSectionId === section._id ? (
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin text-pink-400" />
+                        ) : (
+                          <Check className="w-3.5 h-3.5 text-emerald-400" />
+                        )}
+                        <span>
+                          {savingSectionId === section._id ? "Saving..." : "Save Section"}
+                        </span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -1683,16 +1772,26 @@ export default function AdminCMSBuilderPage() {
 
       {/* Floating Bottom Bar when there are unsaved changes */}
       {hasChanges && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-neutral-950/95 backdrop-blur-md text-white px-5 py-3 rounded-2xl shadow-2xl border border-neutral-700 flex items-center gap-4 animate-in slide-in-from-bottom-4 duration-200">
-          <div className="flex items-center gap-2">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-neutral-950/95 backdrop-blur-md text-white px-5 py-3 rounded-2xl shadow-2xl border border-neutral-700 flex items-center gap-3 animate-in slide-in-from-bottom-4 duration-200">
+          <div className="flex items-center gap-2 pr-3 border-r border-neutral-800">
             <span className="relative flex h-2.5 w-2.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400"></span>
             </span>
             <span className="text-xs font-mono font-bold text-neutral-100">
-              Unsaved changes ready to publish
+              Unsaved changes
             </span>
           </div>
+
+          <button
+            type="button"
+            onClick={handleDiscardChanges}
+            title="Discard all unsaved edits"
+            className="px-3.5 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 hover:text-red-400 border border-neutral-700 hover:border-red-500/40 text-xs font-mono font-bold uppercase rounded-lg flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
+          >
+            <RotateCcw className="w-3.5 h-3.5 text-red-400" />
+            <span>Discard</span>
+          </button>
 
           <button
             type="button"
