@@ -133,7 +133,7 @@ export default function Header() {
                 className="inline-flex items-center select-none transition-transform hover:scale-[1.03] active:scale-95"
                 aria-label="Storefront Logo"
               >
-                <div className="relative h-14 sm:h-16 lg:h-18 w-auto min-w-[120px] max-w-[220px] flex items-center">
+                <div className="relative h-12 sm:h-16 lg:h-18 w-auto min-w-[90px] sm:min-w-[120px] max-w-[150px] sm:max-w-[220px] flex items-center">
                   <Image
                     src={config.logoImageUrl}
                     alt={config.logoText || "DIMENSION STREET"}
@@ -151,7 +151,7 @@ export default function Header() {
           </div>
 
           {/* Right: Actions */}
-          <div className="flex items-center space-x-2.5 sm:space-x-3 relative">
+          <div className="flex items-center space-x-2 sm:space-x-3 relative mr-1 sm:mr-0">
             {/* Desktop Capsule: Only for Desktop (Exact same border radius & height as Menu pill) */}
             {(config?.showCart !== false ||
               config?.showWishlist !== false ||
@@ -241,13 +241,15 @@ export default function Header() {
 
             {/* 2. Menu Pill & Smooth Rolling Shutter Container */}
             <div
-              className="relative w-[195px] sm:w-[205px] h-11 shrink-0"
+              className="relative w-[130px] sm:w-[205px] h-11 shrink-0 mr-1 sm:mr-0"
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}
             >
               {/* Shutter Container */}
               <div
-                className={`absolute top-0 left-0 w-full bg-[#1c1c1c] text-white overflow-hidden rounded-[22px] transition-[height,box-shadow] duration-700 ease-[cubic-bezier(0.25,1,0.35,1)] border border-white/10 z-50 ${
+                className={`absolute top-0 right-0 ${
+                  menuOpen ? "w-[210px] sm:w-full" : "w-full"
+                } bg-[#1c1c1c] text-white overflow-hidden rounded-[22px] transition-[height,width,box-shadow] duration-700 ease-[cubic-bezier(0.25,1,0.35,1)] border border-white/10 z-50 ${
                   menuOpen
                     ? "h-[380px] md:h-[260px] shadow-2xl"
                     : "h-11 shadow-xs cursor-pointer"
@@ -256,9 +258,9 @@ export default function Header() {
                 {/* Top Header Row (Stationary 44px pill row) */}
                 <div
                   onClick={() => setMenuOpen((prev) => !prev)}
-                  className="h-11 px-5 flex items-center justify-between shrink-0 cursor-pointer select-none"
+                  className="h-11 px-4 sm:px-5 flex items-center justify-between shrink-0 cursor-pointer select-none"
                 >
-                  <span className="text-[#9e9e9e] font-bold text-[15px] sm:text-base tracking-tight">
+                  <span className="text-[#9e9e9e] font-bold text-sm sm:text-base tracking-tight">
                     {config?.menuPillLabel || "Menu"}
                   </span>
 

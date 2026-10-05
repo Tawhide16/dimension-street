@@ -40,7 +40,7 @@ export default function Logo({
           {logoText}
         </span>
       ) : (
-        <div className={`relative ${sizeMap[size]} w-auto min-w-[70px] max-w-[260px] flex items-center justify-start`}>
+        <div className={`relative ${sizeMap[size]} w-auto min-w-[70px] max-w-[150px] sm:max-w-[260px] flex items-center justify-start`}>
           <Image
             src={logoSrc}
             alt={logoText}
