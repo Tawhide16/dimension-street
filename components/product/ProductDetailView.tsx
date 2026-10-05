@@ -501,7 +501,7 @@ export default function ProductDetailView({
         <div className="lg:col-span-5 flex flex-col justify-start space-y-6">
           {/* Header & Meta */}
           <div className="border-b border-neutral-200 pb-5">
-            <div className="flex items-center justify-between text-xs font-mono text-neutral-500 uppercase tracking-widest mb-1.5">
+            <div className="hidden md:flex items-center justify-between text-xs font-mono text-neutral-500 uppercase tracking-widest mb-1.5">
               <span>DIMENSION STREET // ARCHIVE</span>
               <span className="text-neutral-400">SKU: {activeVariant?.sku}</span>
             </div>
@@ -529,7 +529,7 @@ export default function ProductDetailView({
 
             {/* Short Tagline */}
             {product.shortDescription && (
-              <p className="mt-3 text-xs text-neutral-600 leading-relaxed font-normal font-description">
+              <p className="hidden md:block mt-3 text-xs text-neutral-600 leading-relaxed font-normal font-description">
                 {product.shortDescription}
               </p>
             )}
@@ -741,7 +741,7 @@ export default function ProductDetailView({
                 aria-expanded={openAccordion === "description"}
                 className="w-full py-3.5 flex justify-between items-center text-left font-bold uppercase tracking-wider text-neutral-900 group cursor-pointer transition-colors hover:text-black select-none"
               >
-                <span>PRODUCT DESCRIPTION</span>
+                <span>PRODUCT DETAILS & DESCRIPTION</span>
                 <ChevronDown
                   className={`w-4 h-4 text-neutral-500 transition-transform duration-300 ease-in-out ${
                     openAccordion === "description" ? "rotate-180 text-black" : "rotate-0"
@@ -756,6 +756,19 @@ export default function ProductDetailView({
               >
                 <div className="accordion-inner-content">
                   <div className="pb-6 pt-1 text-neutral-700 font-description text-xs sm:text-[13px] leading-relaxed space-y-4">
+                    {/* Mobile Product Details & SKU (moved into dropdown for mobile devices) */}
+                    <div className="md:hidden p-3.5 bg-neutral-50 border border-neutral-200 rounded-xs space-y-2 font-mono">
+                      <div className="flex items-center justify-between text-[11px] font-mono text-neutral-500 uppercase tracking-widest pb-2 border-b border-neutral-200/80">
+                        <span>DIMENSION STREET // ARCHIVE</span>
+                        <span className="text-neutral-900 font-bold">SKU: {activeVariant?.sku}</span>
+                      </div>
+                      {product.shortDescription && (
+                        <p className="text-xs text-neutral-700 leading-relaxed font-description">
+                          {product.shortDescription}
+                        </p>
+                      )}
+                    </div>
+
                     <p className="font-description">{product.description}</p>
 
                     {/* Highlights */}
