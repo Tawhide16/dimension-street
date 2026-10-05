@@ -72,7 +72,7 @@ function ImageUploadField({
         if (onAutoSave) {
           onAutoSave(data.url);
         }
-        setSuccessMsg("✓ Image uploaded and saved to live storefront!");
+        setSuccessMsg("✓ Image uploaded! Click 'Publish All Changes' to make live.");
         setTimeout(() => setSuccessMsg(null), 4000);
       } else {
         setErrorMsg(data.error || "Failed to upload image.");
@@ -169,14 +169,14 @@ function ImageUploadField({
                 type="button"
                 onClick={() => {
                   onAutoSave(value);
-                  setSuccessMsg("✓ Image URL applied and saved!");
+                  setSuccessMsg("✓ Image URL applied! Click 'Publish All Changes' to make live.");
                   setTimeout(() => setSuccessMsg(null), 3500);
                 }}
-                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-mono font-bold uppercase rounded flex items-center gap-1 shrink-0 cursor-pointer shadow-2xs transition-colors"
-                title="Save this image immediately to the live homepage"
+                className="px-3 py-1.5 bg-neutral-900 hover:bg-black text-white text-xs font-mono font-bold uppercase rounded flex items-center gap-1 shrink-0 cursor-pointer shadow-2xs transition-colors"
+                title="Apply this image URL to section draft"
               >
-                <Check className="w-3.5 h-3.5" />
-                <span>Apply & Save</span>
+                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Apply Image</span>
               </button>
             )}
           </div>
@@ -287,67 +287,24 @@ export default function AdminCMSBuilderPage() {
   };
 
   // Auto-save a specific data key (e.g. image change)
-  const handleAutoSaveImage = async (
+  // Update a specific data key (e.g. image change) in draft state
+  const handleAutoSaveImage = (
     section: HomepageSection,
     dataKey: string,
     newUrl: string
   ) => {
-    const updatedData = {
-      ...(section.data || {}),
-      [dataKey]: newUrl,
-    };
     updateSectionData(section._id, dataKey, newUrl);
-
-    try {
-      await fetch("/api/cms/sections", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: section._id || section.type,
-          updates: {
-            title: section.title,
-            subtitle: section.subtitle,
-            isActive: Boolean(section.isActive),
-            order: section.order,
-            data: updatedData,
-          },
-        }),
-      });
-      setSavedSnapshot((prev) => {
-        try {
-          const list = JSON.parse(prev) as HomepageSection[];
-          const updated = list.map((s) =>
-            s._id === section._id || s.type === section.type
-              ? { ...s, data: updatedData }
-              : s
-          );
-          return getSectionsSignature(updated);
-        } catch {
-          return prev;
-        }
-      });
-      setStatusMessage("✓ Image applied and saved to live storefront!");
-      setSavedSuccess(true);
-      setTimeout(() => {
-        setSavedSuccess(false);
-        setStatusMessage(null);
-      }, 3500);
-    } catch (err) {
-      console.error("Auto-save error:", err);
-    }
   };
 
-  // Instantly toggle desktop or mobile visibility and auto-save
-  const handleToggleDevice = async (
+  // Toggle desktop or mobile visibility in draft state
+  const handleToggleDevice = (
     section: HomepageSection,
     field: "hideOnDesktop" | "hideOnMobile"
   ) => {
     const currentVal = Boolean(section[field]);
     const newVal = !currentVal;
-    const deviceLabel = field === "hideOnDesktop" ? "Desktop screen" : "Mobile screen";
-    const secName = section.title || section.type.replace(/_/g, " ").toUpperCase();
 
-    // 1. Instant optimistic state update
+    // Update draft state (activates "Publish All Changes" button)
     setSections((prev) =>
       prev.map((s) =>
         s._id === section._id || s.type === section.type
@@ -355,52 +312,11 @@ export default function AdminCMSBuilderPage() {
           : s
       )
     );
-
-    setStatusMessage(`Updating ${secName} for ${deviceLabel}...`);
-
-    // 2. Persist to MongoDB & JSON store immediately
-    try {
-      const res = await fetch("/api/cms/sections", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: section._id || section.type,
-          updates: {
-            [field]: newVal,
-          },
-        }),
-      });
-      const data = await res.json();
-      if (data.success && data.section) {
-        setSections((prev) => {
-          const updated = prev.map((s) =>
-            s._id === data.section._id || s.type === data.section.type
-              ? { ...s, ...data.section }
-              : s
-          );
-          setSavedSnapshot(getSectionsSignature(updated));
-          return updated;
-        });
-        setStatusMessage(
-          newVal
-            ? `✓ ${secName} is now HIDDEN on ${deviceLabel}!`
-            : `✓ ${secName} is now VISIBLE on ${deviceLabel}!`
-        );
-        setSavedSuccess(true);
-        setTimeout(() => {
-          setSavedSuccess(false);
-          setStatusMessage(null);
-        }, 3500);
-      }
-    } catch (err) {
-      console.error("Device toggle auto-save error:", err);
-    }
   };
 
-  // Instantly toggle master active/hidden state and auto-save
-  const handleToggleActive = async (section: HomepageSection) => {
+  // Toggle master active/hidden state in draft state
+  const handleToggleActive = (section: HomepageSection) => {
     const newVal = !section.isActive;
-    const secName = section.title || section.type.replace(/_/g, " ").toUpperCase();
 
     const updates: Partial<HomepageSection> = {
       isActive: newVal,
@@ -411,6 +327,7 @@ export default function AdminCMSBuilderPage() {
       updates.hideOnMobile = false;
     }
 
+    // Update draft state (activates "Publish All Changes" button)
     setSections((prev) =>
       prev.map((s) =>
         s._id === section._id || s.type === section.type
@@ -418,47 +335,6 @@ export default function AdminCMSBuilderPage() {
           : s
       )
     );
-
-    setStatusMessage(
-      newVal
-        ? `Activating ${secName}...`
-        : `Hiding ${secName} completely from live storefront...`
-    );
-
-    try {
-      const res = await fetch("/api/cms/sections", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: section._id || section.type,
-          updates,
-        }),
-      });
-      const data = await res.json();
-      if (data.success && data.section) {
-        setSections((prev) => {
-          const updated = prev.map((s) =>
-            s._id === data.section._id || s.type === data.section.type
-              ? { ...s, ...data.section }
-              : s
-          );
-          setSavedSnapshot(getSectionsSignature(updated));
-          return updated;
-        });
-        setStatusMessage(
-          newVal
-            ? `✓ ${secName} is now LIVE on the storefront!`
-            : `✓ ${secName} is now completely HIDDEN from your live storefront!`
-        );
-        setSavedSuccess(true);
-        setTimeout(() => {
-          setSavedSuccess(false);
-          setStatusMessage(null);
-        }, 3500);
-      }
-    } catch (err) {
-      console.error("Active toggle auto-save error:", err);
-    }
   };
 
   // Save an individual section
