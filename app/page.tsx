@@ -123,7 +123,7 @@ export default async function HomePage() {
                 </Link>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-md mx-auto md:max-w-none">
                 {newArrivals.slice(0, newArrivalsLimit).map((product) => (
                   <ProductCard key={product._id} product={product} showBadges={false} />
                 ))}

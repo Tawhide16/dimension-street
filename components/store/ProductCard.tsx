@@ -143,7 +143,7 @@ export default function ProductCard({
             src={activeColorVariant?.image || (isHovered && hoverImage ? hoverImage : primaryImage)}
             alt={product.name}
             fill
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 33vw, 25vw"
             className="object-cover object-center transition-all duration-300"
           />
         </Link>
