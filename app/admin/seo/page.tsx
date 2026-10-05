@@ -50,8 +50,7 @@ const defaultSeo: SeoFormState = {
   canonicalUrl: "https://dimensionstreet.com",
   ogTitle: "DIMENSION STREET — Heavyweight Essentials",
   ogDescription: "Premium architectural streetwear designed for every dimension.",
-  ogImage:
-    "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1200&q=80",
+  ogImage: "/images/dimension-street-logo.png",
   ogType: "website",
   twitterCard: "summary_large_image",
   twitterHandle: "@dimensionstreet",

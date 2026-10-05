@@ -57,8 +57,7 @@ const SeoConfigSchema = new Schema<ISeoConfigDocument>(
     },
     ogImage: {
       type: String,
-      default:
-        "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1200&q=80",
+      default: "/images/dimension-street-logo.png",
     },
     ogType: {
       type: String,

@@ -150,6 +150,7 @@ export default function RootLayout({
           media="(prefers-color-scheme: dark)"
           type="image/png"
         />
+        <link rel="image_src" href="/images/dimension-street-logo.png" />
       </head>
       <body
         suppressHydrationWarning
