@@ -71,8 +71,7 @@ export const initialSeoConfig: ISeoConfig = {
   canonicalUrl: "https://dimensionstreet.com",
   ogTitle: "DIMENSION STREET — Heavyweight Essentials",
   ogDescription: "Premium architectural streetwear designed for every dimension.",
-  ogImage:
-    "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1200&q=80",
+  ogImage: "/images/og-dimension-street.png",
   ogType: "website",
   twitterCard: "summary_large_image",
   twitterHandle: "@dimensionstreet",
@@ -1790,7 +1789,10 @@ export async function getSeoConfig(): Promise<ISeoConfig> {
           canonicalUrl: doc.canonicalUrl || initialSeoConfig.canonicalUrl,
           ogTitle: doc.ogTitle || initialSeoConfig.ogTitle,
           ogDescription: doc.ogDescription || initialSeoConfig.ogDescription,
-          ogImage: doc.ogImage || initialSeoConfig.ogImage,
+          ogImage:
+            doc.ogImage && !doc.ogImage.includes("unsplash.com")
+              ? doc.ogImage
+              : "/images/og-dimension-street.png",
           ogType: doc.ogType || initialSeoConfig.ogType,
           twitterCard: (doc.twitterCard as any) || initialSeoConfig.twitterCard,
           twitterHandle: doc.twitterHandle || initialSeoConfig.twitterHandle,

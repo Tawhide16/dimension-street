@@ -32,7 +32,21 @@ export async function generateMetadata(): Promise<Metadata> {
     .map((k) => k.trim())
     .filter(Boolean);
 
-  const base = seo.canonicalUrl || "https://dimensionstreet.com";
+  const rawBase =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : null) ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ||
+    seo.canonicalUrl ||
+    "https://dimension-street.vercel.app";
+
+  const base = rawBase.startsWith("http") ? rawBase : `https://${rawBase}`;
+
+  const ogImageUrl =
+    seo.ogImage && !seo.ogImage.includes("unsplash.com")
+      ? seo.ogImage
+      : "/images/og-dimension-street.png";
 
   return {
     metadataBase: new URL(base),
@@ -53,14 +67,21 @@ export async function generateMetadata(): Promise<Metadata> {
       url: base,
       siteName: "DIMENSION STREET",
       type: "website",
-      images: seo.ogImage ? [{ url: seo.ogImage }] : [],
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: "DIMENSION STREET — Heavyweight Essentials",
+        },
+      ],
     },
     twitter: {
       card: seo.twitterCard || "summary_large_image",
       site: seo.twitterHandle,
       title: seo.ogTitle || seo.siteTitle,
       description: seo.ogDescription || seo.metaDescription,
-      images: seo.ogImage ? [seo.ogImage] : [],
+      images: [ogImageUrl],
     },
     icons: {
       icon: [
