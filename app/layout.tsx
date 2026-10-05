@@ -69,13 +69,13 @@ export async function generateMetadata(): Promise<Metadata> {
       type: "website",
       images: [
         {
-          url: "/images/dimension-street-logo.png?v=logo-official",
+          url: `${base}/images/dimension-street-logo.png?v=official-logo`,
           width: 1024,
           height: 1024,
           alt: "DIMENSION STREET Logo",
         },
         {
-          url: "/images/og-dimension-street.png?v=logo-official",
+          url: `${base}/images/og-dimension-street.png?v=official-logo`,
           width: 1200,
           height: 630,
           alt: "DIMENSION STREET — Heavyweight Essentials",
@@ -87,7 +87,7 @@ export async function generateMetadata(): Promise<Metadata> {
       site: seo.twitterHandle,
       title: seo.ogTitle || seo.siteTitle,
       description: seo.ogDescription || seo.metaDescription,
-      images: ["/images/og-dimension-street.png?v=logo-official"],
+      images: [`${base}/images/og-dimension-street.png?v=official-logo`],
     },
     icons: {
       icon: [
@@ -126,11 +126,23 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const seo = await getSeoConfig();
+  const rawBase =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : null) ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ||
+    seo.canonicalUrl ||
+    "https://dimension-street.vercel.app";
+
+  const base = rawBase.startsWith("http") ? rawBase : `https://${rawBase}`;
+
   return (
     <html
       lang="en"
@@ -150,7 +162,14 @@ export default function RootLayout({
           media="(prefers-color-scheme: dark)"
           type="image/png"
         />
-        <link rel="image_src" href="/images/dimension-street-logo.png" />
+        <meta property="og:image" content={`${base}/images/dimension-street-logo.png?v=official-logo`} />
+        <meta property="og:image:secure_url" content={`${base}/images/dimension-street-logo.png?v=official-logo`} />
+        <meta property="og:image:type" content="image/png" />
+        <meta property="og:image:width" content="1024" />
+        <meta property="og:image:height" content="1024" />
+        <meta property="og:image:alt" content="DIMENSION STREET" />
+        <meta name="twitter:image" content={`${base}/images/dimension-street-logo.png?v=official-logo`} />
+        <link rel="image_src" href={`${base}/images/dimension-street-logo.png?v=official-logo`} />
       </head>
       <body
         suppressHydrationWarning
