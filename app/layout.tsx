@@ -69,7 +69,13 @@ export async function generateMetadata(): Promise<Metadata> {
       type: "website",
       images: [
         {
-          url: ogImageUrl,
+          url: "/images/dimension-street-logo.png?v=logo-official",
+          width: 1024,
+          height: 1024,
+          alt: "DIMENSION STREET Logo",
+        },
+        {
+          url: "/images/og-dimension-street.png?v=logo-official",
           width: 1200,
           height: 630,
           alt: "DIMENSION STREET — Heavyweight Essentials",
@@ -81,7 +87,7 @@ export async function generateMetadata(): Promise<Metadata> {
       site: seo.twitterHandle,
       title: seo.ogTitle || seo.siteTitle,
       description: seo.ogDescription || seo.metaDescription,
-      images: [ogImageUrl],
+      images: ["/images/og-dimension-street.png?v=logo-official"],
     },
     icons: {
       icon: [
