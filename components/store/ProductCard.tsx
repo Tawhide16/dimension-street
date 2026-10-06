@@ -83,20 +83,34 @@ export default function ProductCard({
     e.preventDefault();
     e.stopPropagation();
 
-    if (variant.stock <= 0) return;
+    // If a color swatch is actively selected, find the matching color+size variant
+    let targetVariant = variant;
+    if (activeColorVariant && activeColorVariant.color) {
+      const colorSizeMatch = rawVariants.find(
+        (v) =>
+          v.color === activeColorVariant.color &&
+          v.size === variant.size &&
+          v.stock > 0
+      );
+      if (colorSizeMatch) {
+        targetVariant = colorSizeMatch;
+      }
+    }
+
+    if (targetVariant.stock <= 0) return;
 
     addItem({
       productId: product._id,
       name: product.name,
       slug: product.slug,
-      image: variant.image || primaryImage,
-      color: variant.color || "Standard",
-      size: variant.size,
-      sku: variant.sku || `${product.sku}-${variant.size}`,
-      price: variant.price || product.price,
+      image: targetVariant.image || activeColorVariant?.image || primaryImage,
+      color: targetVariant.color || "Standard",
+      size: targetVariant.size,
+      sku: targetVariant.sku || `${product.sku}-${targetVariant.size}`,
+      price: targetVariant.price || product.price,
     });
 
-    setAddedSize(variant.size);
+    setAddedSize(targetVariant.size);
     setTimeout(() => setAddedSize(null), 2000);
   };
 
