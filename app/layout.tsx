@@ -69,16 +69,10 @@ export async function generateMetadata(): Promise<Metadata> {
       type: "website",
       images: [
         {
-          url: `${base}/images/dimension-street-logo.png?v=official-logo`,
+          url: `${base}/images/dimension-street-logo.png?v=logo-v2`,
           width: 1024,
           height: 1024,
           alt: "DIMENSION STREET Logo",
-        },
-        {
-          url: `${base}/images/og-dimension-street.png?v=official-logo`,
-          width: 1200,
-          height: 630,
-          alt: "DIMENSION STREET — Heavyweight Essentials",
         },
       ],
     },
@@ -87,7 +81,7 @@ export async function generateMetadata(): Promise<Metadata> {
       site: seo.twitterHandle,
       title: seo.ogTitle || seo.siteTitle,
       description: seo.ogDescription || seo.metaDescription,
-      images: [`${base}/images/og-dimension-street.png?v=official-logo`],
+      images: [`${base}/images/dimension-street-logo.png?v=logo-v2`],
     },
     icons: {
       icon: [
@@ -162,14 +156,14 @@ export default async function RootLayout({
           media="(prefers-color-scheme: dark)"
           type="image/png"
         />
-        <meta property="og:image" content={`${base}/images/dimension-street-logo.png?v=official-logo`} />
-        <meta property="og:image:secure_url" content={`${base}/images/dimension-street-logo.png?v=official-logo`} />
+        <meta property="og:image" content={`${base}/images/dimension-street-logo.png?v=logo-v2`} />
+        <meta property="og:image:secure_url" content={`${base}/images/dimension-street-logo.png?v=logo-v2`} />
         <meta property="og:image:type" content="image/png" />
         <meta property="og:image:width" content="1024" />
         <meta property="og:image:height" content="1024" />
         <meta property="og:image:alt" content="DIMENSION STREET" />
-        <meta name="twitter:image" content={`${base}/images/dimension-street-logo.png?v=official-logo`} />
-        <link rel="image_src" href={`${base}/images/dimension-street-logo.png?v=official-logo`} />
+        <meta name="twitter:image" content={`${base}/images/dimension-street-logo.png?v=logo-v2`} />
+        <link rel="image_src" href={`${base}/images/dimension-street-logo.png?v=logo-v2`} />
       </head>
       <body
         suppressHydrationWarning
