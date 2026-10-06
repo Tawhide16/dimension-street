@@ -22,6 +22,7 @@ export default function ProductCard({
   const { addItem, isInWishlist, toggleWishlist } = useCart();
   const [isHovered, setIsHovered] = useState(false);
   const [addedSize, setAddedSize] = useState<string | null>(null);
+  const [addedColor, setAddedColor] = useState<string | null>(null);
   const [activeColorVariant, setActiveColorVariant] = useState<(typeof product.variants)[0] | null>(null);
 
   const primaryImage = product.images[0] || "/images/placeholder.jpg";
@@ -118,6 +119,37 @@ export default function ProductCard({
     e.preventDefault();
     e.stopPropagation();
     toggleWishlist(product._id);
+  };
+
+  // Click on color swatch → add to cart with that color's first in-stock size
+  const handleColorSwatchAdd = (e: React.MouseEvent, colorVariant: (typeof rawVariants)[0]) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Set active for image preview
+    setActiveColorVariant(colorVariant);
+
+    // Find the first in-stock variant for this color
+    const firstInStock = rawVariants.find(
+      (v) => v.color === colorVariant.color && v.stock > 0
+    );
+
+    const toAdd = firstInStock || colorVariant;
+    if (toAdd.stock <= 0) return;
+
+    addItem({
+      productId: product._id,
+      name: product.name,
+      slug: product.slug,
+      image: toAdd.image || colorVariant.image || primaryImage,
+      color: toAdd.color || "Standard",
+      size: toAdd.size,
+      sku: toAdd.sku || `${product.sku}-${toAdd.color}`,
+      price: toAdd.price || product.price,
+    });
+
+    setAddedColor(colorVariant.color);
+    setTimeout(() => setAddedColor(null), 2000);
   };
 
   // Unique distinct color variants
@@ -272,23 +304,29 @@ export default function ProductCard({
           >
             {colorVariants.map((v) => {
               const isSelected = activeColorVariant?.color === v.color;
-              const linkUrl = v.linkedProductSlug
-                ? `/product/${v.linkedProductSlug}?color=${encodeURIComponent(v.color)}`
-                : `/product/${product.slug}?color=${encodeURIComponent(v.color)}`;
+              const isJustAdded = addedColor === v.color;
               return (
-                <Link
+                <button
                   key={v.color}
-                  href={linkUrl}
+                  type="button"
                   onMouseEnter={() => setActiveColorVariant(v)}
-                  onClick={() => setActiveColorVariant(v)}
-                  className={`w-3.5 h-3.5 rounded-full border transition-all cursor-pointer ${
-                    isSelected
+                  onClick={(e) => handleColorSwatchAdd(e, v)}
+                  className={`relative w-4 h-4 rounded-full border transition-all cursor-pointer ${
+                    isJustAdded
+                      ? "ring-2 ring-emerald-500 ring-offset-1 scale-125 border-emerald-400 shadow-sm"
+                      : isSelected
                       ? "ring-2 ring-black ring-offset-1 scale-115 border-black shadow-xs"
                       : "border-neutral-300 hover:scale-115"
                   }`}
                   style={{ backgroundColor: v.colorHex || "#111111" }}
-                  title={`${v.color} (Click to view)`}
-                />
+                  title={isJustAdded ? `${v.color} — Added!` : `Add ${v.color} to cart`}
+                >
+                  {isJustAdded && (
+                    <span className="absolute inset-0 flex items-center justify-center">
+                      <Check className="w-2.5 h-2.5 text-white stroke-[3]" />
+                    </span>
+                  )}
+                </button>
               );
             })}
           </div>
