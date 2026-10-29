@@ -403,6 +403,7 @@ export default function AdminCMSBuilderPage() {
         body: JSON.stringify({
           id: targetId,
           updates: {
+            type: section.type,
             title: section.title,
             subtitle: section.subtitle,
             isActive: Boolean(section.isActive),

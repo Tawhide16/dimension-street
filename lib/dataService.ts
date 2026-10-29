@@ -98,6 +98,99 @@ interface LocalStore {
   footerConfig?: IFooterConfig;
 }
 
+// ---------------- HOMEPAGE CMS SECTIONS ----------------
+export const CANONICAL_TYPES = [
+  "hero",
+  "new_arrivals",
+  "promo_banner",
+  "shop_by_category",
+  "brand_story",
+  "best_sellers",
+  "statement_banner",
+  "community_gallery",
+];
+
+export function normalizeSectionType(type: string, s?: any): string {
+  if (!type) type = "";
+  if (type === "hero" || type === "sec-hero") return "hero";
+  if (type === "new_arrivals" || type === "sec-new-arrivals") return "new_arrivals";
+  if (type === "promo_banner" || type === "sec-promo-banner") return "promo_banner";
+  if (
+    type === "shop_by_category" ||
+    type === "categories" ||
+    type === "sec-categories"
+  )
+    return "shop_by_category";
+  if (type === "brand_story" || type === "sec-brand-story") return "brand_story";
+  if (type === "best_sellers" || type === "sec-best-sellers") return "best_sellers";
+  if (
+    type === "statement_banner" ||
+    type === "statement" ||
+    type === "sec-statement"
+  )
+    return "statement_banner";
+  if (
+    type === "community_gallery" ||
+    type === "community" ||
+    type === "sec-community"
+  )
+    return "community_gallery";
+
+  // If type is an ObjectId (or arbitrary ID), deduce from title or data
+  const title = (s?.title || "").toLowerCase();
+  const data = (s?.data || {}) as Record<string, any>;
+
+  if (
+    title.includes("hero") ||
+    (title.includes("dimension") && data.backgroundImage) ||
+    data.backgroundImage !== undefined ||
+    data.secondaryCtaText !== undefined
+  ) {
+    return "hero";
+  }
+  if (
+    title.includes("drop") ||
+    title.includes("arrival") ||
+    data.viewAllLink !== undefined
+  ) {
+    return "new_arrivals";
+  }
+  if (
+    title.includes("seasonal") ||
+    title.includes("promo") ||
+    data.countdownHours !== undefined
+  ) {
+    return "promo_banner";
+  }
+  if (title.includes("category") || title.includes("categories")) {
+    return "shop_by_category";
+  }
+  if (
+    title.includes("brand") ||
+    title.includes("quality always") ||
+    title.includes("community first") ||
+    data.bullet1 !== undefined ||
+    data.description !== undefined
+  ) {
+    return "brand_story";
+  }
+  if (title.includes("best sell") || title.includes("bestseller")) {
+    return "best_sellers";
+  }
+  if (
+    title.includes("trend") ||
+    title.includes("statement") ||
+    title.includes("forge")
+  ) {
+    return "statement_banner";
+  }
+  if (title.includes("community") || title.includes("gallery")) {
+    return "community_gallery";
+  }
+
+  return type;
+}
+
 function loadLocalStore(): LocalStore {
   try {
     if (fs.existsSync(DATA_FILE)) {
@@ -120,13 +213,32 @@ function loadLocalStore(): LocalStore {
         parsed.reviews = [...(parsed.reviews || []), ...missingReviews];
       }
 
-      // Ensure homepageSections exist in local store
+      // Ensure homepageSections exist in local store and have canonical types
       if (
         !parsed.homepageSections ||
         !Array.isArray(parsed.homepageSections) ||
         parsed.homepageSections.length === 0
       ) {
         parsed.homepageSections = initialHomepageSections;
+      } else {
+        const byTypeMem = new Map<string, any>();
+        for (const s of parsed.homepageSections) {
+          const norm = normalizeSectionType(s.type, s);
+          if (!byTypeMem.has(norm)) {
+            byTypeMem.set(norm, { ...s, type: norm });
+          }
+        }
+        for (const init of initialHomepageSections) {
+          const norm = normalizeSectionType(init.type, init);
+          if (!byTypeMem.has(norm)) {
+            byTypeMem.set(norm, { ...init, type: norm });
+          }
+        }
+        parsed.homepageSections = Array.from(byTypeMem.values()).map((s) => ({
+          ...s,
+          order: CANONICAL_TYPES.indexOf(s.type) + 1,
+        }));
+        parsed.homepageSections.sort((a: any, b: any) => a.order - b.order);
       }
 
       // Ensure navbarConfig exists in local store
@@ -1365,24 +1477,6 @@ export async function updateReviewStatus(id: string, status: Review["status"]): 
 }
 
 // ---------------- HOMEPAGE CMS SECTIONS ----------------
-const CANONICAL_TYPES = [
-  "hero",
-  "new_arrivals",
-  "promo_banner",
-  "shop_by_category",
-  "brand_story",
-  "best_sellers",
-  "statement_banner",
-  "community_gallery",
-];
-
-function normalizeSectionType(type: string): string {
-  if (type === "categories") return "shop_by_category";
-  if (type === "statement") return "statement_banner";
-  if (type === "community") return "community_gallery";
-  return type;
-}
-
 export async function getHomepageSections(): Promise<HomepageSection[]> {
   const hit = queryCache.get("homepage_sections");
   if (hit && Date.now() - hit.timestamp < CACHE_TTL) {
@@ -1401,7 +1495,7 @@ export async function getHomepageSections(): Promise<HomepageSection[]> {
       // Normalize and deduplicate by canonical type
       const byType = new Map<string, any>();
       for (const doc of raw) {
-        const norm = normalizeSectionType(doc.type);
+        const norm = normalizeSectionType(doc.type, doc);
         if (!byType.has(norm)) {
           byType.set(norm, { ...doc, type: norm, _id: doc._id.toString() });
         }
@@ -1409,7 +1503,7 @@ export async function getHomepageSections(): Promise<HomepageSection[]> {
 
       // Check for missing canonical sections from initialHomepageSections
       for (const init of initialHomepageSections) {
-        const norm = normalizeSectionType(init.type);
+        const norm = normalizeSectionType(init.type, init);
         if (!byType.has(norm)) {
           try {
             const newDoc = new HomepageSectionModel({
@@ -1453,13 +1547,13 @@ export async function getHomepageSections(): Promise<HomepageSection[]> {
 
   const byTypeMem = new Map<string, HomepageSection>();
   for (const s of memoryStore.homepageSections) {
-    const norm = normalizeSectionType(s.type);
+    const norm = normalizeSectionType(s.type, s);
     if (!byTypeMem.has(norm)) {
       byTypeMem.set(norm, { ...s, type: norm as any });
     }
   }
   for (const init of initialHomepageSections) {
-    const norm = normalizeSectionType(init.type);
+    const norm = normalizeSectionType(init.type, init);
     if (!byTypeMem.has(norm)) {
       byTypeMem.set(norm, { ...init, type: norm as any });
     }
@@ -1482,7 +1576,7 @@ export async function updateHomepageSection(
 ): Promise<HomepageSection | null> {
   await connectToDatabase();
   let updatedMongoDoc: HomepageSection | null = null;
-  const typeMatch = id.replace(/^sec-/, "").replace(/-/g, "_");
+  const canonicalType = normalizeSectionType(updates.type || id, updates);
 
   if (isMongoConnected()) {
     try {
@@ -1496,22 +1590,23 @@ export async function updateHomepageSection(
 
       if (!doc) {
         doc = await HomepageSectionModel.findOne({
-          $or: [{ type: id }, { type: typeMatch }],
+          $or: [{ type: canonicalType }, { type: id }],
         });
       }
 
       if (!doc) {
         doc = new HomepageSectionModel({
-          type: typeMatch || id,
+          type: canonicalType,
           title: updates.title ?? "",
           subtitle: updates.subtitle ?? "",
-          order: updates.order ?? 1,
+          order: updates.order ?? (CANONICAL_TYPES.indexOf(canonicalType) + 1),
           isActive: updates.isActive !== undefined ? updates.isActive : true,
           hideOnDesktop: Boolean(updates.hideOnDesktop),
           hideOnMobile: Boolean(updates.hideOnMobile),
           data: updates.data || {},
         });
       } else {
+        doc.type = canonicalType;
         if (updates.title !== undefined) doc.title = updates.title;
         if (updates.subtitle !== undefined) doc.subtitle = updates.subtitle;
         if (updates.order !== undefined) doc.order = updates.order;
@@ -1551,17 +1646,17 @@ export async function updateHomepageSection(
     (s) =>
       s._id === id ||
       s.type === id ||
-      s.type === typeMatch ||
+      normalizeSectionType(s.type, s) === canonicalType ||
       (s as any)._id?.toString() === id
   );
 
   if (!section) {
     section = {
       _id: id,
-      type: typeMatch as any,
+      type: canonicalType as any,
       title: updates.title || "",
       subtitle: updates.subtitle || "",
-      order: updates.order || 1,
+      order: updates.order || (CANONICAL_TYPES.indexOf(canonicalType) + 1),
       isActive: updates.isActive !== undefined ? updates.isActive : true,
       hideOnDesktop: updates.hideOnDesktop !== undefined ? updates.hideOnDesktop : false,
       hideOnMobile: updates.hideOnMobile !== undefined ? updates.hideOnMobile : false,
@@ -1570,6 +1665,7 @@ export async function updateHomepageSection(
     };
     memoryStore.homepageSections.push(section);
   } else {
+    section.type = canonicalType as any;
     if (updates.title !== undefined) section.title = updates.title;
     if (updates.subtitle !== undefined) section.subtitle = updates.subtitle;
     if (updates.order !== undefined) section.order = updates.order;

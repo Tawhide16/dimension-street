@@ -190,6 +190,7 @@ export default function ProductCard({
             alt={product.name}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 33vw, 25vw"
+            unoptimized
             className="object-cover object-center transition-all duration-300"
           />
         </Link>

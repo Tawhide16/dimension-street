@@ -44,7 +44,7 @@ export default function BrandStorySection({
             <div
               className="absolute inset-0 scale-125 filter blur-3xl opacity-20 pointer-events-none"
               style={{
-                backgroundImage: `url(${image})`,
+                backgroundImage: `url("${image}")`,
                 backgroundPosition: "center",
                 backgroundSize: "cover",
               }}
@@ -58,6 +58,7 @@ export default function BrandStorySection({
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 priority
+                unoptimized
                 className="object-contain object-center drop-shadow-md rounded-md transition-all duration-300"
               />
             </div>

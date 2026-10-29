@@ -466,6 +466,7 @@ export default function ProductDetailView({
               alt={product.name}
               fill
               priority
+              unoptimized
               sizes="(max-width: 1024px) 100vw, 55vw"
               className="object-contain object-center transition-all duration-300"
             />
@@ -512,6 +513,7 @@ export default function ProductDetailView({
                     src={img}
                     alt={`${product.name} thumbnail ${idx + 1}`}
                     fill
+                    unoptimized
                     sizes="80px"
                     className="object-contain object-center p-0.5"
                   />
@@ -1364,6 +1366,7 @@ export default function ProductDetailView({
               src={allGalleryImages[activeImageIndex] || allGalleryImages[0]}
               alt={product.name}
               fill
+              unoptimized
               sizes="95vw"
               className="object-contain object-center"
               priority

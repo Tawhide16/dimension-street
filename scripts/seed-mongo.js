@@ -5,111 +5,140 @@ const fs = require('fs');
 
 try {
   dns.setServers(['8.8.8.8', '1.1.1.1']);
-} catch(e) {}
+} catch (e) {}
 
-const uri = 'mongodb+srv://loxbd01_db_user:oBXdwapwN4xNtqtX@cluster0.iv15qaw.mongodb.net/dimension_street?retryWrites=true&w=majority&appName=Cluster0';
+// Read MONGODB_URI from .env.local
+let uri = process.env.MONGODB_URI;
+if (!uri) {
+  try {
+    const envContent = fs.readFileSync(path.join(__dirname, '../.env.local'), 'utf8');
+    const match = envContent.match(/MONGODB_URI=([^\r\n]+)/);
+    if (match && match[1]) {
+      uri = match[1].trim();
+    }
+  } catch (err) {}
+}
+
+if (!uri) {
+  uri = 'mongodb+srv://protfulio:LDh8KL3JqaCGgOCn@cluster0.bw3blcg.mongodb.net/dimension_street?retryWrites=true&w=majority&appName=Cluster0';
+}
 
 async function seed() {
   console.log('Connecting to MongoDB Atlas...');
-  await mongoose.connect(uri, { serverSelectionTimeoutMS: 10000 });
-  console.log('Connected successfully!');
+  console.log('Target URI Host:', uri.split('@')[1] ? uri.split('@')[1].split('?')[0] : 'masked');
+  
+  await mongoose.connect(uri, { serverSelectionTimeoutMS: 15000 });
+  console.log('Connected successfully to MongoDB Atlas!');
 
-  const localCache = JSON.parse(fs.readFileSync(path.join(__dirname, '../.data-cache.json'), 'utf8'));
+  const cachePath = path.join(__dirname, '../.data-cache.json');
+  if (!fs.existsSync(cachePath)) {
+    console.error('.data-cache.json not found!');
+    process.exit(1);
+  }
 
+  const localCache = JSON.parse(fs.readFileSync(cachePath, 'utf8'));
   const db = mongoose.connection.db;
 
-  // 1. Products
-  const productsCol = db.collection('products');
-  const existingProducts = await productsCol.countDocuments();
-  if (existingProducts === 0 && localCache.products && localCache.products.length > 0) {
-    const productsToInsert = localCache.products.map(p => {
-      const copy = { ...p };
-      delete copy._id; // Let Mongo generate _id or keep string id
+  const stripId = (items) => {
+    if (!Array.isArray(items)) return [];
+    return items.map((item) => {
+      const copy = { ...item };
+      delete copy._id;
       return copy;
     });
-    await productsCol.insertMany(productsToInsert);
-    console.log(`✓ Inserted ${productsToInsert.length} products`);
-  } else {
-    console.log(`Products collection already has ${existingProducts} documents.`);
+  };
+
+  // Helper to sync collection
+  async function syncCollection(colName, items) {
+    const col = db.collection(colName);
+    const existing = await col.countDocuments();
+    if (existing === 0 && Array.isArray(items) && items.length > 0) {
+      const toInsert = stripId(items);
+      await col.insertMany(toInsert);
+      console.log(`✓ Inserted ${toInsert.length} documents into '${colName}'`);
+    } else {
+      console.log(`'${colName}' already has ${existing} documents.`);
+    }
   }
+
+  // 1. Products
+  await syncCollection('products', localCache.products);
 
   // 2. Categories
-  const categoriesCol = db.collection('categories');
-  const existingCats = await categoriesCol.countDocuments();
-  if (existingCats === 0 && localCache.categories && localCache.categories.length > 0) {
-    const catsToInsert = localCache.categories.map(c => {
-      const copy = { ...c };
-      delete copy._id;
-      return copy;
-    });
-    await categoriesCol.insertMany(catsToInsert);
-    console.log(`✓ Inserted ${catsToInsert.length} categories`);
-  } else {
-    console.log(`Categories collection already has ${existingCats} documents.`);
-  }
+  await syncCollection('categories', localCache.categories);
 
   // 3. Collections
-  const collectionsCol = db.collection('collections');
-  const existingCols = await collectionsCol.countDocuments();
-  if (existingCols === 0 && localCache.collections && localCache.collections.length > 0) {
-    const colsToInsert = localCache.collections.map(c => {
-      const copy = { ...c };
-      delete copy._id;
-      return copy;
-    });
-    await collectionsCol.insertMany(colsToInsert);
-    console.log(`✓ Inserted ${colsToInsert.length} collections`);
-  } else {
-    console.log(`Collections collection already has ${existingCols} documents.`);
-  }
+  await syncCollection('collections', localCache.collections);
 
   // 4. Reviews
-  const reviewsCol = db.collection('reviews');
-  const existingRevs = await reviewsCol.countDocuments();
-  if (existingRevs === 0 && localCache.reviews && localCache.reviews.length > 0) {
-    const revsToInsert = localCache.reviews.map(r => {
-      const copy = { ...r };
-      delete copy._id;
-      return copy;
-    });
-    await reviewsCol.insertMany(revsToInsert);
-    console.log(`✓ Inserted ${revsToInsert.length} reviews`);
-  } else {
-    console.log(`Reviews collection already has ${existingRevs} documents.`);
-  }
+  await syncCollection('reviews', localCache.reviews);
 
   // 5. Coupons
-  const couponsCol = db.collection('coupons');
-  const existingCoups = await couponsCol.countDocuments();
-  if (existingCoups === 0 && localCache.coupons && localCache.coupons.length > 0) {
-    const coupsToInsert = localCache.coupons.map(c => {
-      const copy = { ...c };
-      delete copy._id;
-      return copy;
-    });
-    await couponsCol.insertMany(coupsToInsert);
-    console.log(`✓ Inserted ${coupsToInsert.length} coupons`);
-  } else {
-    console.log(`Coupons collection already has ${existingCoups} documents.`);
-  }
+  await syncCollection('coupons', localCache.coupons);
 
   // 6. Homepage Sections
-  const sectionsCol = db.collection('homepagesections');
-  const existingSecs = await sectionsCol.countDocuments();
-  if (existingSecs === 0 && localCache.homepageSections && localCache.homepageSections.length > 0) {
-    const secsToInsert = localCache.homepageSections.map(s => {
-      const copy = { ...s };
-      delete copy._id;
-      return copy;
-    });
-    await sectionsCol.insertMany(secsToInsert);
-    console.log(`✓ Inserted ${secsToInsert.length} homepage sections`);
-  } else {
-    console.log(`Homepage sections collection already has ${existingSecs} documents.`);
+  await syncCollection('homepagesections', localCache.homepageSections);
+
+  // 7. Users
+  await syncCollection('users', localCache.users);
+
+  // 8. Orders
+  await syncCollection('orders', localCache.orders);
+
+  // 9. Navbar Config
+  if (localCache.navbarConfig) {
+    const navCol = db.collection('navbarconfigs');
+    const existingNav = await navCol.countDocuments();
+    if (existingNav === 0) {
+      const navDoc = { ...localCache.navbarConfig };
+      delete navDoc._id;
+      await navCol.insertOne(navDoc);
+      console.log(`✓ Inserted navbarConfig into 'navbarconfigs'`);
+    } else {
+      console.log(`'navbarconfigs' already has ${existingNav} documents.`);
+    }
   }
 
-  console.log('Seeding completed cleanly!');
+  // 10. SEO Config
+  if (localCache.seoConfig) {
+    const seoCol = db.collection('seoconfigs');
+    const existingSeo = await seoCol.countDocuments();
+    if (existingSeo === 0) {
+      const seoDoc = { ...localCache.seoConfig };
+      delete seoDoc._id;
+      await seoCol.insertOne(seoDoc);
+      console.log(`✓ Inserted seoConfig into 'seoconfigs'`);
+    } else {
+      console.log(`'seoconfigs' already has ${existingSeo} documents.`);
+    }
+  }
+
+  // 11. Footer Config
+  if (localCache.footerConfig) {
+    const footerCol = db.collection('footerconfigs');
+    const existingFooter = await footerCol.countDocuments();
+    if (existingFooter === 0) {
+      const footerDoc = { ...localCache.footerConfig };
+      delete footerDoc._id;
+      await footerCol.insertOne(footerDoc);
+      console.log(`✓ Inserted footerConfig into 'footerconfigs'`);
+    } else {
+      console.log(`'footerconfigs' already has ${existingFooter} documents.`);
+    }
+  }
+
+  // 12. Mark system meta so autoSeedMongoIfEmpty knows it is seeded
+  const metaCol = db.collection('system_meta');
+  await metaCol.updateOne(
+    { key: 'initial_seed_completed' },
+    { $set: { key: 'initial_seed_completed', completedAt: new Date(), source: 'seed-mongo.js' } },
+    { upsert: true }
+  );
+  console.log(`✓ System meta 'initial_seed_completed' recorded.`);
+
+  console.log('All collections and configuration seeded cleanly to MongoDB Atlas!');
   await mongoose.connection.close();
+  console.log('MongoDB connection closed.');
 }
 
 seed().catch(err => {
