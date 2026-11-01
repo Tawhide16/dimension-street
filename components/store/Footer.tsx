@@ -55,39 +55,43 @@ export default function Footer({ config: propConfig }: FooterProps) {
   return (
     <footer className="relative bg-black text-white pt-16 pb-12 overflow-hidden border-t border-neutral-900">
       <div className="w-full px-4 sm:px-8 lg:px-12 xl:px-16">
-        {/* Top Section: Links Columns + Newsletter Column */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-12 gap-8 lg:gap-6 pb-14">
-          {/* Dynamic Link Columns */}
-          {columns.map((col, idx) => (
-            <div key={col.id || `col-${idx}`} className="lg:col-span-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">
-                {col.title}
-              </h4>
-              <ul className="space-y-2.5 text-xs text-neutral-400">
-                {col.links.map((link, lIdx) => (
-                  <li key={link.id || `link-${lIdx}`}>
-                    {link.isExternal || link.href.startsWith("http") ? (
-                      <a
-                        href={link.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hover:text-white transition-colors inline-flex items-center gap-1"
-                      >
-                        {link.label}
-                      </a>
-                    ) : (
-                      <Link href={link.href} className="hover:text-white transition-colors">
-                        {link.label}
-                      </Link>
-                    )}
-                  </li>
-                ))}
-              </ul>
+        {/* Top Section: Split Layout (Left: Footer Menus, Right: Newsletter & Social Links) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 pb-14">
+          {/* LEFT SIDE: Footer Navigation Menus */}
+          <div className="lg:col-span-7 xl:col-span-8">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 sm:gap-8">
+              {columns.map((col, idx) => (
+                <div key={col.id || `col-${idx}`} className="space-y-3">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">
+                    {col.title}
+                  </h4>
+                  <ul className="space-y-2.5 text-xs text-neutral-400">
+                    {col.links.map((link, lIdx) => (
+                      <li key={link.id || `link-${lIdx}`}>
+                        {link.isExternal || link.href.startsWith("http") ? (
+                          <a
+                            href={link.href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:text-white transition-colors inline-flex items-center gap-1"
+                          >
+                            {link.label}
+                          </a>
+                        ) : (
+                          <Link href={link.href} className="hover:text-white transition-colors">
+                            {link.label}
+                          </Link>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
 
-          {/* NEWSLETTER (RIGHT COLUMN) */}
-          <div className="col-span-2 sm:col-span-3 lg:col-span-4 lg:border-l lg:border-neutral-800 lg:pl-8">
+          {/* RIGHT SIDE: Newsletter Form & Social Icons */}
+          <div className="lg:col-span-5 xl:col-span-4 lg:border-l lg:border-neutral-900 lg:pl-10">
             <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4 leading-snug">
               {liveConfig.newsletterTitle || "JOIN THE COMMUNITY FOR EXCLUSIVE WELLNESS INSIGHTS"}
             </h4>
