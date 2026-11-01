@@ -41,6 +41,10 @@ const FooterConfigSchema = new Schema<IFooterConfigDocument>(
     brandWordmark: { type: String, default: initialFooterConfig.brandWordmark },
     missionStatement: { type: String, default: initialFooterConfig.missionStatement },
     copyrightText: { type: String, default: initialFooterConfig.copyrightText },
+    socialLinks: {
+      type: Schema.Types.Mixed,
+      default: initialFooterConfig.socialLinks || {},
+    },
   },
   { timestamps: true }
 );

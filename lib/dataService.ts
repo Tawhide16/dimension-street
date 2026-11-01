@@ -33,6 +33,7 @@ import { NavbarConfigModel, INavbarConfig } from "@/models/NavbarConfig";
 import { SeoConfigModel, ISeoConfig } from "@/models/SeoConfig";
 import { UserModel } from "@/models/User";
 import { FooterConfigModel, IFooterConfig, initialFooterConfig } from "@/models/FooterConfig";
+import { ThemeConfigModel, IThemeConfig, initialThemeConfig } from "@/models/ThemeConfig";
 import fs from "fs";
 import path from "path";
 
@@ -96,6 +97,7 @@ interface LocalStore {
   navbarConfig?: INavbarConfig;
   seoConfig?: ISeoConfig;
   footerConfig?: IFooterConfig;
+  themeConfig?: IThemeConfig;
 }
 
 // ---------------- HOMEPAGE CMS SECTIONS ----------------
@@ -251,11 +253,23 @@ function loadLocalStore(): LocalStore {
         parsed.seoConfig = { ...initialSeoConfig };
       }
 
+      // Ensure footerConfig exists in local store
+      if (!parsed.footerConfig || !Array.isArray(parsed.footerConfig.columns)) {
+        parsed.footerConfig = { ...initialFooterConfig };
+      }
+
+      // Ensure themeConfig exists in local store
+      if (!parsed.themeConfig || !parsed.themeConfig.primaryColor) {
+        parsed.themeConfig = { ...initialThemeConfig };
+      }
+
       if (
         missingReviews.length > 0 ||
         !parsed.homepageSections ||
         !parsed.navbarConfig ||
-        !parsed.seoConfig
+        !parsed.seoConfig ||
+        !parsed.footerConfig ||
+        !parsed.themeConfig
       ) {
         try {
           fs.writeFileSync(DATA_FILE, JSON.stringify(parsed, null, 2), "utf-8");
@@ -277,6 +291,8 @@ function loadLocalStore(): LocalStore {
     users: initialUsers,
     navbarConfig: { ...initialNavbarConfig },
     seoConfig: { ...initialSeoConfig },
+    footerConfig: { ...initialFooterConfig },
+    themeConfig: { ...initialThemeConfig },
   };
 }
 
@@ -2112,6 +2128,7 @@ export async function getFooterConfig(): Promise<IFooterConfig> {
           brandWordmark: doc.brandWordmark || initialFooterConfig.brandWordmark,
           missionStatement: doc.missionStatement || initialFooterConfig.missionStatement,
           copyrightText: doc.copyrightText || initialFooterConfig.copyrightText,
+          socialLinks: doc.socialLinks || initialFooterConfig.socialLinks,
         };
       } else {
         const created = await FooterConfigModel.create(initialFooterConfig);
@@ -2152,6 +2169,10 @@ export async function updateFooterConfig(
         if (updates.brandWordmark !== undefined) doc.brandWordmark = updates.brandWordmark;
         if (updates.missionStatement !== undefined) doc.missionStatement = updates.missionStatement;
         if (updates.copyrightText !== undefined) doc.copyrightText = updates.copyrightText;
+        if (updates.socialLinks !== undefined) {
+          doc.socialLinks = updates.socialLinks;
+          doc.markModified("socialLinks");
+        }
         await doc.save();
       }
       result = doc.toObject();
@@ -2161,6 +2182,81 @@ export async function updateFooterConfig(
   }
 
   memoryStore.footerConfig = result;
+  saveLocalStore();
+  return result;
+}
+
+// ==========================================
+// STOREFRONT THEME & DESIGN SYSTEM CONFIGURATION
+// ==========================================
+
+export async function getThemeConfig(): Promise<IThemeConfig> {
+  await connectToDatabase();
+  if (isMongoConnected()) {
+    try {
+      const doc = await ThemeConfigModel.findOne().lean();
+      if (doc) {
+        return {
+          primaryColor: doc.primaryColor || initialThemeConfig.primaryColor,
+          accentColor: doc.accentColor || initialThemeConfig.accentColor,
+          backgroundColor: doc.backgroundColor || initialThemeConfig.backgroundColor,
+          buttonRadius: (doc.buttonRadius as any) || initialThemeConfig.buttonRadius,
+          fontFamily: (doc.fontFamily as any) || initialThemeConfig.fontFamily,
+          desktopHeadingSize: Number(doc.desktopHeadingSize) || initialThemeConfig.desktopHeadingSize,
+          mobileHeadingSize: Number(doc.mobileHeadingSize) || initialThemeConfig.mobileHeadingSize,
+          desktopBodySize: Number(doc.desktopBodySize) || initialThemeConfig.desktopBodySize,
+          mobileBodySize: Number(doc.mobileBodySize) || initialThemeConfig.mobileBodySize,
+        };
+      } else {
+        const created = await ThemeConfigModel.create(initialThemeConfig);
+        return created.toObject();
+      }
+    } catch (err) {
+      console.warn("Mongo getThemeConfig fallback to local memory:", err);
+    }
+  }
+
+  if (!memoryStore.themeConfig || !memoryStore.themeConfig.primaryColor) {
+    memoryStore.themeConfig = { ...initialThemeConfig };
+    saveLocalStore();
+  }
+  return memoryStore.themeConfig;
+}
+
+export async function updateThemeConfig(
+  updates: Partial<IThemeConfig>
+): Promise<IThemeConfig> {
+  await connectToDatabase();
+  let result: IThemeConfig = {
+    ...initialThemeConfig,
+    ...(memoryStore.themeConfig || {}),
+    ...updates,
+  };
+
+  if (isMongoConnected()) {
+    try {
+      let doc = await ThemeConfigModel.findOne();
+      if (!doc) {
+        doc = await ThemeConfigModel.create({ ...initialThemeConfig, ...updates });
+      } else {
+        if (updates.primaryColor !== undefined) doc.primaryColor = updates.primaryColor;
+        if (updates.accentColor !== undefined) doc.accentColor = updates.accentColor;
+        if (updates.backgroundColor !== undefined) doc.backgroundColor = updates.backgroundColor;
+        if (updates.buttonRadius !== undefined) doc.buttonRadius = updates.buttonRadius;
+        if (updates.fontFamily !== undefined) doc.fontFamily = updates.fontFamily;
+        if (updates.desktopHeadingSize !== undefined) doc.desktopHeadingSize = updates.desktopHeadingSize;
+        if (updates.mobileHeadingSize !== undefined) doc.mobileHeadingSize = updates.mobileHeadingSize;
+        if (updates.desktopBodySize !== undefined) doc.desktopBodySize = updates.desktopBodySize;
+        if (updates.mobileBodySize !== undefined) doc.mobileBodySize = updates.mobileBodySize;
+        await doc.save();
+      }
+      result = doc.toObject();
+    } catch (err) {
+      console.warn("Mongo updateThemeConfig fallback to local memory:", err);
+    }
+  }
+
+  memoryStore.themeConfig = result;
   saveLocalStore();
   return result;
 }

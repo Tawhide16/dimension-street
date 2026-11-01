@@ -11,6 +11,15 @@ export interface IFooterColumn {
   links: IFooterLink[];
 }
 
+export interface IFooterSocialLinks {
+  instagram?: string;
+  facebook?: string;
+  tiktok?: string;
+  whatsapp?: string;
+  twitter?: string;
+  youtube?: string;
+}
+
 export interface IFooterConfig {
   columns: IFooterColumn[];
   newsletterTitle: string;
@@ -19,6 +28,7 @@ export interface IFooterConfig {
   brandWordmark: string;
   missionStatement: string;
   copyrightText: string;
+  socialLinks?: IFooterSocialLinks;
 }
 
 export const initialFooterConfig: IFooterConfig = {
@@ -80,4 +90,12 @@ export const initialFooterConfig: IFooterConfig = {
   brandWordmark: "DIMENSION",
   missionStatement: "Premium everyday clothing in heavyweight natural fabrics. A fictional label built as a conversion-focused ecommerce concept.",
   copyrightText: "© 2026 DIMENSION® — fictional label for a conversion-focused ecommerce concept",
+  socialLinks: {
+    instagram: "https://instagram.com/dimensionstreet",
+    facebook: "https://facebook.com/dimensionstreet",
+    tiktok: "https://tiktok.com/@dimensionstreet",
+    whatsapp: "https://wa.me/8801700000000",
+    twitter: "https://x.com/dimensionstreet",
+    youtube: "https://youtube.com/@dimensionstreet",
+  },
 };

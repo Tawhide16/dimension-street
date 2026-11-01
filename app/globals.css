@@ -471,3 +471,29 @@ textarea:focus::placeholder {
   }
 }
 
+/* 5. Live CMS Visual Customizer Dynamic Scaling */
+:root {
+  --cms-desktop-heading-scale: 1;
+  --cms-mobile-heading-scale: 1;
+  --cms-desktop-body-scale: 1;
+  --cms-mobile-body-scale: 1;
+  --cms-heading-scale: var(--cms-desktop-heading-scale, 1);
+  --cms-body-scale: var(--cms-desktop-body-scale, 1);
+  --cms-btn-radius: 2px;
+}
+
+@media (max-width: 640px) {
+  :root {
+    --cms-heading-scale: var(--cms-mobile-heading-scale, 1);
+    --cms-body-scale: var(--cms-mobile-body-scale, 1);
+  }
+}
+
+/* Storefront elements styled by Live CMS theme */
+[data-cms-storefront] .cms-btn-radius,
+[data-cms-storefront] button:not([class*="rounded-full"]):not([class*="rounded-lg"]),
+[data-cms-storefront] a.group.relative.inline-flex {
+  border-radius: var(--cms-btn-radius, 2px) !important;
+}
+
+

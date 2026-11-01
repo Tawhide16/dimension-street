@@ -32,7 +32,7 @@ export default function BrandStorySection({
   pillar3Desc = "Small runs, no seasonal waste.",
   buttonText = "LEARN MORE ABOUT US",
   buttonLink = "/about",
-  image = "/images/community_our_story.jpg",
+  image = "/uploads/upload_1793514478447_imgi_12_upload_1791171350998_code_generated_image__1_-removebg-preview.png",
 }: BrandStorySectionProps) {
   return (
     <section className="w-full px-4 sm:px-8 lg:px-12 xl:px-16 py-4 sm:py-8">
@@ -72,12 +72,18 @@ export default function BrandStorySection({
             </span>
 
             {/* Main Headline */}
-            <h2 className="text-2xl sm:text-4xl md:text-[42px] lg:text-[46px] font-black tracking-tight text-neutral-900 leading-[1.15] mb-2.5 sm:mb-4 whitespace-pre-line">
+            <h2
+              className="text-2xl sm:text-4xl md:text-[42px] lg:text-[46px] font-black tracking-tight text-neutral-900 leading-[1.15] mb-2.5 sm:mb-4 whitespace-pre-line cms-heading-scale"
+              style={{ fontSize: "calc(clamp(1.5rem, 4vw, 2.875rem) * var(--cms-heading-scale, 1))" }}
+            >
               {title}
             </h2>
 
             {/* Explanatory Paragraph */}
-            <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed font-normal mb-4 sm:mb-6 max-w-lg font-description">
+            <p
+              className="text-xs sm:text-sm text-neutral-600 leading-relaxed font-normal mb-4 sm:mb-6 max-w-lg font-description cms-body-scale"
+              style={{ fontSize: "calc(clamp(0.75rem, 1.5vw, 0.875rem) * var(--cms-body-scale, 1))" }}
+            >
               {description}
             </p>
 

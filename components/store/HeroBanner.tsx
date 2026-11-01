@@ -65,12 +65,18 @@ export default function HeroBanner({
         {/* Text Content & Buttons - Centered on mobile devices, Left-aligned on Desktop */}
         <div className="w-full max-w-3xl lg:max-w-5xl space-y-2.5 sm:space-y-3 pointer-events-auto text-center sm:text-left flex flex-col items-center sm:items-start">
           {/* Main Title */}
-          <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black uppercase text-white tracking-tight leading-none drop-shadow-md text-center sm:text-left whitespace-nowrap">
+          <h1
+            className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black uppercase text-white tracking-tight leading-none drop-shadow-md text-center sm:text-left whitespace-nowrap cms-heading-scale"
+            style={{ fontSize: "calc(clamp(1.5rem, 5vw, 3.75rem) * var(--cms-heading-scale, 1))" }}
+          >
             {displayTitle}
           </h1>
 
           {/* Subtitle */}
-          <p className="text-xs sm:text-sm md:text-base font-normal text-white/90 drop-shadow-sm text-center sm:text-left max-w-md sm:max-w-none font-description">
+          <p
+            className="text-xs sm:text-sm md:text-base font-normal text-white/90 drop-shadow-sm text-center sm:text-left max-w-md sm:max-w-none font-description cms-body-scale"
+            style={{ fontSize: "calc(clamp(0.75rem, 2vw, 1rem) * var(--cms-body-scale, 1))" }}
+          >
             {displaySubtitle}
           </p>
 
