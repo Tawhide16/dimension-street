@@ -578,6 +578,201 @@ export default function LiveCmsDrawer() {
                 )}
               </div>
 
+              {/* 1.1b Header / Navbar (Logo & Controls) */}
+              <div className="bg-neutral-900/90 rounded-xl border border-neutral-800 overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setSelectedSectionId(selectedSectionId === "header" ? null : "header")}
+                  className="w-full p-3.5 flex items-center justify-between text-left font-bold text-white hover:bg-neutral-800/50"
+                >
+                  <span className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-violet-400" />
+                    <span>Header / Navbar (Logo & Controls)</span>
+                  </span>
+                  {selectedSectionId === "header" ? (
+                    <ChevronUp className="w-4 h-4 text-neutral-400" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-neutral-400" />
+                  )}
+                </button>
+
+                {selectedSectionId === "header" && (
+                  <div className="p-3.5 border-t border-neutral-800 bg-neutral-950/60">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Left: Logo Visibility & Options */}
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-1.5 pb-1 border-b border-neutral-800 text-[11px] font-mono uppercase text-amber-400 font-bold">
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Navbar Logo Visibility</span>
+                        </div>
+
+                        {/* Hide Logo Controls */}
+                        <div className="p-3 bg-neutral-900/90 rounded-lg border border-neutral-800 space-y-2.5">
+                          <label className="flex items-center gap-2 cursor-pointer text-xs font-mono font-bold text-white">
+                            <input
+                              type="checkbox"
+                              checked={Boolean(navigationConfig?.hideLogo)}
+                              onChange={(e) => updateNavigation({ hideLogo: e.target.checked })}
+                              className="rounded accent-pink-500 w-4 h-4"
+                            />
+                            <span>Hide Navbar Logo Completely</span>
+                          </label>
+
+                          <div className="pl-6 space-y-2 border-l border-neutral-800">
+                            <label className="flex items-center gap-2 cursor-pointer text-xs font-mono text-neutral-300">
+                              <input
+                                type="checkbox"
+                                checked={Boolean(navigationConfig?.hideLogoMobile)}
+                                onChange={(e) => updateNavigation({ hideLogoMobile: e.target.checked })}
+                                className="rounded accent-white"
+                              />
+                              <span>Hide Logo on Mobile Devices</span>
+                            </label>
+
+                            <label className="flex items-center gap-2 cursor-pointer text-xs font-mono text-neutral-300">
+                              <input
+                                type="checkbox"
+                                checked={Boolean(navigationConfig?.hideLogoDesktop)}
+                                onChange={(e) => updateNavigation({ hideLogoDesktop: e.target.checked })}
+                                className="rounded accent-white"
+                              />
+                              <span>Hide Logo on Desktop Devices</span>
+                            </label>
+                          </div>
+                        </div>
+
+                        {/* Sticky Navbar & Mode */}
+                        <div className="p-3 bg-neutral-900/90 rounded-lg border border-neutral-800 space-y-2">
+                          <label className="flex items-center gap-2 cursor-pointer text-xs font-mono text-neutral-300">
+                            <input
+                              type="checkbox"
+                              checked={navigationConfig?.sticky !== false}
+                              onChange={(e) => updateNavigation({ sticky: e.target.checked })}
+                              className="rounded accent-white"
+                            />
+                            <span>Sticky Header (Follows on scroll)</span>
+                          </label>
+
+                          <div className="flex items-center justify-between pt-2 border-t border-neutral-800 text-xs">
+                            <span className="font-mono text-neutral-400">Logo Display Type:</span>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                updateNavigation({
+                                  logoType: navigationConfig?.logoType === "text" ? "image" : "text",
+                                })
+                              }
+                              className="px-2.5 py-1 bg-neutral-800 hover:bg-neutral-700 text-white rounded font-mono text-[11px] font-bold border border-neutral-700 cursor-pointer"
+                            >
+                              Mode: {navigationConfig?.logoType === "text" ? "Text Title" : "Image Logo"}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right: Upload Navbar Logo & Action Buttons */}
+                      <div className="space-y-3 bg-neutral-900/60 p-3.5 rounded-xl border border-neutral-800">
+                        <div className="flex items-center gap-1.5 pb-1 border-b border-neutral-800 text-[11px] font-mono uppercase text-pink-400 font-bold">
+                          <ImageIcon className="w-3.5 h-3.5" />
+                          <span>Navbar Logo Image & Media</span>
+                        </div>
+
+                        {/* Navbar Logo Upload */}
+                        <div>
+                          <label className="text-[10px] font-mono uppercase text-neutral-400 block mb-1">
+                            Navbar Brand Logo
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              value={navigationConfig?.logoImageUrl || ""}
+                              onChange={(e) => updateNavigation({ logoImageUrl: e.target.value })}
+                              placeholder="/images/logo.png"
+                              className="flex-1 bg-neutral-950 border border-neutral-700 rounded px-2.5 py-1 text-xs text-white font-mono text-[11px]"
+                            />
+                            <button
+                              type="button"
+                              onClick={() =>
+                                triggerFileUpload((url) => updateNavigation({ logoImageUrl: url, logoType: "image" }), "navbar-logo")
+                              }
+                              disabled={uploadingField === "navbar-logo"}
+                              className="px-3 py-1.5 bg-neutral-800 hover:bg-white hover:text-black text-white text-xs font-mono font-bold rounded flex items-center gap-1 transition-colors border border-neutral-700 shrink-0 cursor-pointer"
+                            >
+                              <Upload className="w-3.5 h-3.5" />
+                              <span>{uploadingField === "navbar-logo" ? "..." : "Upload"}</span>
+                            </button>
+                          </div>
+
+                          {/* Logo Preview */}
+                          <div className="mt-2.5 p-2 bg-neutral-950 rounded border border-neutral-800 flex items-center gap-3">
+                            <div className="w-16 h-10 bg-black rounded p-1 flex items-center justify-center border border-neutral-800 shrink-0">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={navigationConfig?.logoImageUrl || "/images/logo.png"}
+                                alt="Navbar Logo Preview"
+                                className="max-h-full max-w-full object-contain"
+                              />
+                            </div>
+                            <div className="text-[10px] font-mono text-neutral-400">
+                              {navigationConfig?.hideLogo ? (
+                                <span className="text-rose-400 font-bold">Logo is currently Hidden</span>
+                              ) : (
+                                <span className="text-emerald-400 font-bold">Logo is Visible</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Capsule Toggles */}
+                        <div className="pt-2 border-t border-neutral-800 space-y-1.5">
+                          <span className="text-[10px] font-mono uppercase text-neutral-400 font-bold block mb-1">
+                            Header Action Icons
+                          </span>
+                          <div className="grid grid-cols-2 gap-2 text-xs font-mono text-neutral-300">
+                            <label className="flex items-center gap-1.5 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={navigationConfig?.showCart !== false}
+                                onChange={(e) => updateNavigation({ showCart: e.target.checked })}
+                                className="rounded accent-white"
+                              />
+                              <span>Cart Icon</span>
+                            </label>
+                            <label className="flex items-center gap-1.5 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={navigationConfig?.showWishlist !== false}
+                                onChange={(e) => updateNavigation({ showWishlist: e.target.checked })}
+                                className="rounded accent-white"
+                              />
+                              <span>Wishlist Icon</span>
+                            </label>
+                            <label className="flex items-center gap-1.5 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={navigationConfig?.showAccount !== false}
+                                onChange={(e) => updateNavigation({ showAccount: e.target.checked })}
+                                className="rounded accent-white"
+                              />
+                              <span>Account Icon</span>
+                            </label>
+                            <label className="flex items-center gap-1.5 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={navigationConfig?.showSearch !== false}
+                                onChange={(e) => updateNavigation({ showSearch: e.target.checked })}
+                                className="rounded accent-white"
+                              />
+                              <span>Search Icon</span>
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* 1.2 Hero Banner */}
               <div className="bg-neutral-900/90 rounded-xl border border-neutral-800 overflow-hidden">
                 <button
@@ -773,6 +968,72 @@ export default function LiveCmsDrawer() {
                                 alt="Hero mobile preview"
                                 className="w-full h-full object-cover"
                               />
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Top-Left Banner Logo Upload (Where red mark is located) */}
+                        <div className="pt-2.5 border-t border-neutral-800/80">
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="text-[10px] font-mono uppercase text-pink-400 font-bold flex items-center gap-1">
+                              <ImageIcon className="w-3 h-3" />
+                              <span>Top-Left Banner Logo (Red Box)</span>
+                            </label>
+                            <span className="text-[9px] font-mono text-neutral-400">Custom Logo on Banner</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              placeholder="/images/... or upload logo"
+                              value={heroData.logoImage || ""}
+                              onChange={(e) => updateSectionData("hero", "logoImage", e.target.value)}
+                              className="flex-1 bg-neutral-950 border border-neutral-700 rounded px-2.5 py-1 text-xs text-white font-mono text-[11px]"
+                            />
+                            <button
+                              type="button"
+                              onClick={() =>
+                                triggerFileUpload((url) => updateSectionData("hero", "logoImage", url), "hero-logo")
+                              }
+                              disabled={uploadingField === "hero-logo"}
+                              className="px-3 py-1.5 bg-neutral-800 hover:bg-white hover:text-black text-white text-xs font-mono font-bold rounded flex items-center gap-1 transition-colors border border-neutral-700 shrink-0 cursor-pointer"
+                            >
+                              <Upload className="w-3.5 h-3.5" />
+                              <span>{uploadingField === "hero-logo" ? "..." : "Upload Logo"}</span>
+                            </button>
+                            {heroData.logoImage && (
+                              <button
+                                type="button"
+                                onClick={() => updateSectionData("hero", "logoImage", "")}
+                                title="Remove Banner Logo"
+                                className="px-2.5 py-1.5 bg-neutral-800 hover:bg-rose-950 text-neutral-400 hover:text-rose-400 rounded border border-neutral-700 cursor-pointer"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+
+                          {heroData.logoImage && (
+                            <div className="mt-2.5 p-2.5 bg-neutral-950/90 rounded-lg border border-neutral-800 flex items-center gap-3">
+                              <div className="w-14 h-14 bg-neutral-900 rounded p-1 flex items-center justify-center border border-neutral-800 shrink-0">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={heroData.logoImage}
+                                  alt="Banner Logo Preview"
+                                  className="max-h-full max-w-full object-contain"
+                                />
+                              </div>
+                              <div className="flex-1 space-y-1">
+                                <label className="text-[9px] font-mono uppercase text-neutral-400 block">
+                                  Logo Click Link
+                                </label>
+                                <input
+                                  type="text"
+                                  placeholder="/"
+                                  value={heroData.logoLink || "/"}
+                                  onChange={(e) => updateSectionData("hero", "logoLink", e.target.value)}
+                                  className="w-full bg-neutral-900 border border-neutral-700 rounded px-2.5 py-1 text-xs text-white font-mono"
+                                />
+                              </div>
                             </div>
                           )}
                         </div>

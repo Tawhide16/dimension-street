@@ -14,6 +14,9 @@ export interface INavbarConfig {
   logoType: "image" | "text";
   logoText: string;
   logoImageUrl: string;
+  hideLogo?: boolean;
+  hideLogoMobile?: boolean;
+  hideLogoDesktop?: boolean;
   menuPillLabel: string;
   showCart: boolean;
   showWishlist: boolean;
@@ -53,6 +56,9 @@ const NavbarConfigSchema = new Schema<INavbarConfigDocument>(
     logoType: { type: String, enum: ["image", "text"], default: "image" },
     logoText: { type: String, default: "DIMENSION STREET" },
     logoImageUrl: { type: String, default: "/images/logo.png" },
+    hideLogo: { type: Boolean, default: false },
+    hideLogoMobile: { type: Boolean, default: false },
+    hideLogoDesktop: { type: Boolean, default: false },
     menuPillLabel: { type: String, default: "Menu" },
     showCart: { type: Boolean, default: true },
     showWishlist: { type: Boolean, default: true },

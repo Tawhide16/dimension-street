@@ -138,6 +138,9 @@ export default function LiveStorefront({
               secondaryCtaLink={heroData.secondaryCtaLink || "/shop"}
               backgroundImage={heroData.backgroundImage || "/images/hero-banner.jpg"}
               mobileBackgroundImage={heroData.mobileBackgroundImage}
+              logoImage={heroData.logoImage}
+              logoLink={heroData.logoLink || "/"}
+              logoAlt={heroData.logoAlt || "Dimension Street Logo"}
             />
           </div>
         )}

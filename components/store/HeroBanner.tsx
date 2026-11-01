@@ -13,6 +13,9 @@ interface HeroBannerProps {
   secondaryCtaLink?: string;
   backgroundImage?: string;
   mobileBackgroundImage?: string;
+  logoImage?: string;
+  logoLink?: string;
+  logoAlt?: string;
 }
 
 export default function HeroBanner({
@@ -24,6 +27,9 @@ export default function HeroBanner({
   secondaryCtaLink = "/shop",
   backgroundImage = "/images/hero-banner.jpg",
   mobileBackgroundImage,
+  logoImage,
+  logoLink = "/",
+  logoAlt = "Campaign Logo",
 }: HeroBannerProps) {
   const displayTitle = title || "HERO BANNER";
   const displaySubtitle = subtitle || "Primary Homepage Billboard";
@@ -32,6 +38,24 @@ export default function HeroBanner({
 
   return (
     <section className="relative w-full aspect-[3/4] sm:aspect-[16/9] md:aspect-[2.34/1] min-h-[460px] sm:min-h-[400px] md:min-h-[480px] lg:min-h-[560px] max-h-[780px] overflow-hidden bg-black select-none">
+      {/* Top-Left Banner Logo (Customizable via CMS) */}
+      {logoImage && (
+        <div className="absolute top-5 sm:top-7 left-4 sm:left-8 lg:left-12 xl:left-16 z-30 pointer-events-auto">
+          <Link
+            href={logoLink || "/"}
+            className="inline-flex items-center select-none transition-transform hover:scale-105 active:scale-95"
+            aria-label="Banner Logo"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={logoImage}
+              alt={logoAlt || "Banner Logo"}
+              className="h-10 sm:h-14 lg:h-16 w-auto object-contain drop-shadow-md"
+            />
+          </Link>
+        </div>
+      )}
+
       {/* Desktop Panoramic Banner Image */}
       <div className={`absolute inset-0 ${mobileBackgroundImage ? "hidden sm:block" : "block"}`}>
         <Image

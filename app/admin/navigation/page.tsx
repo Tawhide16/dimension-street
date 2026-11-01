@@ -482,6 +482,51 @@ export default function AdminNavigationPage() {
           </div>
         </div>
 
+        {/* Logo Visibility Toggles */}
+        <div className="p-3 bg-neutral-50 rounded-xl border border-neutral-200 flex flex-wrap items-center gap-6 text-xs font-mono">
+          <label className="flex items-center gap-2 cursor-pointer font-bold text-neutral-900">
+            <input
+              type="checkbox"
+              checked={Boolean(config.hideLogo)}
+              onChange={(e) => {
+                const updated = { ...config, hideLogo: e.target.checked };
+                setConfig(updated);
+                handleSave(updated);
+              }}
+              className="rounded accent-black w-4 h-4 cursor-pointer"
+            />
+            <span>Hide Navbar Logo (Completely)</span>
+          </label>
+
+          <label className="flex items-center gap-2 cursor-pointer text-neutral-700">
+            <input
+              type="checkbox"
+              checked={Boolean(config.hideLogoMobile)}
+              onChange={(e) => {
+                const updated = { ...config, hideLogoMobile: e.target.checked };
+                setConfig(updated);
+                handleSave(updated);
+              }}
+              className="rounded accent-black w-4 h-4 cursor-pointer"
+            />
+            <span>Hide on Mobile Devices</span>
+          </label>
+
+          <label className="flex items-center gap-2 cursor-pointer text-neutral-700">
+            <input
+              type="checkbox"
+              checked={Boolean(config.hideLogoDesktop)}
+              onChange={(e) => {
+                const updated = { ...config, hideLogoDesktop: e.target.checked };
+                setConfig(updated);
+                handleSave(updated);
+              }}
+              className="rounded accent-black w-4 h-4 cursor-pointer"
+            />
+            <span>Hide on Desktop Devices</span>
+          </label>
+        </div>
+
         {logoSuccess && (
           <div className="p-3 bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-mono rounded-lg flex items-center gap-2 animate-in fade-in">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
