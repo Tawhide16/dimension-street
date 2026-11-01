@@ -21,6 +21,8 @@ interface MongooseCache {
 declare global {
   // eslint-disable-next-line no-var
   var mongooseCache: MongooseCache | undefined;
+  // eslint-disable-next-line no-var
+  var __mongoListenersAttached: boolean | undefined;
 }
 
 const cached: MongooseCache = global.mongooseCache || { conn: null, promise: null };
@@ -29,10 +31,32 @@ if (!global.mongooseCache) {
   global.mongooseCache = cached;
 }
 
+// Auto-recovery listeners on disconnection
+if (!global.__mongoListenersAttached && typeof window === "undefined") {
+  mongoose.connection.on("disconnected", () => {
+    cached.conn = null;
+    cached.promise = null;
+  });
+  mongoose.connection.on("error", () => {
+    cached.conn = null;
+    cached.promise = null;
+  });
+  global.__mongoListenersAttached = true;
+}
+
+/**
+ * Converts standard SRV Atlas URIs into direct 3-node replica set URIs.
+ * This completely avoids DNS SRV lookup timeouts, ECONNREFUSED errors,
+ * and cold-start latency on Vercel / serverless platforms.
+ */
 function getOptimizedUri(uri: string): string {
-  // If this is the cluster0.iv15qaw.mongodb.net SRV URI, connect directly to replica set to avoid DNS SRV latency
+  if (uri.includes("cluster0.bw3blcg.mongodb.net")) {
+    const userPassMatch = uri.match(/mongodb(?:\+srv)?:\/\/([^@]+)@/);
+    const auth = userPassMatch ? userPassMatch[1] : "protfulio:LDh8KL3JqaCGgOCn";
+    return `mongodb://${auth}@ac-q4nh4go-shard-00-00.bw3blcg.mongodb.net:27017,ac-q4nh4go-shard-00-01.bw3blcg.mongodb.net:27017,ac-q4nh4go-shard-00-02.bw3blcg.mongodb.net:27017/dimension_street?ssl=true&replicaSet=atlas-64uczn-shard-0&authSource=admin&retryWrites=true&w=majority`;
+  }
   if (uri.includes("cluster0.iv15qaw.mongodb.net")) {
-    const userPassMatch = uri.match(/mongodb\+srv:\/\/([^@]+)@/);
+    const userPassMatch = uri.match(/mongodb(?:\+srv)?:\/\/([^@]+)@/);
     if (userPassMatch && userPassMatch[1]) {
       return `mongodb://${userPassMatch[1]}@ac-w00blsv-shard-00-00.iv15qaw.mongodb.net:27017,ac-w00blsv-shard-00-01.iv15qaw.mongodb.net:27017,ac-w00blsv-shard-00-02.iv15qaw.mongodb.net:27017/dimension_street?ssl=true&replicaSet=atlas-x8lnib-shard-0&authSource=admin&retryWrites=true&w=majority`;
     }
@@ -40,38 +64,61 @@ function getOptimizedUri(uri: string): string {
   return uri;
 }
 
-export async function connectToDatabase() {
+export async function connectToDatabase(retries = 2): Promise<typeof mongoose | null> {
   if (!MONGODB_URI) {
-    // Graceful fallback to memory/seed mode if MONGODB_URI is not set
     return null;
   }
 
-  if (cached.conn) {
+  // 1. If actively connected, return immediately
+  if (mongoose.connection.readyState === 1 && cached.conn) {
     return cached.conn;
   }
 
-  if (!cached.promise) {
-    const opts = {
-      bufferCommands: false,
-      maxPoolSize: 10,
-      minPoolSize: 2,
-      socketTimeoutMS: 20000,
-      serverSelectionTimeoutMS: 5000,
-      connectTimeoutMS: 5000,
-    };
-
-    const targetUri = getOptimizedUri(MONGODB_URI);
-    cached.promise = mongoose.connect(targetUri, opts).then((m) => m);
+  // 2. If currently connecting, await in-flight promise
+  if (mongoose.connection.readyState === 2 && cached.promise) {
+    try {
+      cached.conn = await cached.promise;
+      return cached.conn;
+    } catch {
+      cached.promise = null;
+      cached.conn = null;
+    }
   }
 
-  try {
-    cached.conn = await cached.promise;
-    return cached.conn;
-  } catch (e) {
-    cached.promise = null;
-    console.warn("MongoDB connection could not be established; running in robust local data mode.", e);
-    return null;
+  // 3. Clear any stale connection reference
+  cached.conn = null;
+  cached.promise = null;
+
+  const targetUri = getOptimizedUri(MONGODB_URI);
+  const opts: mongoose.ConnectOptions = {
+    bufferCommands: false,
+    maxPoolSize: 10,
+    minPoolSize: 1,
+    socketTimeoutMS: 45000,
+    serverSelectionTimeoutMS: 8000,
+    connectTimeoutMS: 8000,
+    heartbeatFrequencyMS: 10000,
+    retryWrites: true,
+    retryReads: true,
+  };
+
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      cached.promise = mongoose.connect(targetUri, opts);
+      cached.conn = await cached.promise;
+      return cached.conn;
+    } catch (e) {
+      cached.promise = null;
+      cached.conn = null;
+      if (attempt === retries) {
+        console.warn(`MongoDB connection attempt ${attempt}/${retries} failed; using robust fallback cache:`, e);
+        return null;
+      }
+      await new Promise((r) => setTimeout(r, 400));
+    }
   }
+
+  return null;
 }
 
 export function isMongoConnected(): boolean {
