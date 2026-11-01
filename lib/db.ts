@@ -10,7 +10,8 @@ if (typeof window === "undefined") {
   }
 }
 
-const MONGODB_URI = process.env.MONGODB_URI;
+const DEFAULT_MONGODB_URI = "mongodb+srv://protfulio:LDh8KL3JqaCGgOCn@cluster0.bw3blcg.mongodb.net/dimension_street?retryWrites=true&w=majority&appName=Cluster0";
+const MONGODB_URI = process.env.MONGODB_URI || DEFAULT_MONGODB_URI;
 
 interface MongooseCache {
   conn: typeof mongoose | null;
