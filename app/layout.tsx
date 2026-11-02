@@ -196,11 +196,44 @@ export default async function RootLayout({
                 } catch(e) {}
 
                 if (typeof window !== 'undefined') {
+                  var isExtError = function(e, msg, file) {
+                    var text = String(msg || (e && (e.message || (e.error && e.error.message))) || '');
+                    var src = String(file || (e && (e.filename || (e.error && (e.error.stack || e.error.filename)))) || '');
+                    return (
+                      src.indexOf('chrome-extension://') !== -1 ||
+                      src.indexOf('moz-extension://') !== -1 ||
+                      text.indexOf('M_ID') !== -1 ||
+                      text.indexOf('bis_skin_checked') !== -1
+                    );
+                  };
+
+                  window.addEventListener('error', function(event) {
+                    if (isExtError(event, event.message, event.filename)) {
+                      event.preventDefault();
+                      event.stopImmediatePropagation();
+                      return true;
+                    }
+                  }, true);
+
+                  window.addEventListener('unhandledrejection', function(event) {
+                    var reason = event && event.reason;
+                    var str = String((reason && (reason.stack || reason.message)) || reason || '');
+                    if (str.indexOf('chrome-extension://') !== -1 || str.indexOf('moz-extension://') !== -1 || str.indexOf('M_ID') !== -1) {
+                      event.preventDefault();
+                      event.stopImmediatePropagation();
+                    }
+                  }, true);
+
                   var origError = console.error;
                   console.error = function() {
                     for (var i = 0; i < arguments.length; i++) {
                       var str = String(arguments[i] || '');
-                      if (str.indexOf('bis_skin_checked') !== -1 || str.indexOf('bis_skin') !== -1) {
+                      if (
+                        str.indexOf('bis_skin_checked') !== -1 ||
+                        str.indexOf('bis_skin') !== -1 ||
+                        str.indexOf('chrome-extension://') !== -1 ||
+                        str.indexOf('M_ID') !== -1
+                      ) {
                         return;
                       }
                     }
