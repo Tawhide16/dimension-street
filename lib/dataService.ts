@@ -66,14 +66,14 @@ export const initialNavbarConfig: INavbarConfig = {
 };
 
 export const initialSeoConfig: ISeoConfig = {
-  siteTitle: "DIMENSION STREET — Premium Heavyweight Streetwear",
+  siteTitle: "DIMENSION STREET",
   titleTemplate: "%s | DIMENSION STREET",
   metaDescription:
     "Architectural silhouettes crafted from custom milled 320–480 GSM organic cotton knits. Designed in Dhaka, worn worldwide.",
   keywords:
     "Dimension Street, streetwear, heavyweight hoodie, oversized tee, tactical pants, Dhaka streetwear, 320 GSM, bangladesh streetwear",
   canonicalUrl: "https://dimensionstreet.com",
-  ogTitle: "DIMENSION STREET — Heavyweight Essentials",
+  ogTitle: "DIMENSION STREET",
   ogDescription: "Premium architectural streetwear designed for every dimension.",
   ogImage: "/images/og-dimension-street.png",
   ogType: "website",
@@ -1917,8 +1917,17 @@ export async function getSeoConfig(): Promise<ISeoConfig> {
     try {
       const doc = await SeoConfigModel.findOne().lean();
       if (doc) {
+        let siteTitle = (doc.siteTitle || "").trim();
+        if (
+          !siteTitle ||
+          siteTitle.includes("— Premium") ||
+          siteTitle.includes("- Premium") ||
+          siteTitle.includes("Heavyweight Streetwear")
+        ) {
+          siteTitle = "DIMENSION STREET";
+        }
         return {
-          siteTitle: doc.siteTitle || initialSeoConfig.siteTitle,
+          siteTitle,
           titleTemplate: doc.titleTemplate || initialSeoConfig.titleTemplate,
           metaDescription: doc.metaDescription || initialSeoConfig.metaDescription,
           keywords: doc.keywords || initialSeoConfig.keywords,

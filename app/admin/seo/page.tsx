@@ -42,14 +42,14 @@ interface SeoFormState {
 }
 
 const defaultSeo: SeoFormState = {
-  siteTitle: "DIMENSION STREET — Premium Heavyweight Streetwear",
+  siteTitle: "DIMENSION STREET",
   titleTemplate: "%s | DIMENSION STREET",
   metaDescription:
     "Architectural silhouettes crafted from custom milled 320–480 GSM organic cotton knits. Designed in Dhaka, worn worldwide.",
   keywords:
     "Dimension Street, streetwear, heavyweight hoodie, oversized tee, tactical pants, Dhaka streetwear, 320 GSM, bangladesh streetwear",
   canonicalUrl: "https://dimensionstreet.com",
-  ogTitle: "DIMENSION STREET — Heavyweight Essentials",
+  ogTitle: "DIMENSION STREET",
   ogDescription: "Premium architectural streetwear designed for every dimension.",
   ogImage: "/images/dimension-street-logo.png",
   ogType: "website",
@@ -472,7 +472,7 @@ export default function AdminSEOPage() {
                   type="text"
                   value={formData.siteTitle}
                   onChange={(e) => setFormData({ ...formData, siteTitle: e.target.value })}
-                  placeholder="e.g. DIMENSION STREET — Premium Heavyweight Streetwear"
+                  placeholder="e.g. DIMENSION STREET"
                   className="w-full px-3.5 py-2.5 bg-neutral-50 border border-neutral-300 rounded-lg text-sm text-neutral-900 placeholder:text-neutral-500 focus:bg-white focus:border-black focus:ring-1 focus:ring-black focus:outline-none transition-all"
                 />
                 <p className="text-2xs text-neutral-500 mt-1">
