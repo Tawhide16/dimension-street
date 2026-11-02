@@ -701,6 +701,16 @@ export default function LiveCmsDrawer() {
                               <Upload className="w-3.5 h-3.5" />
                               <span>{uploadingField === "navbar-logo" ? "..." : "Upload"}</span>
                             </button>
+                            {navigationConfig?.logoImageUrl && (
+                              <button
+                                type="button"
+                                onClick={() => updateNavigation({ logoImageUrl: "" })}
+                                title="Remove Logo Image"
+                                className="px-2.5 py-1.5 bg-neutral-800 hover:bg-rose-950 text-neutral-400 hover:text-rose-400 rounded border border-neutral-700 cursor-pointer"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
                           </div>
 
                           {/* Logo Preview */}
@@ -922,6 +932,16 @@ export default function LiveCmsDrawer() {
                               <Upload className="w-3.5 h-3.5" />
                               <span>{uploadingField === "hero-bg" ? "..." : "Upload"}</span>
                             </button>
+                            {heroData.backgroundImage && (
+                              <button
+                                type="button"
+                                onClick={() => updateSectionData("hero", "backgroundImage", "")}
+                                title="Remove Desktop Banner Image"
+                                className="px-2.5 py-1.5 bg-neutral-800 hover:bg-rose-950 text-neutral-400 hover:text-rose-400 rounded border border-neutral-700 cursor-pointer"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
                           </div>
                           {heroData.backgroundImage && (
                             <div className="mt-2 w-full h-24 rounded overflow-hidden border border-neutral-800 relative bg-neutral-900">
@@ -959,6 +979,16 @@ export default function LiveCmsDrawer() {
                               <Smartphone className="w-3.5 h-3.5" />
                               <span>Upload</span>
                             </button>
+                            {heroData.mobileBackgroundImage && (
+                              <button
+                                type="button"
+                                onClick={() => updateSectionData("hero", "mobileBackgroundImage", "")}
+                                title="Remove Mobile Banner Image"
+                                className="px-2.5 py-1.5 bg-neutral-800 hover:bg-rose-950 text-neutral-400 hover:text-rose-400 rounded border border-neutral-700 cursor-pointer"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
                           </div>
                           {heroData.mobileBackgroundImage && (
                             <div className="mt-2 w-20 h-28 rounded overflow-hidden border border-neutral-800 relative bg-neutral-900">
@@ -1206,22 +1236,34 @@ export default function LiveCmsDrawer() {
                                   />
                                 </div>
                                 <div className="flex-1 space-y-1.5">
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      triggerFileUpload(
-                                        (url) => updateCategoryCard(idx, "image", url),
-                                        `cat-card-${idx}`
-                                      )
-                                    }
-                                    disabled={uploadingField === `cat-card-${idx}`}
-                                    className="w-full py-1.5 px-3 bg-neutral-800 hover:bg-white hover:text-black text-white text-xs font-mono font-bold rounded flex items-center justify-center gap-1.5 transition-colors border border-neutral-700"
-                                  >
-                                    <Upload className="w-3.5 h-3.5" />
-                                    <span>
-                                      {uploadingField === `cat-card-${idx}` ? "Uploading..." : "Upload Card Image"}
-                                    </span>
-                                  </button>
+                                  <div className="flex items-center gap-1.5">
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        triggerFileUpload(
+                                          (url) => updateCategoryCard(idx, "image", url),
+                                          `cat-card-${idx}`
+                                        )
+                                      }
+                                      disabled={uploadingField === `cat-card-${idx}`}
+                                      className="flex-1 py-1.5 px-3 bg-neutral-800 hover:bg-white hover:text-black text-white text-xs font-mono font-bold rounded flex items-center justify-center gap-1.5 transition-colors border border-neutral-700 cursor-pointer"
+                                    >
+                                      <Upload className="w-3.5 h-3.5" />
+                                      <span>
+                                        {uploadingField === `cat-card-${idx}` ? "Uploading..." : "Upload Card Image"}
+                                      </span>
+                                    </button>
+                                    {card.image && (
+                                      <button
+                                        type="button"
+                                        onClick={() => updateCategoryCard(idx, "image", "")}
+                                        title="Remove Card Image"
+                                        className="px-2.5 py-1.5 bg-neutral-800 hover:bg-rose-950 text-neutral-400 hover:text-rose-400 rounded border border-neutral-700 cursor-pointer"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </button>
+                                    )}
+                                  </div>
                                   <input
                                     type="text"
                                     placeholder="/images/... or https://..."
@@ -1444,22 +1486,34 @@ export default function LiveCmsDrawer() {
                                   />
                                 </div>
                                 <div className="flex-1 space-y-1.5">
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      triggerFileUpload(
-                                        (url) => updateBestSellerCard(idx, "image", url),
-                                        `bs-card-${idx}`
-                                      )
-                                    }
-                                    disabled={uploadingField === `bs-card-${idx}`}
-                                    className="w-full py-1.5 px-3 bg-neutral-800 hover:bg-white hover:text-black text-white text-xs font-mono font-bold rounded flex items-center justify-center gap-1.5 transition-colors border border-neutral-700"
-                                  >
-                                    <Upload className="w-3.5 h-3.5" />
-                                    <span>
-                                      {uploadingField === `bs-card-${idx}` ? "Uploading..." : "Upload Card Image"}
-                                    </span>
-                                  </button>
+                                  <div className="flex items-center gap-1.5">
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        triggerFileUpload(
+                                          (url) => updateBestSellerCard(idx, "image", url),
+                                          `bs-card-${idx}`
+                                        )
+                                      }
+                                      disabled={uploadingField === `bs-card-${idx}`}
+                                      className="flex-1 py-1.5 px-3 bg-neutral-800 hover:bg-white hover:text-black text-white text-xs font-mono font-bold rounded flex items-center justify-center gap-1.5 transition-colors border border-neutral-700 cursor-pointer"
+                                    >
+                                      <Upload className="w-3.5 h-3.5" />
+                                      <span>
+                                        {uploadingField === `bs-card-${idx}` ? "Uploading..." : "Upload Card Image"}
+                                      </span>
+                                    </button>
+                                    {card.image && (
+                                      <button
+                                        type="button"
+                                        onClick={() => updateBestSellerCard(idx, "image", "")}
+                                        title="Remove Card Image"
+                                        className="px-2.5 py-1.5 bg-neutral-800 hover:bg-rose-950 text-neutral-400 hover:text-rose-400 rounded border border-neutral-700 cursor-pointer"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </button>
+                                    )}
+                                  </div>
                                   <input
                                     type="text"
                                     placeholder="/images/... or https://..."
@@ -1585,11 +1639,21 @@ export default function LiveCmsDrawer() {
                               onClick={() =>
                                 triggerFileUpload((url) => updateSectionData("promo_banner", "bgImage", url), "promo-bg")
                               }
-                              className="px-3 py-1.5 bg-neutral-800 hover:bg-white hover:text-black text-white text-xs font-mono font-bold rounded flex items-center gap-1 border border-neutral-700 shrink-0"
+                              className="px-3 py-1.5 bg-neutral-800 hover:bg-white hover:text-black text-white text-xs font-mono font-bold rounded flex items-center gap-1 border border-neutral-700 shrink-0 cursor-pointer"
                             >
                               <Upload className="w-3.5 h-3.5" />
                               <span>Upload</span>
                             </button>
+                            {promoData.bgImage && (
+                              <button
+                                type="button"
+                                onClick={() => updateSectionData("promo_banner", "bgImage", "")}
+                                title="Remove Promo Banner Image"
+                                className="px-2.5 py-1.5 bg-neutral-800 hover:bg-rose-950 text-neutral-400 hover:text-rose-400 rounded border border-neutral-700 cursor-pointer"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
                           </div>
                           {promoData.bgImage && (
                             <div className="mt-2 w-full h-24 rounded overflow-hidden border border-neutral-800 relative bg-neutral-900">
@@ -1726,11 +1790,21 @@ export default function LiveCmsDrawer() {
                               onClick={() =>
                                 triggerFileUpload((url) => updateSectionData("brand_story", "image", url), "brand-img")
                               }
-                              className="px-3 py-1.5 bg-neutral-800 hover:bg-white hover:text-black text-white text-xs font-mono font-bold rounded flex items-center gap-1 border border-neutral-700 shrink-0"
+                              className="px-3 py-1.5 bg-neutral-800 hover:bg-white hover:text-black text-white text-xs font-mono font-bold rounded flex items-center gap-1 border border-neutral-700 shrink-0 cursor-pointer"
                             >
                               <Upload className="w-3.5 h-3.5" />
                               <span>Upload</span>
                             </button>
+                            {brandData.image && (
+                              <button
+                                type="button"
+                                onClick={() => updateSectionData("brand_story", "image", "")}
+                                title="Remove Brand Story Image"
+                                className="px-2.5 py-1.5 bg-neutral-800 hover:bg-rose-950 text-neutral-400 hover:text-rose-400 rounded border border-neutral-700 cursor-pointer"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
                           </div>
                           {brandData.image && (
                             <div className="mt-2 w-full h-36 rounded overflow-hidden border border-neutral-700 bg-neutral-900">
@@ -2197,11 +2271,21 @@ export default function LiveCmsDrawer() {
                     <button
                       type="button"
                       onClick={() => triggerFileUpload((url) => setNewColImage(url), "col-img")}
-                      className="px-3 py-1.5 bg-neutral-800 hover:bg-white hover:text-black text-white text-xs font-mono font-bold rounded flex items-center gap-1 border border-neutral-700"
+                      className="px-3 py-1.5 bg-neutral-800 hover:bg-white hover:text-black text-white text-xs font-mono font-bold rounded flex items-center gap-1 border border-neutral-700 cursor-pointer"
                     >
                       <Upload className="w-3.5 h-3.5" />
                       <span>Upload</span>
                     </button>
+                    {newColImage && (
+                      <button
+                        type="button"
+                        onClick={() => setNewColImage("")}
+                        title="Remove Image"
+                        className="px-2.5 py-1.5 bg-neutral-800 hover:bg-rose-950 text-neutral-400 hover:text-rose-400 rounded border border-neutral-700 cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
                 </div>
 

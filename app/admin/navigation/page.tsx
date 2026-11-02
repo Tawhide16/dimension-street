@@ -659,6 +659,24 @@ export default function AdminNavigationPage() {
                 >
                   Reset Default
                 </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const clearConfig = {
+                      ...config,
+                      logoImageUrl: "",
+                    };
+                    setConfig(clearConfig);
+                    handleSave(clearConfig);
+                    setLogoSuccess("✓ Brand logo removed!");
+                    setTimeout(() => setLogoSuccess(null), 3000);
+                  }}
+                  className="px-3 py-2 border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs font-bold shrink-0 cursor-pointer flex items-center gap-1"
+                  title="Remove logo image"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Remove Logo</span>
+                </button>
               </div>
             </div>
           </div>
@@ -1251,9 +1269,21 @@ export default function AdminNavigationPage() {
                       onClick={() =>
                         setConfig({ ...config, logoImageUrl: "/images/logo.png" })
                       }
-                      className="px-3 py-1.5 text-xs text-neutral-600 hover:text-black border border-neutral-300 rounded bg-white transition-colors"
+                      className="px-3 py-1.5 text-xs text-neutral-600 hover:text-black border border-neutral-300 rounded bg-white transition-colors cursor-pointer"
                     >
                       Reset to Default
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setConfig({ ...config, logoImageUrl: "" })
+                      }
+                      className="px-3 py-1.5 text-xs text-rose-600 hover:bg-rose-50 border border-rose-200 rounded bg-white transition-colors cursor-pointer flex items-center gap-1"
+                      title="Clear logo"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Remove</span>
                     </button>
                   </div>
 

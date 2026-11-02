@@ -4,10 +4,13 @@ import React, { useState } from "react";
 import { X } from "lucide-react";
 import Link from "next/link";
 import { useNavigation } from "@/lib/useNavigation";
+import { useSafeLiveCms } from "@/components/cms/LiveCmsContext";
 
 export default function AnnouncementBar() {
   const [dismissed, setDismissed] = useState(false);
-  const { config } = useNavigation();
+  const cms = useSafeLiveCms();
+  const { config: hookConfig } = useNavigation();
+  const config = cms?.navigationConfig || hookConfig;
 
   const announcement = config?.announcement;
 

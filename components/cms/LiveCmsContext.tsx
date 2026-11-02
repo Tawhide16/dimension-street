@@ -98,6 +98,7 @@ export function LiveCmsProvider({
   const [savedSectionsSnapshot, setSavedSectionsSnapshot] = useState(JSON.stringify(initialSections));
   const [savedThemeSnapshot, setSavedThemeSnapshot] = useState(JSON.stringify(initialTheme));
   const [savedFooterSnapshot, setSavedFooterSnapshot] = useState(JSON.stringify(initialFooter));
+  const [savedNavSnapshot, setSavedNavSnapshot] = useState(JSON.stringify(initialNavigation));
 
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -144,10 +145,11 @@ export function LiveCmsProvider({
   // Load latest data when admin opens editor
   const loadLatestData = useCallback(async () => {
     try {
-      const [secRes, themeRes, footRes, colRes] = await Promise.all([
+      const [secRes, themeRes, footRes, navRes, colRes] = await Promise.all([
         fetch("/api/cms/sections", { cache: "no-store" }),
         fetch("/api/cms/theme", { cache: "no-store" }),
         fetch("/api/cms/footer", { cache: "no-store" }),
+        fetch("/api/cms/navigation", { cache: "no-store" }),
         fetch("/api/collections", { cache: "no-store" }),
       ]);
 
@@ -170,6 +172,13 @@ export function LiveCmsProvider({
         if (fData.success && fData.config) {
           setFooterConfig(fData.config);
           setSavedFooterSnapshot(JSON.stringify(fData.config));
+        }
+      }
+      if (navRes.ok) {
+        const nData = await navRes.json();
+        if (nData.success && nData.config) {
+          setNavigationConfig(nData.config);
+          setSavedNavSnapshot(JSON.stringify(nData.config));
         }
       }
       if (colRes.ok) {
@@ -225,9 +234,10 @@ export function LiveCmsProvider({
     return (
       JSON.stringify(sections) !== savedSectionsSnapshot ||
       JSON.stringify(themeConfig) !== savedThemeSnapshot ||
-      JSON.stringify(footerConfig) !== savedFooterSnapshot
+      JSON.stringify(footerConfig) !== savedFooterSnapshot ||
+      JSON.stringify(navigationConfig) !== savedNavSnapshot
     );
-  }, [sections, themeConfig, footerConfig, savedSectionsSnapshot, savedThemeSnapshot, savedFooterSnapshot]);
+  }, [sections, themeConfig, footerConfig, navigationConfig, savedSectionsSnapshot, savedThemeSnapshot, savedFooterSnapshot, savedNavSnapshot]);
 
   // Section updates
   const updateSectionData = (sectionTypeOrId: string, dataKey: string, value: any) => {
@@ -376,7 +386,7 @@ export function LiveCmsProvider({
     setIsSaving(true);
     setStatusMessage("Publishing changes to live storefront...");
     try {
-      const [secRes, themeRes, footRes] = await Promise.all([
+      const [secRes, themeRes, footRes, navRes] = await Promise.all([
         fetch("/api/cms/sections", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -392,20 +402,31 @@ export function LiveCmsProvider({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(footerConfig),
         }),
+        fetch("/api/cms/navigation", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(navigationConfig),
+        }),
       ]);
 
-      const [secData, themeData, footData] = await Promise.all([
+      const [secData, themeData, footData, navData] = await Promise.all([
         secRes.json().catch(() => ({ success: false })),
         themeRes.json().catch(() => ({ success: false })),
         footRes.json().catch(() => ({ success: false })),
+        navRes.json().catch(() => ({ success: false })),
       ]);
 
       if (secData.success) setSavedSectionsSnapshot(JSON.stringify(sections));
       if (themeData.success) setSavedThemeSnapshot(JSON.stringify(themeConfig));
       if (footData.success) setSavedFooterSnapshot(JSON.stringify(footerConfig));
+      if (navData.success) setSavedNavSnapshot(JSON.stringify(navigationConfig));
+
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("navigation-updated"));
+      }
 
       setSaveSuccess(true);
-      setStatusMessage("✓ All theme, text, images & footer links published live!");
+      setStatusMessage("✓ All theme, navbar, text, images & footer links published live!");
       setTimeout(() => {
         setSaveSuccess(false);
         setStatusMessage(null);
@@ -425,6 +446,7 @@ export function LiveCmsProvider({
       setSections(JSON.parse(savedSectionsSnapshot));
       setThemeConfig(JSON.parse(savedThemeSnapshot));
       setFooterConfig(JSON.parse(savedFooterSnapshot));
+      setNavigationConfig(JSON.parse(savedNavSnapshot));
       setStatusMessage("Reverted to last published state.");
       setTimeout(() => setStatusMessage(null), 3000);
     } catch {}
@@ -556,5 +578,9 @@ export function useLiveCms() {
     throw new Error("useLiveCms must be used within a LiveCmsProvider");
   }
   return ctx;
+}
+
+export function useSafeLiveCms() {
+  return useContext(LiveCmsContext);
 }
 

@@ -7,12 +7,15 @@ import { usePathname } from "next/navigation";
 import Logo from "../shared/Logo";
 import { useCart } from "@/lib/cartContext";
 import { useNavigation } from "@/lib/useNavigation";
+import { useSafeLiveCms } from "@/components/cms/LiveCmsContext";
 import { ShoppingCart, Heart, User, Search } from "lucide-react";
 
 export default function Header() {
   const pathname = usePathname();
   const { itemCount, openCart, wishlist } = useCart();
-  const { config } = useNavigation();
+  const cms = useSafeLiveCms();
+  const { config: hookConfig } = useNavigation();
+  const config = cms?.navigationConfig || hookConfig;
   const [currentUser, setCurrentUser] = useState<{ name: string; email: string } | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
@@ -122,13 +125,13 @@ export default function Header() {
           <div
             className={`items-center ${
               config?.hideLogo
-                ? "hidden"
+                ? "!hidden"
                 : config?.hideLogoDesktop && config?.hideLogoMobile
-                ? "hidden"
+                ? "!hidden"
                 : config?.hideLogoDesktop
-                ? "flex md:hidden"
+                ? "flex md:!hidden"
                 : config?.hideLogoMobile
-                ? "hidden md:flex"
+                ? "!hidden md:flex"
                 : "flex"
             }`}
           >

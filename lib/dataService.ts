@@ -1812,6 +1812,9 @@ export async function getNavbarConfig(): Promise<INavbarConfig> {
           logoType: (doc.logoType as "image" | "text") || "image",
           logoText: doc.logoText || "DIMENSION STREET",
           logoImageUrl: doc.logoImageUrl || "/images/logo.png",
+          hideLogo: Boolean(doc.hideLogo),
+          hideLogoMobile: Boolean(doc.hideLogoMobile),
+          hideLogoDesktop: Boolean(doc.hideLogoDesktop),
           menuPillLabel: doc.menuPillLabel || "Menu",
           showCart: doc.showCart !== false,
           showWishlist: doc.showWishlist !== false,
@@ -1868,6 +1871,9 @@ export async function updateNavbarConfig(
         if (updates.logoType !== undefined) doc.logoType = updates.logoType;
         if (updates.logoText !== undefined) doc.logoText = updates.logoText;
         if (updates.logoImageUrl !== undefined) doc.logoImageUrl = updates.logoImageUrl;
+        if (updates.hideLogo !== undefined) doc.hideLogo = updates.hideLogo;
+        if (updates.hideLogoMobile !== undefined) doc.hideLogoMobile = updates.hideLogoMobile;
+        if (updates.hideLogoDesktop !== undefined) doc.hideLogoDesktop = updates.hideLogoDesktop;
         if (updates.menuPillLabel !== undefined) doc.menuPillLabel = updates.menuPillLabel;
         if (updates.showCart !== undefined) doc.showCart = updates.showCart;
         if (updates.showWishlist !== undefined) doc.showWishlist = updates.showWishlist;
@@ -1879,7 +1885,22 @@ export async function updateNavbarConfig(
 
         await doc.save();
       }
-      result = doc.toObject();
+      result = {
+        logoType: (doc.logoType as "image" | "text") || "image",
+        logoText: doc.logoText || "DIMENSION STREET",
+        logoImageUrl: doc.logoImageUrl || "/images/logo.png",
+        hideLogo: Boolean(doc.hideLogo),
+        hideLogoMobile: Boolean(doc.hideLogoMobile),
+        hideLogoDesktop: Boolean(doc.hideLogoDesktop),
+        menuPillLabel: doc.menuPillLabel || "Menu",
+        showCart: doc.showCart !== false,
+        showWishlist: doc.showWishlist !== false,
+        showAccount: doc.showAccount !== false,
+        showSearch: doc.showSearch !== false,
+        sticky: doc.sticky !== false,
+        items: doc.items || initialNavbarConfig.items,
+        announcement: doc.announcement || initialNavbarConfig.announcement,
+      };
     } catch (err) {
       console.warn("Mongo updateNavbarConfig error, saved to memory:", err);
     }

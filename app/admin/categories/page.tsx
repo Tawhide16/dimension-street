@@ -472,16 +472,35 @@ export default function AdminCategoriesPage() {
                       className="hidden"
                     />
                   </label>
+                  {editingCategory.image && (
+                    <button
+                      type="button"
+                      onClick={() => setEditingCategory((prev) => (prev ? { ...prev, image: "" } : null))}
+                      className="px-2.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-lg flex items-center gap-1 text-xs font-bold shrink-0 transition-colors cursor-pointer"
+                      title="Remove Image"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Remove</span>
+                    </button>
+                  )}
                 </div>
 
                 {editingCategory.image && (
-                  <div className="relative h-28 w-full rounded-lg overflow-hidden border border-neutral-200 bg-neutral-100 mt-2">
+                  <div className="relative h-28 w-full rounded-lg overflow-hidden border border-neutral-200 bg-neutral-100 mt-2 group">
                     <Image
                       src={editingCategory.image}
                       alt="Category Preview"
                       fill
                       className="object-cover"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setEditingCategory((prev) => (prev ? { ...prev, image: "" } : null))}
+                      className="absolute top-2 right-2 p-1.5 bg-black/70 hover:bg-rose-600 text-white rounded-md shadow-xs opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                      title="Delete category image"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 )}
               </div>
